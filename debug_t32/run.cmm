@@ -1,0 +1,15 @@
+;
+;  Copyright 2021-2022 NXP
+;
+
+LOCAL &load_to
+LOCAL &elf_file
+
+&load_to="flash"                                            ;target memory: flash or ram
+&elf_file="../Debug_FLASH/FreeRTOS_Toggle_Led_Example_S32K344.elf"     ;path to elf file
+
+DO s32k344.cmm &load_to &elf_file JTAG_INIT   ""
+
+data.list
+register.set pc Reset_Handler
+go main
