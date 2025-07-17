@@ -169,7 +169,8 @@ void tja1103_config_enable(void)
 void tja1103_wait_for_link(void) {
 	uint16_t regvalue;
 
-	Gmac_Ip_MDIOReadMMD(0, phyad, MMD1, PMA_STATUS1, &regvalue, TIMEOUT_MS);
+	//pma is a sub group of MDIO registers
+	Gmac_Ip_MDIOReadMMD(0, phyad, MMD1, PMA_STATUS1, &regvalue, TIMEOUT_MS);//receive link status on pma status1
 
 	/* Use chip UID for a random seed */
 	srand(__UTEST_UID[0]);
@@ -177,7 +178,7 @@ void tja1103_wait_for_link(void) {
 	while((regvalue & PMA_STATUS_LINK_STATUS) == 0) {
 		int rval = (rand() / (RAND_MAX / 1000)) + 500; /* Random retries between 500 and 1500 ms */
 
-		Gmac_Ip_MDIOReadMMD(0, phyad, MMD1, BT1_PMA_CONTROL_REG_ADR, &regvalue, TIMEOUT_MS);
+		Gmac_Ip_MDIOReadMMD(0, phyad, MMD1, BT1_PMA_CONTROL_REG_ADR, &regvalue, TIMEOUT_MS);//base_t1_PMA_CONTROL register 1<<14 is master
 		if(regvalue & BT1_PMAPMD_MASTER) {
 			Gmac_Ip_MDIOWriteMMD(0, phyad, MMD1, BT1_PMA_CONTROL_REG_ADR,
 					BT1_PMAPMD_CONFIG_EN, 100);
@@ -314,6 +315,7 @@ void eth_rx_worker(void *arg) {
 		}
 
 		xSemaphoreGive(eth_blink);
+		const struct ethernet_frame* ether_frame = (struct ethernet_frame*)RxBuffer.Data;
 
 		Gmac_Ip_ProvideRxBuff(INST_GMAC_0, 0U, &RxBuffer);
 
@@ -322,7 +324,7 @@ void eth_rx_worker(void *arg) {
 
 		Flexcan_Ip_MsgBuffType message;
 		message = CanAvtp;
-		const struct ethernet_frame* ether_frame = (struct ethernet_frame*)RxBuffer.Data;
+		ether_frame = (struct ethernet_frame*)RxBuffer.Data;
 		/*i have to swap the ethertype for a correct read*/
 		//etherswap(&ether_frame->ether_type);
 		switch(ether_frame->ether_type){
@@ -361,9 +363,9 @@ void enet_start_rx(QueueHandle_t* eth_can_queues, uint32 count) {
 	xTaskCreate( eth_rx_worker, "ETH_RX", 512, NULL, eth_TASK_PRIORITY, &rx_task);
 
 	/* Enable RX IRQ to receive incoming packets */
-	IntCtrl_Ip_EnableIrq(EMAC_2_IRQn);
 	IntCtrl_Ip_InstallHandler(EMAC_2_IRQn, GMAC0_CH_RX_IRQHandler, NULL_PTR);
 	IntCtrl_Ip_SetPriority(EMAC_2_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
+	IntCtrl_Ip_EnableIrq(EMAC_2_IRQn);
 }
 
 void enet_start_tx(void) {
@@ -374,9 +376,10 @@ void enet_start_tx(void) {
 	xTaskCreate( eth_tx_worker, "ETH_TX", 512, NULL, eth_TASK_PRIORITY, &tx_task);
 
 	/* Enable RX IRQ to receive incoming packets */
-//	IntCtrl_Ip_EnableIrq(EMAC_2_IRQn);
-//	IntCtrl_Ip_InstallHandler(EMAC_2_IRQn, GMAC0_CH_RX_IRQHandler, NULL_PTR);
-//	IntCtrl_Ip_SetPriority(EMAC_2_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
+
+	IntCtrl_Ip_InstallHandler(EMAC_2_IRQn, GMAC0_CH_RX_IRQHandler, NULL_PTR);
+	IntCtrl_Ip_SetPriority(EMAC_2_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
+	IntCtrl_Ip_EnableIrq(EMAC_2_IRQn);
 }
 
 void enet_rx_interrupt(uint32 Instance, uint32 Channel) {

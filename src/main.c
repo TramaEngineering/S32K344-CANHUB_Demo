@@ -35,13 +35,13 @@
 #include "enet.h"
 #include "fs26.h"
 #include "uart.h"
+#include "./uart_print/retarget.h"
 
 //define a vector of can queues (RTOS)
 #define CAN_COUNT 6
 QueueHandle_t eth_can_queues[CAN_COUNT];
 /*message queue to be filled with the message to be sent when button is pressed*/
 QueueHandle_t tx_queue_send;
-
 
 const char* buttonMsg = "CANHUBK3";
 
@@ -54,47 +54,82 @@ const Flexcan_Ip_MsgBuffType buttonCanFrame = {
 		.time_stamp = 0
 };
 
-
-enum STATUS{
-	INITIALIZE,
-	ERROR,
-	NOMINAL,
-	ETH_ACTIVITY,
-};
-typedef enum STATUS rgb_status;
-
 void set_rgb_status(rgb_status status) {
 	switch(status) {
-	case INITIALIZE:
-		Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
-		Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
-		Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
-		break;
+		case INITIALIZE:
+			Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
+			Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+			Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+			break;
 
-	case ERROR:
-		Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
-		Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
-		Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
-		break;
+		case ERROR:
+			Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
+			Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+			Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+			break;
 
-	case NOMINAL:
-		Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
-		Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
-		Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
-		break;
+		case NOMINAL:
+			Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
+			Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+			Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+			break;
 
-	case ETH_ACTIVITY:
-		Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
-		Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
-		Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
-		break;
+		case ETH_ACTIVITY:
+			Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
+			Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+			Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+			break;
+
+		case RED:
+			Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
+			Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+			Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+			break;
+
+		case GREEN:
+			Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
+			Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+			Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+			break;
+
+		case BLUE:
+			Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
+			Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+			Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+			break;
+
+		case CYAN:
+			Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
+			Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+			Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+			break;
+
+		case YELLOW:
+			Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
+			Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+			Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+			break;
+
+		case MAGENTA:
+			Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
+			Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+			Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+			break;
+
+		case WHITE:
+			Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
+			Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+			Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+			break;
 	}
 }
+
+rgb_status error_st = BLUE;
 
 void HardFault_Handler(void)
 {
 	/* Hard fault occured */
-	set_rgb_status(ERROR);
+	set_rgb_status(error_st);
 	while(TRUE){};
 }
 
@@ -173,19 +208,21 @@ int main(void)
 	}
 
 	/* Set RGB to indicate initialization */
-	set_rgb_status(INITIALIZE);
+	//set_rgb_status(INITIALIZE);
 
 	Clock_Ip_StatusType Status_Init_Clock = CLOCK_IP_ERROR;
 	Status_Init_Clock = Clock_Ip_Init(Clock_Ip_aClockConfig);
 
 	if(Status_Init_Clock != CLOCK_IP_SUCCESS)
 	{
-		set_rgb_status(ERROR);
+		//set_rgb_status(ERROR);
 		while(1); /* Error during initialization. */
 	}
 
 	/* Initialize the FS26 to stop it from resetting */
 	Lpspi_Ip_Init(&Lpspi_Ip_PhyUnitConfig_SpiPhyUnit_3_Instance_3_BOARD_InitPeripherals);
+	UART_init();
+	/*ERROR IN START UP*/
 	fs26_initialize(&fs26SpiTransferFunction);
 
 	/* Intialize for SIUL ICU for external interrupts from the buttons */
@@ -211,19 +248,13 @@ int main(void)
 	Gmac_Ip_StatusType Status_Init_Gmac = GMAC_STATUS_ERROR;
 	Status_Init_Gmac = enet_init(&tx_queue_send);
 
+
+
 	if(Status_Init_Gmac != GMAC_STATUS_SUCCESS)
 	{
-		set_rgb_status(ERROR);
+		//set_rgb_status(ERROR);
 		while(1); /* Error during initialization. */
 	}
-/*
-	Lpuart_Uart_Ip_StatusType Status_Init_UART = LPUART_UART_IP_STATUS_ERROR;
-	Status_Init_UART = UART_init();
-	if(Status_Init_UART != LPUART_UART_IP_STATUS_SUCCESS){
-		set_rgb_status(ERROR);
-		while(1);
-	}*/
-	UART_init();
 
 	/* Initialize CAN0 .. CAN5 */
 	for(int i = 0; i < CAN_COUNT; i++) {
@@ -232,17 +263,18 @@ int main(void)
 		if(can != NULL) {
 			eth_can_queues[i] = can->eth_can_queue;
 		} else {
-			set_rgb_status(ERROR);
+			//set_rgb_status(ERROR);
 			while(1); /* Error during initialization. */
 		}
 	}
 
 	/* Start Listening to ethernet packets */
 	enet_start_rx(eth_can_queues, CAN_COUNT);
+
 	/*create a thread that pools on a message queue and send the message when it receive one*/
 	enet_start_tx();
 
-	set_rgb_status(NOMINAL);
+	//set_rgb_status(NOMINAL);
 
 	/* Start FreeRTOS */
 	vTaskStartScheduler();
@@ -251,6 +283,7 @@ int main(void)
 	set_rgb_status(ERROR);
 
 	Lpuart_Uart_Ip_AsyncSend(LPUART_UART_IP_INSTANCE_USING_2, Txbuff, 16);
+	printf("hello world!\r\n");
 
 	for( ;; );
 

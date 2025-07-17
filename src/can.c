@@ -19,6 +19,7 @@
 #include "IntCtrl_Ip.h"
 #include "FlexCAN_Ip_HwAccess.h"
 #include "FlexCAN_Ip_Wrapper.h"
+#include "fs26.h"
 
 #define MSG_ID 20u
 #define RX_MB_IDX 1U
@@ -233,11 +234,13 @@ CAN* can_init(uint8 inst) {
 
 	/* FlexCAN Mailbox intialization */
 	if(can->config->is_enhanced_rx_fifo_needed) {
+
 		FlexCAN_Ip_ConfigEnhancedRxFifo_Privileged(can->instance, &CAN0_EnhanceFIFO_IdFilterTable[0]);
 		FlexCAN_Ip_SetRxMaskType_Privileged(can->instance, FLEXCAN_RX_MASK_INDIVIDUAL);
 		FlexCAN_Ip_SetRxIndividualMask_Privileged(can->instance, 1, 0x1FFFFFFF);
 		FlexCAN_Ip_SetRxIndividualMask(can->instance, 2, 0x7FF << 18);
 	} else {
+
 		Flexcan_Ip_DataInfoType rx_info = {
 				.msg_id_type = FLEXCAN_MSG_ID_EXT,
 				.data_length = 8u,
@@ -258,11 +261,6 @@ CAN* can_init(uint8 inst) {
 	}
 
 	FlexCAN_Ip_SetStartMode(can->instance);
-
-	sprintf(can->rx_task_name, "CANRX%i", can->instance);
-	sprintf(can->tx_task_name, "CANTX%i", can->instance);
-	sprintf(can->led_task_name, "CANLED%i", can->instance);
-	printf("CANLED%i", can->instance);
 
 	/* Create Tasks for FlexCAN TX & RX handling */
 	vSemaphoreCreateBinary(can->led_sem);

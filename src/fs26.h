@@ -30,6 +30,23 @@ typedef enum
 	FS26_WD_CHALLENGER = 2U  /* Challenger watchdog refresh */
 } fs26_watchdog_type;
 
+enum STATUS{
+	INITIALIZE,
+	ERROR,
+	NOMINAL,
+	ETH_ACTIVITY,
+	RED,
+	GREEN,
+	BLUE,
+	CYAN,/*BLUE AND GREEN*/
+	YELLOW, /*GREEN AND RED*/
+	MAGENTA, /*RED AND BLUE*/
+	WHITE, /*ALL*/
+};
+typedef enum STATUS rgb_status;
+
+extern rgb_status error_st;
+
 /****************************************************************************
  * Public functions
  ****************************************************************************/

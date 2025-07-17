@@ -18,9 +18,10 @@ void UART_init(){
         return Status_Init_UART;
     }*/
 
-    IntCtrl_Ip_EnableIrq(LPUART2_IRQn);
+
     IntCtrl_Ip_InstallHandler(LPUART2_IRQn, LPUART_UART_IP_2_IRQHandler, NULL_PTR);
     IntCtrl_Ip_SetPriority(LPUART2_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
+    IntCtrl_Ip_EnableIrq(LPUART2_IRQn);
 
     //return Status_Init_UART;
 }

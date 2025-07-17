@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include "Devassert.h"
+#include "./uart_print/retarget.h"
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -171,7 +172,7 @@ uint32_t fs26_setreg(uint8_t regaddr, uint16_t regval) {
 	// do SPI read (transfer)
 	spiStatus = p_fs26SpiTransferCallbackFunctionfp((uint8_t*)&spidata, (uint8_t*)&retval, 4);
 
-	debug_printf("SPI transfer done (set), error check...\n");
+	//debug_printf("SPI transfer done (set), error check...\n");
 	// check for errrors
 	if(spiStatus)
 	{
@@ -181,7 +182,7 @@ uint32_t fs26_setreg(uint8_t regaddr, uint16_t regval) {
 		while(1);
 	}
 
-	//fs26_print_general_device_status(retval);
+	fs26_print_general_device_status(retval);
 	debug_printf("SPI info: Received %08lx\n", retval);
 
 	if(fs26_calcrc((uint8_t*)&retval, 3) != ((uint8_t*)&retval)[0])
@@ -325,13 +326,14 @@ void fs26_initialize(fs26SpiTransferCallbackFunction p_fs26SpiTransferCallbackFu
 	p_fs26SpiTransferCallbackFunctionfp = p_fs26SpiTransferCallbackFunction;
 
 	/* Check FS diag */
+
 	retval = fs26_getreg(FS26_FS_DIAG_SAFETY1);
 
 	if((FS26_GET_DATA(retval) & (ABIST1_PASS_MASK | LBIST_STATUS_MASK)) != (ABIST1_PASS | LBIST_STATUS_OK))
 	{
-		debug_printf("FS26 DIAG failed %08lx\n", retval);
+		//debug_printf("FS26 DIAG failed %08lx\n", retval);
 
-		debug_printf("looping\n");
+		//printf("FS26 DIAG failed %08lx\r\n", retval);
 
 		while(1);
 	}
@@ -341,11 +343,12 @@ void fs26_initialize(fs26SpiTransferCallbackFunction p_fs26SpiTransferCallbackFu
 
 	if((FS26_GET_DATA(retval) & DBG_MODE_MASK) == DBG_MODE)
 	{
-		debug_printf("FS26 in DEBUG mode\n");
+		//debug_printf("FS26 in DEBUG mode\n");
+		//printf("FS26 in DEBUG mode\r\n");
 	}
 
 	/* INIT_FS */
-
+	/*error in reset*/
 	if((FS26_GET_DATA(retval) & FS_STATES_MASK) == FS_STATES_INIT_FS)
 	{
 
@@ -365,6 +368,7 @@ void fs26_initialize(fs26SpiTransferCallbackFunction p_fs26SpiTransferCallbackFu
 		fs26_setreg(FS26_FS_I_OVUV_SAFE_REACTION1, regval);
 		fs26_setreg(FS26_FS_I_NOT_OVUV_SAFE_REACTION1, ~regval);
 
+
 		regval = VMON_EXT_OV_FS_REACTION_NO_EFFECT |
 				VMON_EXT_UV_FS_REACTION_NO_EFFECT |
 				VMON_REF_OV_FS_REACTION_NO_EFFECT |
@@ -375,12 +379,18 @@ void fs26_initialize(fs26SpiTransferCallbackFunction p_fs26SpiTransferCallbackFu
 				VMON_TRK1_UV_FS_REACTION_NO_EFFECT;
 
 		fs26_setreg(FS26_FS_I_OVUV_SAFE_REACTION2, regval);
+
+
 		fs26_setreg(FS26_FS_I_NOT_OVUV_SAFE_REACTION2, ~regval);
+
 
 		regval = WD_ERR_LIMIT_8 | WD_RFR_LIMIT_6 | WD_FS_REACTION_NO_ACTION;
 
+
 		fs26_setreg(FS26_FS_I_WD_CFG, regval);
+
 		fs26_setreg(FS26_FS_I_NOT_WD_CFG, ~regval);
+
 
 		regval = FCCU_CFG_NO_MONITORING | ERRMON_ACK_TIME_32MS;
 
@@ -399,21 +409,27 @@ void fs26_initialize(fs26SpiTransferCallbackFunction p_fs26SpiTransferCallbackFu
 		fs26_setreg(FS26_FS_WDW_DURATION, regval);
 		fs26_setreg(FS26_FS_NOT_WDW_DURATION, ~regval);
 
+
 		fs26_wdrefresh();
 
-		debug_printf("FS26 in INIT_FS mode\n");
+
+		//debug_printf("FS26 in INIT_FS mode\n");
+		//printf("FS26 in INIT_FS mode\r\n");
 	}
 	else if((FS26_GET_DATA(retval) & FS_STATES_MASK) == FS_STATES_DEBUG_ENTRY)
 	{
-		debug_printf("FS26 in DEBUG_ENTRY mode\n");
+		//debug_printf("FS26 in DEBUG_ENTRY mode\n");
+		//printf("FS26 in DEBUG_ENTRY mode\r\n");
 	}
 	else if((FS26_GET_DATA(retval) & FS_STATES_MASK) == FS_STATES_NORMAL)
 	{
-		debug_printf("FS26 in NORMAL mode\n");
+		//debug_printf("FS26 in NORMAL mode\n");
+		//printf("FS26 in NORMAL mode\r\n");
 	}
 	else if((FS26_GET_DATA(retval) & FS_STATES_MASK) == FS_STATES_SAFETY_OUT_NOT)
 	{
-		debug_printf("FS26 in Safety Outputs not released\n");
+		//debug_printf("FS26 in Safety Outputs not released\n");
+		//printf("FS26 in Safety Outputs not released\r\n");
 	}
 
 }
