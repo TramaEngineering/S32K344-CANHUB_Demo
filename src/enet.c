@@ -20,6 +20,8 @@
 #include "Gmac_Ip_Hw_Access.h"
 #include "avtp_defs.h"
 #include "uart.h"
+#include "./uart_print/retarget.h"
+#include "fs26.h"
 
 SemaphoreHandle_t tx_queue_handle;
 QueueHandle_t tx_descr_queue;
@@ -101,7 +103,25 @@ const Flexcan_Ip_MsgBuffType CanArp = {
 		.time_stamp = 0
 };
 
-void eth_activity_led( void ){
+uint8 annouce_frame[48] = {
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  // MAC Dest (TRM PC)
+		0x66, 0x55, 0x44, 0x33, 0x22, 0x11,  // MAC Src (esempio)
+		0x08, 0x06,                          // EtherType: ARP
+		// Inizio payload ARP (dummy data per esempio)
+		0x00, 0x01, //HW ethertype
+		0x08, 0x00, // IPV4
+		0x06, //HW size
+		0x04, //PROTOCOL size
+		0x00, 0x01,	//opcode: request
+		0x66, 0x55, 0x44, 0x33, 0x22, 0x11, //sender mac address
+		0xc0, 0xa8, 0x00, 0x01, //sender ip address
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	//target mac address
+		0x00, 0x00, 0x00, 0x00, //target ip address
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	};
+
+void eth_activity_led( void *arg ){
+	(void) arg;
 	BaseType_t operation_status;
 
 	for(;;){
@@ -120,7 +140,8 @@ void eth_activity_led( void ){
 	}
 }
 
-void eth_activity_led_send( void ){
+void eth_activity_led_send( void *arg ){
+	(void) arg;
 	BaseType_t operation_status;
 
 	for(;;){
@@ -242,8 +263,6 @@ Gmac_Ip_StatusType enet_init(QueueHandle_t* tx_descr_queue_m) {
 
 	return Status_Init_Gmac;
 }
-
-
 
 void eth_tx_worker( void * arg) {
 	//volatile Gmac_Ip_StatusType Status;
@@ -380,6 +399,101 @@ void enet_start_tx(void) {
 	IntCtrl_Ip_InstallHandler(EMAC_2_IRQn, GMAC0_CH_RX_IRQHandler, NULL_PTR);
 	IntCtrl_Ip_SetPriority(EMAC_2_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
 	IntCtrl_Ip_EnableIrq(EMAC_2_IRQn);
+
+}
+
+void init_annouce(void){
+
+	error_st = RED;
+	//printf("ARP announce! \r\n");
+	xSemaphoreTake(tx_send_mutex, portMAX_DELAY);
+	error_st = GREEN;
+
+	Gmac_Ip_BufferType* eth_message;
+
+	error_st = YELLOW;
+	eth_message->Data = annouce_frame;
+	eth_message->Length = (uint16)48;
+
+	Gmac_Ip_BufferType TxBuffer = {0};
+	Gmac_Ip_TxOptionsType TxOptions = {FALSE, GMAC_CRC_AND_PAD_INSERTION, GMAC_CHECKSUM_INSERTION_DISABLE};
+
+	/*request a buffer of at least 64 bytes*/
+	TxBuffer.Length = 128U;
+	error_st = CYAN;
+
+	while((GMAC_STATUS_SUCCESS != Gmac_Ip_GetTxBuff(INST_GMAC_0, 0u, &TxBuffer, NULL_PTR)) || (TxBuffer.Length < 128U)){
+		xSemaphoreTake(tx_queue_handle, portMAX_DELAY);
+	}
+
+	TxBuffer = *eth_message;
+
+	/* Send the ETH frame */
+	/*true function that sends data to the transceiver*/
+	while (GMAC_STATUS_TX_QUEUE_FULL == Gmac_Ip_SendFrame(INST_GMAC_0, 0U, &TxBuffer, &TxOptions))
+	{
+		xSemaphoreTake(tx_queue_handle, portMAX_DELAY);
+	}
+
+	if( xQueueSend( tx_descr_queue,( void * ) &TxBuffer,( TickType_t ) 10 ) != pdPASS )
+	{
+		/* Failed to post the message, even after 10 ticks. */
+		printf("Message send fail after 10 ticks!\r\n");
+	}
+	//xSemaphoreGive(eth_blink_send);
+	error_st = MAGENTA;
+
+	xSemaphoreGive( tx_send_mutex );
+
+	//printf("Annouce send!\r\n");
+
+}
+
+void send_eth_frame(Gmac_Ip_BufferType* eth_message){
+
+	printf("Im about to send! \r\n");
+	xSemaphoreTake(tx_send_mutex, portMAX_DELAY);
+
+	Gmac_Ip_BufferType TxBuffer = {0};
+	Gmac_Ip_TxOptionsType TxOptions = {FALSE, GMAC_CRC_AND_PAD_INSERTION, GMAC_CHECKSUM_INSERTION_DISABLE};
+
+	uint8 MacAddr[6U] = {0U};
+
+	Gmac_Ip_GetMacAddr(INST_GMAC_0, MacAddr);
+
+	/*request a buffer of at least 64 bytes*/
+	TxBuffer.Length = 128U;
+
+	while((GMAC_STATUS_SUCCESS != Gmac_Ip_GetTxBuff(INST_GMAC_0, 0u, &TxBuffer, NULL_PTR)) || (TxBuffer.Length < 128U)){
+		xSemaphoreTake(tx_queue_handle, portMAX_DELAY);
+	}
+
+	TxBuffer = *eth_message;
+	struct ethernet_frame * eth_frame = (struct ethernet_frame*)TxBuffer.Data;
+
+	memset(eth_frame->dst_macaddr, 0xFF, ETH_ALEN); /* Broadcast */
+	memcpy(eth_frame->src_macaddr, MacAddr, ETH_ALEN); /* Our own MAC addr */
+
+	//TxBuffer.Length = 64U - 4U;     /* Don't count FCS, because it is automatically inserted by the controller in this example */
+
+	/* Send the ETH frame */
+	/*true function that sends data to the transceiver*/
+	while (GMAC_STATUS_TX_QUEUE_FULL == Gmac_Ip_SendFrame(INST_GMAC_0, 0U, &TxBuffer, &TxOptions))
+	{
+		xSemaphoreTake(tx_queue_handle, portMAX_DELAY);
+	}
+
+	if( xQueueSend( tx_descr_queue,( void * ) &TxBuffer,( TickType_t ) 10 ) != pdPASS )
+	{
+		/* Failed to post the message, even after 10 ticks. */
+		printf("Message send fail after 10 ticks!\r\n");
+	}
+	//xSemaphoreGive(eth_blink_send);
+
+	xSemaphoreGive( tx_send_mutex );
+
+	printf("Sent message!\r\n");
+
 }
 
 void enet_rx_interrupt(uint32 Instance, uint32 Channel) {

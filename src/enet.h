@@ -65,6 +65,7 @@ extern "C"{
  *                                      GLOBAL VARIABLES
 ==================================================================================================*/
 
+
 /*==================================================================================================
  *                                   LOCAL FUNCTION PROTOTYPES
 ==================================================================================================*/
@@ -78,7 +79,9 @@ extern "C"{
 /*==================================================================================================
  *                                       GLOBAL FUNCTIONS
 ==================================================================================================*/
-void eth_activity_led( void );
+void eth_activity_led( void *arg );
+
+void eth_activity_led_send( void *arg );
 
 Gmac_Ip_StatusType enet_init(QueueHandle_t* tx_descr_queue);
 
@@ -89,6 +92,10 @@ void enet_start_rx(QueueHandle_t* eth_can_queues, uint32 count);
 void enet_start_tx(void);
 
 void send_main_can_frame_on_eth(Flexcan_Ip_MsgBuffType *can_frame);
+
+void send_eth_frame(Gmac_Ip_BufferType* eth_message);
+
+void init_annouce(void);
 
 #ifdef __cplusplus
 }

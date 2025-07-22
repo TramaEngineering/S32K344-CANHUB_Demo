@@ -191,8 +191,6 @@ int fs26SpiTransferFunction(uint8_t *TxBuffer, uint8_t *RxBuffer, uint16_t Lengt
  *               2 tasks to toggle a LED.
  */
 
-uint8 Txbuff[16] = "Hello from board";
-
 int main(void)
 {
 	/* Initialize Clock */
@@ -273,17 +271,18 @@ int main(void)
 
 	/*create a thread that pools on a message queue and send the message when it receive one*/
 	enet_start_tx();
+	init_annouce();
 
 	//set_rgb_status(NOMINAL);
 
+	//init_annouce();
 	/* Start FreeRTOS */
 	vTaskStartScheduler();
 
 	/* Scheduler returned this an error was encountered */
 	set_rgb_status(ERROR);
 
-	Lpuart_Uart_Ip_AsyncSend(LPUART_UART_IP_INSTANCE_USING_2, Txbuff, 16);
-	printf("hello world!\r\n");
+	printf("Error in code!\r\n");
 
 	for( ;; );
 
