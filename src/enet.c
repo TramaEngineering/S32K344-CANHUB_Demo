@@ -22,6 +22,7 @@
 #include "uart.h"
 #include "./uart_print/retarget.h"
 #include "fs26.h"
+#include "bsp.h"
 
 SemaphoreHandle_t tx_queue_handle;
 QueueHandle_t tx_descr_queue;
@@ -47,6 +48,7 @@ QueueHandle_t* eth_can_queue;
 int can_count;
 TaskHandle_t rx_task;
 TaskHandle_t tx_task;
+TaskHandle_t link_check_task;
 int phyad = 0;
 
 extern uint32_t __UTEST_UID[2];
@@ -64,17 +66,19 @@ extern uint32_t __UTEST_UID[2];
 #define BT1_PMA_CONTROL_REG_ADR		(0x0834U)
 #define DEV_CONTR_REG_ADR			(0x0040U)
 #define PHY_CONTR_REG_ADR			(0x8100U)
+#define PHY_STATUS_REGISTER			0x8102
 
 #define PMA_STATUS_LINK_STATUS		(1 << 2)
 
 #define BT1_PMAPMD_CONFIG_EN		(1 << 15)
 #define BT1_PMAPMD_MASTER		    (1 << 14)
+#define BT1_PMAPMD_SLAVE		    0XFFFF & ~(1 << 14)
 
 #define DEV_GLOBAL_CONF_ENA_FLAG		(0x4000U)
-#define DEV_SUPER_CONF_ENA_FLAG			(0x2000U)
+#define DEV_SUPER_CONFIG_ENA_FLAG		(1 << 13)
+#define DEV_SUPER_CONFIG_DIS_FLAG		0XFFFF & ~(1 << 13)
 #define PHY_CONFIG_EN_FLAG 				(0x4000U)
-
-uint8 Txbuff2[16] = "Hello from board";
+//#define DEBUG_PRINT
 
 const Flexcan_Ip_MsgBuffType CanAvtp = {
 		.cs = 0x0,
@@ -119,104 +123,6 @@ uint8 annouce_frame[48] = {
 		0x00, 0x00, 0x00, 0x00, //target ip address
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 	};
-
-void eth_activity_led( void *arg ){
-	(void) arg;
-	BaseType_t operation_status;
-
-	for(;;){
-		operation_status = xSemaphoreTake(eth_blink, portMAX_DELAY);
-		configASSERT(operation_status == pdTRUE);
-
-		Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
-		Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
-		Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
-
-		vTaskDelay(pdMS_TO_TICKS(90));
-
-		Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
-		Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
-		Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
-	}
-}
-
-void eth_activity_led_send( void *arg ){
-	(void) arg;
-	BaseType_t operation_status;
-
-	for(;;){
-		operation_status = xSemaphoreTake(eth_blink_send, portMAX_DELAY);
-		configASSERT(operation_status == pdTRUE);
-
-		/*set another task to do the uart shell write and readdsdsdsdsdsd*/
-		Lpuart_Uart_Ip_AsyncSend(LPUART_UART_IP_INSTANCE_USING_2, Txbuff2, 16);
-
-		Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
-		Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
-		Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
-
-		vTaskDelay(pdMS_TO_TICKS(90));
-
-		Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
-		Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
-		Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
-	}
-}
-
-uint8_t TJA1103_find_addr(void)
-{
-	for(uint8_t id = 1; id < 32; id++)
-	{
-		uint16_t value;
-		/* INST, ADDR, MMD, REGADDR, VAL, TIMEOUT */
-		Gmac_Ip_MDIOReadMMD(0, id, 1, 0x0002, &value, 200);
-		if (value == TJA1103_DEV_ID)
-			return id;
-	}
-	return 0;
-}
-
-void tja1103_config_enable(void)
-{
-	phyad = TJA1103_find_addr();
-
-	Gmac_Ip_MDIOWriteMMD(0, phyad, MMD1, DEV_CONTR_REG_ADR,
-			DEV_GLOBAL_CONF_ENA_FLAG | DEV_SUPER_CONF_ENA_FLAG, 100);
-
-	Gmac_Ip_MDIOWriteMMD(0, phyad, MMD1, PHY_CONTR_REG_ADR,
-			PHY_CONFIG_EN_FLAG, 100);
-}
-
-void tja1103_wait_for_link(void) {
-	uint16_t regvalue;
-
-	//pma is a sub group of MDIO registers
-	Gmac_Ip_MDIOReadMMD(0, phyad, MMD1, PMA_STATUS1, &regvalue, TIMEOUT_MS);//receive link status on pma status1
-
-	/* Use chip UID for a random seed */
-	srand(__UTEST_UID[0]);
-
-	while((regvalue & PMA_STATUS_LINK_STATUS) == 0) {
-		int rval = (rand() / (RAND_MAX / 1000)) + 500; /* Random retries between 500 and 1500 ms */
-
-		Gmac_Ip_MDIOReadMMD(0, phyad, MMD1, BT1_PMA_CONTROL_REG_ADR, &regvalue, TIMEOUT_MS);//base_t1_PMA_CONTROL register 1<<14 is master
-		if(regvalue & BT1_PMAPMD_MASTER) {
-			Gmac_Ip_MDIOWriteMMD(0, phyad, MMD1, BT1_PMA_CONTROL_REG_ADR,
-					BT1_PMAPMD_CONFIG_EN, 100);
-		} else {
-			Gmac_Ip_MDIOWriteMMD(0, phyad, MMD1, BT1_PMA_CONTROL_REG_ADR,
-					BT1_PMAPMD_CONFIG_EN | BT1_PMAPMD_MASTER, 100);
-		}
-
-		Gmac_Ip_MDIOReadMMD(0, phyad, MMD1, PMA_STATUS1, &regvalue, TIMEOUT_MS);
-
-		/* Wait for completion */
-		vTaskDelay(pdMS_TO_TICKS(rval));
-
-		Gmac_Ip_MDIOReadMMD(0, phyad, MMD1, PMA_STATUS1, &regvalue, TIMEOUT_MS);
-	}
-}
-
 
 Gmac_Ip_StatusType enet_init(QueueHandle_t* tx_descr_queue_m) {
 
@@ -264,6 +170,167 @@ Gmac_Ip_StatusType enet_init(QueueHandle_t* tx_descr_queue_m) {
 	return Status_Init_Gmac;
 }
 
+void eth_activity_led( void *arg ){
+	(void) arg;
+	BaseType_t operation_status;
+
+	for(;;){
+		operation_status = xSemaphoreTake(eth_blink, portMAX_DELAY);
+		configASSERT(operation_status == pdTRUE);
+
+		Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+		Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
+		Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+
+		vTaskDelay(pdMS_TO_TICKS(90));
+
+		Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+		Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
+		Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+	}
+}
+
+void eth_activity_led_send( void *arg ){
+	(void) arg;
+	BaseType_t operation_status;
+
+	for(;;){
+		operation_status = xSemaphoreTake(eth_blink_send, portMAX_DELAY);
+		configASSERT(operation_status == pdTRUE);
+
+		/*set another task to do the uart shell write and readdsdsdsdsdsd*/
+		//Lpuart_Uart_Ip_AsyncSend(LPUART_UART_IP_INSTANCE_USING_2, Txbuff2, 16);
+
+		Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+		Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
+		Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+
+		vTaskDelay(pdMS_TO_TICKS(90));
+
+		Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+		Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
+		Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+	}
+}
+
+uint8_t TJA1103_find_addr(void)
+{
+	for(uint8_t id = 1; id < 32; id++)
+	{
+		uint16_t value;
+		/* INST, ADDR, MMD, REGADDR, VAL, TIMEOUT */
+		Gmac_Ip_MDIOReadMMD(0, id, 1, 0x0002, &value, 200);
+		if (value == TJA1103_DEV_ID)
+			return id;
+	}
+	return 0;
+}
+
+void tja1103_config_enable(void)
+{
+	uint16_t device_control_reg;
+	//phyad = TJA1103_find_addr();
+
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR, &device_control_reg, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR, &device_control_reg, 100);
+#ifdef DEBUG_PRINT
+	printf("device control register mmd30 reg 40 before: ");
+	print_16(&device_control_reg);
+#endif
+
+	Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR,
+			device_control_reg | DEV_SUPER_CONFIG_ENA_FLAG, 100);
+
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR, &device_control_reg, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR, &device_control_reg, 100);
+#ifdef DEBUG_PRINT
+	printf("device control register mmd30 reg 40: ");
+	print_16(&device_control_reg);
+#endif
+
+}
+
+void tja1103_config_disable(void)
+{
+	uint16_t device_control_reg;
+	//phyad = TJA1103_find_addr();
+
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR, &device_control_reg, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR, &device_control_reg, 100);
+#ifdef DEBUG_PRINT
+	printf("device control register mmd30 reg 40 before: ");
+	print_16(&device_control_reg);
+#endif
+
+	Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR,
+			device_control_reg & DEV_SUPER_CONFIG_DIS_FLAG, 100);
+
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR, &device_control_reg, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR, &device_control_reg, 100);
+#ifdef DEBUG_PRINT
+	printf("device control register mmd30 reg 40: ");
+	print_16(&device_control_reg);
+#endif
+}
+
+void tja1103_wait_for_link(void) {
+	uint16_t regvalue;
+	Gmac_Ip_StatusType read_result;
+
+	//pma is a sub group of MDIO registers
+	read_result = Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD1, PHY_STATUS_REGISTER, &regvalue, TIMEOUT_MS);//receive link status on pma status1
+	read_result |= Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD1, PHY_STATUS_REGISTER, &regvalue, TIMEOUT_MS);//receive link status on pma status1
+
+	if(E_OK != read_result){
+		printf("Read gone wrong!!\r\n");
+	}
+	/* Use chip UID for a random seed */
+	vTaskDelay(500);
+
+	if((regvalue & PMA_STATUS_LINK_STATUS) == 0) {
+		tja1103_config_enable();
+
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD1, BT1_PMA_CONTROL_REG_ADR, &regvalue, TIMEOUT_MS);//base_t1_PMA_CONTROL register 1<<14 is master
+		if(regvalue & BT1_PMAPMD_MASTER) {
+			Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD1, BT1_PMA_CONTROL_REG_ADR,
+					regvalue & BT1_PMAPMD_SLAVE, 100);
+		} else {
+			Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD1, BT1_PMA_CONTROL_REG_ADR,
+					regvalue | BT1_PMAPMD_MASTER, 100);
+		}
+
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD1, BT1_PMA_CONTROL_REG_ADR, &regvalue, 100);
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD1, BT1_PMA_CONTROL_REG_ADR, &regvalue, 100);
+
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD1, PMA_STATUS1, &regvalue, TIMEOUT_MS);
+		tja1103_config_disable();
+
+		/* Wait for completion */
+		vTaskDelay(500);
+
+		read_result = Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD1, PHY_STATUS_REGISTER, &regvalue, TIMEOUT_MS);//receive link status on pma status1
+		read_result = Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD1, PHY_STATUS_REGISTER, &regvalue, TIMEOUT_MS);//receive link status on pma status1
+		if(E_OK != read_result){
+			#ifdef DEBUG_PRINT
+				printf("Read gone wrong!!\r\n");
+			#endif
+			}
+		if((regvalue & PMA_STATUS_LINK_STATUS) != 0) {
+			init_annouce();
+		}
+	}
+}
+
+void link_check_worker(void *args){
+	(void) args;
+
+	for(;;){
+		//printf("link check task!\r\n");
+		tja1103_wait_for_link();
+		vTaskDelay(500);
+	}
+}
+
 void eth_tx_worker( void * arg) {
 	//volatile Gmac_Ip_StatusType Status;
 	Flexcan_Ip_MsgBuffType can_message;
@@ -273,8 +340,8 @@ void eth_tx_worker( void * arg) {
 	//int bus_id;
 	(void)arg;
 
-	tja1103_config_enable();
-	tja1103_wait_for_link();
+	//tja1103_config_enable();
+	//tja1103_wait_for_link();
 
 	for( ;; )
 	{
@@ -315,10 +382,6 @@ void eth_rx_worker(void *arg) {
 	int bus_id;
 	(void)arg;
 
-	/* Make sure that TJA1103 has an ethernet link */
-	tja1103_config_enable();
-	tja1103_wait_for_link();
-
 	for( ;; )
 	{
 		Status = Gmac_Ip_ReadFrame(INST_GMAC_0, 0U, &RxBuffer, &RxInfo);
@@ -345,7 +408,6 @@ void eth_rx_worker(void *arg) {
 		message = CanAvtp;
 		ether_frame = (struct ethernet_frame*)RxBuffer.Data;
 		/*i have to swap the ethertype for a correct read*/
-		//etherswap(&ether_frame->ether_type);
 		switch(ether_frame->ether_type){
 			case ETHERNET_ETHERTYPE_AVTP_BE:
 				message = CanAvtp;
@@ -357,8 +419,6 @@ void eth_rx_worker(void *arg) {
 				message = CanArp;
 			break;
 		}
-
-		//sprintf("message: %s", (char*)message.data);
 
 		if(bus_id >= 0 && bus_id < can_count) {
 			if( xQueueSend( eth_can_queue[bus_id],
@@ -372,6 +432,10 @@ void eth_rx_worker(void *arg) {
 
 
 	}
+}
+
+void start_link_check(void){
+	xTaskCreate(link_check_worker, "PHY_LINK_CHECK", 512, NULL, eth_TASK_PRIORITY_1, &link_check_task);
 }
 
 void enet_start_rx(QueueHandle_t* eth_can_queues, uint32 count) {
@@ -403,15 +467,13 @@ void enet_start_tx(void) {
 }
 
 void init_annouce(void){
-
-	error_st = RED;
-	//printf("ARP announce! \r\n");
+	#ifdef DEBUG_PRINT
+		printf("ARP announce! \r\n");
+	#endif
 	xSemaphoreTake(tx_send_mutex, portMAX_DELAY);
-	error_st = GREEN;
 
-	Gmac_Ip_BufferType* eth_message;
+	Gmac_Ip_BufferType* eth_message = NULL;
 
-	error_st = YELLOW;
 	eth_message->Data = annouce_frame;
 	eth_message->Length = (uint16)48;
 
@@ -420,7 +482,6 @@ void init_annouce(void){
 
 	/*request a buffer of at least 64 bytes*/
 	TxBuffer.Length = 128U;
-	error_st = CYAN;
 
 	while((GMAC_STATUS_SUCCESS != Gmac_Ip_GetTxBuff(INST_GMAC_0, 0u, &TxBuffer, NULL_PTR)) || (TxBuffer.Length < 128U)){
 		xSemaphoreTake(tx_queue_handle, portMAX_DELAY);
@@ -440,18 +501,20 @@ void init_annouce(void){
 		/* Failed to post the message, even after 10 ticks. */
 		printf("Message send fail after 10 ticks!\r\n");
 	}
-	//xSemaphoreGive(eth_blink_send);
-	error_st = MAGENTA;
+	xSemaphoreGive(eth_blink_send);
 
 	xSemaphoreGive( tx_send_mutex );
 
-	//printf("Annouce send!\r\n");
+	#ifdef DEBUG_PRINT
+		printf("Annouce send!\r\n");
+	#endif
 
 }
 
 void send_eth_frame(Gmac_Ip_BufferType* eth_message){
-
-	printf("Im about to send! \r\n");
+	#ifdef DEBUG_PRINT
+		printf("Im about to send! \r\n");
+	#endif
 	xSemaphoreTake(tx_send_mutex, portMAX_DELAY);
 
 	Gmac_Ip_BufferType TxBuffer = {0};
@@ -491,8 +554,10 @@ void send_eth_frame(Gmac_Ip_BufferType* eth_message){
 	//xSemaphoreGive(eth_blink_send);
 
 	xSemaphoreGive( tx_send_mutex );
+	#ifdef DEBUG_PRINT
+		printf("Sent message!\r\n");
+	#endif
 
-	printf("Sent message!\r\n");
 
 }
 
@@ -606,4 +671,28 @@ void enet_ieee1722_acf_can_send(uint8 instance, Flexcan_Ip_MsgBuffType *can_fram
 	xSemaphoreGive(eth_blink_send);
 	xSemaphoreGive( tx_send_mutex );
 
+}
+
+void print_16(uint16_t *data){
+	uint16_t shift = *data;
+	for(int i = sizeof(uint16_t)-1; i>=0; i--){
+		printf("%"PRIu16,((shift>>i) & 0x1));
+	}
+	printf("\r\n");
+}
+
+void print_32(uint32_t *data){
+	uint32_t shift = *data;
+	for(int i = sizeof(uint32_t)-1; i>=0; i--){
+		printf("%"PRIu32,((shift>>i) & 0x1));
+	}
+	printf("\r\n");
+}
+
+void print_64(uint64_t *data){
+	uint64_t shift = *data;
+	for(int i = sizeof(uint64_t)-1; i>=0; i--){
+		printf("%"PRIu64,((shift>>i) & 0x1));
+	}
+	printf("\r\n");
 }

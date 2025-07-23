@@ -36,6 +36,9 @@
 #include "fs26.h"
 #include "uart.h"
 #include "./uart_print/retarget.h"
+#include "Pit_Ip.h"
+#include "IntCtrl_Ip.h"
+#include "bsp.h"
 
 //define a vector of can queues (RTOS)
 #define CAN_COUNT 6
@@ -184,6 +187,11 @@ int fs26SpiTransferFunction(uint8_t *TxBuffer, uint8_t *RxBuffer, uint16_t Lengt
 
 	return (int)spiStat;
 }
+void link_check(uint8 channel){
+	(void) channel;
+
+	//printf("Hello i'm PIT\r\n");
+}
 
 /**
  * @brief        Main function of the example
@@ -241,12 +249,19 @@ int main(void)
 	IntCtrl_Ip_InstallHandler(SIUL_3_IRQn, SIUL2_EXT_IRQ_24_31_ISR, NULL_PTR);
 	IntCtrl_Ip_SetPriority(SIUL_3_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
 
+	/*PIT initialization*/
+	Pit_Ip_Init(PIT_0_IP_INSTANCE_NUMBER, &PIT_0_InitConfig_PB);
+	/*PIT channel initialization*/
+	Pit_Ip_InitChannel(PIT_0_IP_INSTANCE_NUMBER, &PIT_0_ChannelConfig_PB[0]);
+	/*Start pit 0 channel 0*/
+	Pit_Ip_StartChannel(PIT_0_IP_INSTANCE_NUMBER, 0, 16000000);/*400ms*/
+	/*enable channel interrupt*/
+	Pit_Ip_EnableChannelInterrupt(PIT_0_IP_INSTANCE_NUMBER, 0);
+
 	/* Initialize ethernet MAC */
 	/*set the MAC to slave mode and not to master mode*/
 	Gmac_Ip_StatusType Status_Init_Gmac = GMAC_STATUS_ERROR;
 	Status_Init_Gmac = enet_init(&tx_queue_send);
-
-
 
 	if(Status_Init_Gmac != GMAC_STATUS_SUCCESS)
 	{
@@ -266,16 +281,22 @@ int main(void)
 		}
 	}
 
+
+	/*route the handler to the interrupt*/
+	IntCtrl_Ip_ConfigIrqRouting(&intRouteConfig);
+	/*load the interrupt configuration*/
+	IntCtrl_Ip_Init(&IntCtrlConfig_0);
+
+	start_link_check();
 	/* Start Listening to ethernet packets */
 	enet_start_rx(eth_can_queues, CAN_COUNT);
 
 	/*create a thread that pools on a message queue and send the message when it receive one*/
 	enet_start_tx();
-	init_annouce();
+	//init_annouce();
 
 	//set_rgb_status(NOMINAL);
 
-	//init_annouce();
 	/* Start FreeRTOS */
 	vTaskStartScheduler();
 

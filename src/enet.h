@@ -26,6 +26,7 @@ extern "C"{
 #include "FlexCAN_Ip.h"
 #include "Siul2_Port_Ip.h"
 #include "Siul2_Dio_Ip.h"
+#include <inttypes.h>
 
 
 /*==================================================================================================
@@ -50,6 +51,7 @@ extern "C"{
 ==================================================================================================*/
 
 #define eth_TASK_PRIORITY                ( tskIDLE_PRIORITY + 2 )
+#define eth_TASK_PRIORITY_1                ( tskIDLE_PRIORITY + 1 )
 
 /*==================================================================================================
  *                                      LOCAL VARIABLES
@@ -95,7 +97,15 @@ void send_main_can_frame_on_eth(Flexcan_Ip_MsgBuffType *can_frame);
 
 void send_eth_frame(Gmac_Ip_BufferType* eth_message);
 
+void start_link_check(void);
+
+void link_check_worker(void *args);
+
 void init_annouce(void);
+
+void print_16(uint16_t *data);
+void print_32(uint32_t *data);
+void print_64(uint64_t *data);
 
 #ifdef __cplusplus
 }
