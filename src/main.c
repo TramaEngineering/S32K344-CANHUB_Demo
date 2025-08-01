@@ -57,6 +57,10 @@ const Flexcan_Ip_MsgBuffType buttonCanFrame = {
 		.time_stamp = 0
 };
 
+
+Gmac_Ip_BufferType buttonEthFrame = { .Data = pDelayResp_frame, .Length=68};
+
+
 void set_rgb_status(rgb_status status) {
 	switch(status) {
 		case INITIALIZE:
@@ -150,7 +154,7 @@ void button_sw1(void)
 void button_sw2_ethernet(void)
 {
 
-	if(xQueueSendFromISR(tx_queue_send, (void*) &buttonCanFrame, NULL)){
+	if(xQueueSendFromISR(tx_queue_send, &pDelayResp, NULL)){
 			/*the thread has fail to send the message after 10 tick so there will be some error*/
 			/*put led blinking on a certain way*/
 		}
@@ -227,7 +231,7 @@ int main(void)
 
 	/* Initialize the FS26 to stop it from resetting */
 	Lpspi_Ip_Init(&Lpspi_Ip_PhyUnitConfig_SpiPhyUnit_3_Instance_3_BOARD_InitPeripherals);
-	UART_init();
+	Console_SerialPort_Init();
 	/*ERROR IN START UP*/
 	fs26_initialize(&fs26SpiTransferFunction);
 
@@ -281,19 +285,20 @@ int main(void)
 		}
 	}
 
-
+	/*have to init on another way the interrupts because at this moment all the other interrupt are misconfigured*/
 	/*route the handler to the interrupt*/
-	IntCtrl_Ip_ConfigIrqRouting(&intRouteConfig);
+	//IntCtrl_Ip_ConfigIrqRouting(&intRouteConfig);
 	/*load the interrupt configuration*/
-	IntCtrl_Ip_Init(&IntCtrlConfig_0);
+	//IntCtrl_Ip_Init(&IntCtrlConfig_0);
 
+	/*start link check task*/
 	start_link_check();
+
 	/* Start Listening to ethernet packets */
 	enet_start_rx(eth_can_queues, CAN_COUNT);
 
 	/*create a thread that pools on a message queue and send the message when it receive one*/
 	enet_start_tx();
-	//init_annouce();
 
 	//set_rgb_status(NOMINAL);
 

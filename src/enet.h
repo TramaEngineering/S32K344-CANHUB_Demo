@@ -51,12 +51,19 @@ extern "C"{
 ==================================================================================================*/
 
 #define eth_TASK_PRIORITY                ( tskIDLE_PRIORITY + 2 )
-#define eth_TASK_PRIORITY_1                ( tskIDLE_PRIORITY + 1 )
+#define eth_TASK_PRIORITY_1              ( tskIDLE_PRIORITY + 1 )
 
 /*==================================================================================================
  *                                      LOCAL VARIABLES
 ==================================================================================================*/
+extern uint8 annouce_frame[48];
+extern uint8 residence_frame[48];
 
+extern uint8 pDelayResp_frame[68];
+extern uint8 button_eth_frame[80];
+
+extern Gmac_Ip_BufferType pDelayResp;
+extern Gmac_Ip_BufferType buttonEthFrame;
 
 /*==================================================================================================
  *                                      GLOBAL CONSTANTS
@@ -102,6 +109,8 @@ void start_link_check(void);
 void link_check_worker(void *args);
 
 void init_annouce(void);
+
+void send_eth_custom_frame(uint8 *message);
 
 void print_16(uint16_t *data);
 void print_32(uint32_t *data);
