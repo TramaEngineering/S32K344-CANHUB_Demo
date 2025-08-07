@@ -3229,15 +3229,15 @@
                            <setting name="SpiEnableUserModeSupport" value="false"/>
                            <setting name="SpiEnableDmaFastTransferSupport" value="false"/>
                            <setting name="SpiHalfDuplexModeSupport" value="false"/>
-                           <setting name="LpspiIpDevErrorDetect" value="false"/>
+                           <setting name="LpspiIpDevErrorDetect" value="true"/>
                            <setting name="SpiGlobalDmaEnable" value="false"/>
                            <setting name="SpiTimeoutMethod" value="OSIF_COUNTER_DUMMY"/>
                            <setting name="SpiTransmitTimeout" value="1"/>
                            <array name="SpiPhyUnit">
                               <struct name="0">
                                  <setting name="Name" value="SpiPhyUnit_3"/>
-                                 <setting name="SpiPhyUnitMapping" value="LPSPI_3"/>
-                                 <setting name="SpiPinConfiguration" value="3"/>
+                                 <setting name="SpiPhyUnitMapping" value="LPSPI_0"/>
+                                 <setting name="SpiPinConfiguration" value="0"/>
                                  <setting name="SpiSamplePoint" value="0"/>
                                  <setting name="SpiPhyUnitClockFunctionalGroupRef" value="BOARD_BootClockRUN"/>
                                  <setting name="SpiPhyUnitMode" value="SPI_MASTER"/>

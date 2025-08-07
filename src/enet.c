@@ -452,7 +452,7 @@ void eth_rx_worker(void *arg) {
 			Gmac_Ip_ProvideRxBuff(INST_GMAC_0, 0U, &RxBuffer);
 
 
-			if(ether_frame->ether_type == 0xf788){
+			if((ether_frame->dst_macaddr[0] == 0x01) && (ether_frame->dst_macaddr[1] == 0x80) && (ether_frame->dst_macaddr[2] == 0xC2) && (ether_frame->dst_macaddr[3] ==0x00) && (ether_frame->dst_macaddr[4] == 0x00) && (ether_frame->dst_macaddr[5] == 0x0E)){
 				xQueueSend(tx_descr_queue_send, &pDelayResp, portMAX_DELAY);
 			}
 		}
