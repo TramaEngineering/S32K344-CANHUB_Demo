@@ -128,5 +128,5 @@ local.properties
 /.settings/
 
 Debug_FLASH/
-RTD/
-generate/
+# RTD/
+# generate/
