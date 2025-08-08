@@ -3236,7 +3236,7 @@
                            <array name="SpiPhyUnit">
                               <struct name="0">
                                  <setting name="Name" value="SpiPhyUnit_3"/>
-                                 <setting name="SpiPhyUnitMapping" value="LPSPI_0"/>
+                                 <setting name="SpiPhyUnitMapping" value="LPSPI_3"/>
                                  <setting name="SpiPinConfiguration" value="0"/>
                                  <setting name="SpiSamplePoint" value="0"/>
                                  <setting name="SpiPhyUnitClockFunctionalGroupRef" value="BOARD_BootClockRUN"/>
