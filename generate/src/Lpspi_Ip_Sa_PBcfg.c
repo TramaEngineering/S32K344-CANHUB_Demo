@@ -179,7 +179,7 @@ const Lpspi_Ip_ConfigType Lpspi_Ip_PhyUnitConfig_SpiPhyUnit_3_Instance_3 =
      /* CR */
     (uint32)0,
     /* CFGR1 */
-    (uint32)(LPSPI_CFGR1_PINCFG(0U) | LPSPI_CFGR1_PCSPOL(0U) | LPSPI_CFGR1_MASTER(1U) | LPSPI_CFGR1_SAMPLE(0U)),
+    (uint32)(LPSPI_CFGR1_PINCFG(3U) | LPSPI_CFGR1_PCSPOL(0U) | LPSPI_CFGR1_MASTER(1U) | LPSPI_CFGR1_SAMPLE(0U)),
     #if (LPSPI_IP_SLAVE_SUPPORT == STD_ON)
     (boolean)FALSE,
     #endif
