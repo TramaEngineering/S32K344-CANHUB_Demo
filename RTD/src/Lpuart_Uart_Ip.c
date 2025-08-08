@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : FLEXIO
 *   Dependencies         : 
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -57,9 +56,9 @@ extern "C"{
 
 #define LPUART_UART_IP_VENDOR_ID_C                      43
 #define LPUART_UART_IP_AR_RELEASE_MAJOR_VERSION_C       4
-#define LPUART_UART_IP_AR_RELEASE_MINOR_VERSION_C       4
+#define LPUART_UART_IP_AR_RELEASE_MINOR_VERSION_C       7
 #define LPUART_UART_IP_AR_RELEASE_REVISION_VERSION_C    0
-#define LPUART_UART_IP_SW_MAJOR_VERSION_C               2
+#define LPUART_UART_IP_SW_MAJOR_VERSION_C               5
 #define LPUART_UART_IP_SW_MINOR_VERSION_C               0
 #define LPUART_UART_IP_SW_PATCH_VERSION_C               0
 
@@ -154,29 +153,34 @@ extern "C"{
 /** @brief Array of UART driver runtime state structures */
 Lpuart_Uart_Ip_StateStructureType Lpuart_Uart_Ip_apStateStructure[LPUART_UART_IP_NUMBER_OF_INSTANCES];
 
-#define UART_STOP_SEC_VAR_CLEARED_UNSPECIFIED_NO_CACHEABLE
-#include "Uart_MemMap.h"
-
-#define UART_START_SEC_VAR_CLEARED_UNSPECIFIED
-#include "Uart_MemMap.h"
+/** @brief User config structure. */
+static const Lpuart_Uart_Ip_UserConfigType * Lpuart_Uart_Ip_apUserConfig[LPUART_INSTANCE_COUNT];
 
 /* Pointer to lpuart runtime state structure */
-static Lpuart_Uart_Ip_StateStructureType * Lpuart_Uart_Ip_apStateStructuresArray[LPUART_UART_IP_NUMBER_OF_INSTANCES];
+static Lpuart_Uart_Ip_StateStructureType * Lpuart_Uart_Ip_apStateStructuresArray[LPUART_INSTANCE_COUNT];
 
-/** @brief User config structure. */
-const Lpuart_Uart_Ip_UserConfigType * Lpuart_Uart_Ip_apUserConfig[LPUART_UART_IP_NUMBER_OF_INSTANCES];
-
-#define UART_STOP_SEC_VAR_CLEARED_UNSPECIFIED
+#define UART_STOP_SEC_VAR_CLEARED_UNSPECIFIED_NO_CACHEABLE
 #include "Uart_MemMap.h"
 
 #define UART_START_SEC_CONST_UNSPECIFIED
 #include "Uart_MemMap.h"
 
 /* Table of base addresses for lpuart instances. */
-static LPUART_Type * const Lpuart_Uart_Ip_apBases[LPUART_UART_IP_NUMBER_OF_INSTANCES] = IP_LPUART_BASE_PTRS;
+static LPUART_Type * const Lpuart_Uart_Ip_apBases[LPUART_INSTANCE_COUNT] = LPUART_IP_BASE_PTRS;
 
 #define UART_STOP_SEC_CONST_UNSPECIFIED
 #include "Uart_MemMap.h"
+
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+#define UART_START_SEC_CONST_BOOLEAN
+#include "Uart_MemMap.h"
+
+/** @brief Table storing timeout interrupt capabilities for LPUART instances. */
+static const boolean Lpuart_Uart_Ip_InstHasTimeoutInterruptEnabled[LPUART_INSTANCE_COUNT] = LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT_PER_INSTANCE;
+
+#define UART_STOP_SEC_CONST_BOOLEAN
+#include "Uart_MemMap.h"
+#endif
 
 #if (LPUART_UART_IP_ENABLE_INTERNAL_LOOPBACK == STD_ON)
 #define UART_START_SEC_CONST_BOOLEAN
@@ -222,6 +226,8 @@ static Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_StartReceiveDataUsingDma(const u
                                                                          uint8 * RxBuff,
                                                                          const uint32 RxSize);
 static void Lpuart_Uart_Ip_SetupIntDmaMode(const uint8 Instance, boolean Enable);
+static void Lpuart_Uart_Ip_CompleteTxOperationUsingDma(const uint8 Instance);
+static void Lpuart_Uart_Ip_CompleteRxOperationUsingDma(const uint8 Instance);
 #endif
 
 static void Lpuart_Uart_Ip_PutData(const uint8 Instance);
@@ -230,7 +236,11 @@ static void Lpuart_Uart_Ip_RxIrqHandler(const uint8 Instance);
 static void Lpuart_Uart_Ip_TxEmptyIrqHandler(const uint8 Instance);
 static void Lpuart_Uart_Ip_TxCompleteIrqHandler(const uint8 Instance);
 static void Lpuart_Uart_Ip_ErrIrqHandler(const uint8 Instance);
-static void Lpuart_Uart_Ip_StartGetData(const uint8 Instance, uint32 * StartTime, uint32 * ElapsedTicks, uint32 TimeoutTicks);
+static void Lpuart_Uart_Ip_StartGetData(const uint8 Instance, const uint32 Timeout);
+static void Lpuart_Uart_Ip_SetUp_Baudrate(const uint8 Instance);
+static void Lpuart_Uart_Ip_SetUp_Parity(const uint8 Instance);
+static void Lpuart_Uart_Ip_TxRxIrqHandler(const uint8 Instance);
+static void Lpuart_Uart_Ip_SyncSendData(const uint8 Instance, const uint32 Timeout);
 
 /*==================================================================================================
 *                                        GLOBAL FUNCTIONS
@@ -243,22 +253,20 @@ static void Lpuart_Uart_Ip_StartGetData(const uint8 Instance, uint32 * StartTime
  * This function will initialize the run-time state structure to keep track of
  * the on-going transfers, ungate the clock to the LPUART module, initialize the
  * module to user defined settings and default settings, configure the IRQ state
- * structure and enable the module-level interrupt to the core, and enable the
+ * structure and enable the module-level interrupt to the partition, and enable the
  * LPUART module transmitter and receiver.
  *
- * Implements    : Lpuart_Uart_Ip_Init_Activity
  *END**************************************************************************/
-/* implements     Lpuart_Uart_Ip_Init_Activity*/
+/* @implements     Lpuart_Uart_Ip_Init_Activity*/
 void Lpuart_Uart_Ip_Init(const uint8 Instance, const Lpuart_Uart_Ip_UserConfigType * UserConfig)
 {
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
     LPUART_UART_IP_DEV_ASSERT(UserConfig != NULL_PTR);
     /* Check if current instance is already initialized. */
     LPUART_UART_IP_DEV_ASSERT(NULL_PTR == Lpuart_Uart_Ip_apStateStructuresArray[Instance]);
     /* Check if Baudrate parameters are valid value */
     LPUART_UART_IP_DEV_ASSERT(UserConfig->BaudOverSamplingRatio <= 0x20U);
-    LPUART_UART_IP_DEV_ASSERT((UserConfig->BaudRateDivisor <= 0x1FFFU) && \
-                              (UserConfig->BaudRateDivisor >= 1U));
+    LPUART_UART_IP_DEV_ASSERT((UserConfig->BaudRateDivisor <= 0x1FFFU) && (UserConfig->BaudRateDivisor >= 1U));
 
     LPUART_Type * Base = Lpuart_Uart_Ip_apBases[Instance];
     Lpuart_Uart_Ip_StateStructureType *UartStatePtr;
@@ -274,14 +282,17 @@ void Lpuart_Uart_Ip_Init(const uint8 Instance, const Lpuart_Uart_Ip_UserConfigTy
     /* In DMA mode, only 7-bits and 8-bits chars are supported */
     LPUART_UART_IP_DEV_ASSERT((UserConfig->TransferType != LPUART_UART_IP_USING_DMA) || \
                               ((LPUART_UART_IP_7_BITS_PER_CHAR == UserConfig->BitCountPerChar) || \
-                               (LPUART_UART_IP_8_BITS_PER_CHAR == UserConfig->BitCountPerChar)));
+                               (LPUART_UART_IP_8_BITS_PER_CHAR == UserConfig->BitCountPerChar) \
+                              ) \
+                             );
 
 #endif /* (LPUART_UART_IP_HAS_DMA_ENABLED == STD_ON) */
 
 
     /* For 10 bits per char, parity bit cannot be enabled */
     LPUART_UART_IP_DEV_ASSERT((UserConfig->BitCountPerChar != LPUART_UART_IP_10_BITS_PER_CHAR) || \
-                              (LPUART_UART_IP_PARITY_DISABLED == UserConfig->ParityMode));
+                              (LPUART_UART_IP_PARITY_DISABLED == UserConfig->ParityMode) \
+                             );
 
     /* Clear the state struct for this instance. */
     for (Index = 0; Index < sizeof(Lpuart_Uart_Ip_StateStructureType); Index++)
@@ -299,28 +310,18 @@ void Lpuart_Uart_Ip_Init(const uint8 Instance, const Lpuart_Uart_Ip_UserConfigTy
         Lpuart_Uart_Ip_EnableInternalLoopback(Base);
     }
 #endif
-    /* Check if Osr is between 4x and 7x oversampling.
-     * If so, then "BOTHEDGE" sampling must be turned on */
-    if (UserConfig->BaudOverSamplingRatio < 8U)
-    {
-        Lpuart_Uart_Ip_EnableBothEdgeSamplingCmd(Base);
-    }
 
-    /* Program the Osr value (bit value is one less than actual value) */
-    Lpuart_Uart_Ip_SetOversamplingRatio(Base, (uint32)UserConfig->BaudOverSamplingRatio -1U);
-
-    /* Write the Sbr value to the BAUD registers */
-    Lpuart_Uart_Ip_SetBaudRateDivisor(Base, UserConfig->BaudRateDivisor);
-
-    if (UserConfig->ParityMode != LPUART_UART_IP_PARITY_DISABLED)
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+    if (Lpuart_Uart_Ip_InstHasTimeoutInterruptEnabled[Instance])
     {
-        Lpuart_Uart_Ip_SetBitCountPerChar(Base, UserConfig->BitCountPerChar, TRUE);
+        Lpuart_Uart_Ip_SetupIdleInterrupt(Base);
     }
-    else
-    {
-        Lpuart_Uart_Ip_SetBitCountPerChar(Base, UserConfig->BitCountPerChar, FALSE);
-    }
-    Lpuart_Uart_Ip_SetParityMode(Base, UserConfig->ParityMode);
+#endif
+
+    Lpuart_Uart_Ip_SetUp_Baudrate(Instance);
+
+    Lpuart_Uart_Ip_SetUp_Parity(Instance);
+
     Lpuart_Uart_Ip_SetStopBitCount(Base, UserConfig->StopBitsCount);
 
     /* Initialize last driver operation status */
@@ -336,12 +337,11 @@ void Lpuart_Uart_Ip_Init(const uint8 Instance, const Lpuart_Uart_Ip_UserConfigTy
  * Description   : This function shuts down the UART by disabling interrupts and
  *                 transmitter/receiver.
  *
- * Implements    : Lpuart_Uart_Ip_Deinit_Activity
  *END**************************************************************************/
-/* implements     Lpuart_Uart_Ip_Deinit_Activity*/
+/* @implements     Lpuart_Uart_Ip_Deinit_Activity*/
 Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_Deinit(const uint8 Instance)
 {
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
     uint32 StartTime;
     uint32 TimeoutTicks;
     uint32 ElapsedTicks = 0;
@@ -376,6 +376,14 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_Deinit(const uint8 Instance)
         Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_NOISE_ERR_FLAG, FALSE);
         Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_FRAME_ERR_FLAG, FALSE);
 
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+    if (Lpuart_Uart_Ip_InstHasTimeoutInterruptEnabled[Instance])
+    {
+        /* Disable timeout interrupt */
+        Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_TIMEOUT, FALSE);
+    }
+#endif
+
         /* Clear our saved pointer to the state structure */
         Lpuart_Uart_Ip_apStateStructuresArray[Instance] = NULL_PTR;
         RetVal = LPUART_UART_IP_STATUS_SUCCESS;
@@ -388,26 +396,20 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_Deinit(const uint8 Instance)
  * Function Name : Lpuart_Uart_Ip_SyncSend
  * Description   : Send out multiple bytes of data using polling method.
  *
- * Implements    : Lpuart_Uart_Ip_SyncSend_Activity
  *END**************************************************************************/
- /* implements     Lpuart_Uart_Ip_SyncSend_Activity*/
-Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_SyncSend(const uint8 Instance,
-                                                  const uint8 *TxBuff,
-                                                  const uint32 TxSize,
-                                                  const uint32 Timeout)
+ /* @implements     Lpuart_Uart_Ip_SyncSend_Activity*/
+Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_SyncSend(const uint8 Instance, const uint8 *TxBuff, const uint32 TxSize, const uint32 Timeout)
 {
     /* Check the validity of the parameters */
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
     LPUART_UART_IP_DEV_ASSERT(TxBuff != NULL_PTR);
     LPUART_UART_IP_DEV_ASSERT(TxSize > 0U);
 
     LPUART_Type * Base;
     Lpuart_Uart_Ip_StateStructureType * UartState;
-    uint32 StartTime;
-    uint32 TimeoutTicks;
-    uint32 ElapsedTicks = 0;
     boolean IsReturn = FALSE;
     Lpuart_Uart_Ip_StatusType RetVal = LPUART_UART_IP_STATUS_SUCCESS;
+
     Base = Lpuart_Uart_Ip_apBases[Instance];
     UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
 
@@ -436,28 +438,13 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_SyncSend(const uint8 Instance,
 
         /* Enable the LPUART transmitter */
         Lpuart_Uart_Ip_SetTransmitterCmd(Base, TRUE);
-        Lpuart_Uart_Ip_StartTimeout(&StartTime, &TimeoutTicks, Timeout, LPUART_UART_IP_TIMEOUT_TYPE);
 
-        while ((UartState->TxSize > 0U) && \
-                !Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
-        {
-            Lpuart_Uart_Ip_PutData(Instance);
-            while (!Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_TX_DATA_REG_EMPTY)  && \
-                   !Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
-            {}
-        }
+        /* Process for sync send data*/
+        Lpuart_Uart_Ip_SyncSendData(Instance, Timeout);
 
         /* Disable the LPUART transmitter */
         Lpuart_Uart_Ip_SetTransmitterCmd(Base, FALSE);
 
-        /* Check if Timeout occur */
-        if (Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
-        {
-            UartState->TransmitStatus = LPUART_UART_IP_STATUS_TIMEOUT;
-        }else /* The transmit process is complete */
-        {
-            UartState->TransmitStatus = LPUART_UART_IP_STATUS_SUCCESS;
-        }
         UartState->IsTxBusy = FALSE;
         RetVal = UartState->TransmitStatus;
     }
@@ -471,23 +458,23 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_SyncSend(const uint8 Instance,
  * non-blocking method. The function will return immediately after calling this
  * function.
  *
- * Implements    : Lpuart_Uart_Ip_AsyncSend_Activity
  *END**************************************************************************/
- /* implements     Lpuart_Uart_Ip_AsyncSend_Activity*/
+ /* @implements     Lpuart_Uart_Ip_AsyncSend_Activity*/
 Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_AsyncSend(const uint8 Instance,
                                                    const uint8 * TxBuff,
                                                    const uint32 TxSize)
 {
     /* Check the validity of the parameters */
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
     LPUART_UART_IP_DEV_ASSERT(TxBuff != NULL_PTR);
     LPUART_UART_IP_DEV_ASSERT(TxSize > 0U);
     const Lpuart_Uart_Ip_UserConfigType *UartUserCfg;
     Lpuart_Uart_Ip_StateStructureType * UartState;
     Lpuart_Uart_Ip_StatusType RetVal = LPUART_UART_IP_STATUS_SUCCESS;
+    boolean IsReturn = FALSE;
+
     UartUserCfg = Lpuart_Uart_Ip_apUserConfig[Instance];
     UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
-    boolean IsReturn = FALSE;
 
     LPUART_UART_IP_DEV_ASSERT(UartState != NULL_PTR);
 
@@ -506,7 +493,8 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_AsyncSend(const uint8 Instance,
 
         LPUART_UART_IP_DEV_ASSERT(UartUserCfg != NULL_PTR);
         LPUART_UART_IP_DEV_ASSERT((LPUART_UART_IP_USING_INTERRUPTS == UartUserCfg->TransferType) ||
-                                  (LPUART_UART_IP_USING_DMA == UartUserCfg->TransferType));
+                                  (LPUART_UART_IP_USING_DMA == UartUserCfg->TransferType)
+                                 );
         if (LPUART_UART_IP_USING_INTERRUPTS == UartUserCfg->TransferType)
         {
             /* Start the transmission process using interrupts */
@@ -533,52 +521,71 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_AsyncSend(const uint8 Instance,
  * is still in progress, the user can obtain the number of words that have been
  * currently transferred.
  *
- * Implements    : Lpuart_Uart_Ip_GetTransmitStatus_Activity
  *END**************************************************************************/
-/* implements     Lpuart_Uart_Ip_GetTransmitStatus_Activity*/
+/* @implements     Lpuart_Uart_Ip_GetTransmitStatus_Activity*/
 Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_GetTransmitStatus(const uint8 Instance, uint32 * BytesRemaining)
 {
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
     const Lpuart_Uart_Ip_StateStructureType * UartState;
     const Lpuart_Uart_Ip_UserConfigType *UartUserCfg;
+    Lpuart_Uart_Ip_StatusType localStatus;
 #if (LPUART_UART_IP_HAS_DMA_ENABLED == STD_ON)
     const Dma_Ip_LogicChannelInfoParamType DmaLogicChnParam = DMA_IP_CH_GET_CURRENT_ITER_COUNT;
 #endif
+
     UartState = (const Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
     UartUserCfg = Lpuart_Uart_Ip_apUserConfig[Instance];
 
     LPUART_UART_IP_DEV_ASSERT(UartState != NULL_PTR);
     LPUART_UART_IP_DEV_ASSERT(UartUserCfg != NULL_PTR);
 
-    if (BytesRemaining != NULL_PTR)
+    /* Fill in the bytes not transferred yet. */
+    if ((BytesRemaining != NULL_PTR) && (LPUART_UART_IP_USING_INTERRUPTS == UartUserCfg->TransferType))
     {
+        SchM_Enter_Uart_UART_EXCLUSIVE_AREA_05();
+        localStatus = UartState->TransmitStatus;
         if (UartState->IsTxBusy)
         {
-            /* Fill in the bytes not transferred yet. */
-            if (LPUART_UART_IP_USING_INTERRUPTS == UartUserCfg->TransferType)
-            {
-                /* In interrupt-based communication, the remaining bytes are retrieved
-                 * from the state structure
-                 */
-                *BytesRemaining = UartState->TxSize;
-            }
-#if (LPUART_UART_IP_HAS_DMA_ENABLED == STD_ON)
-            else
-            {
-                /* In DMA-based communication, the remaining bytes are retrieved
-                 * from the current DMA major loop count
-                 */
-                (void)Dma_Ip_GetLogicChannelParam(UartUserCfg->TxDMAChannel, DmaLogicChnParam, BytesRemaining);
-            }
-#endif
+            /* In interrupt-based communication, the remaining bytes are retrieved
+            * from the state structure
+            */
+            *BytesRemaining = UartState->TxSize;
+            SchM_Exit_Uart_UART_EXCLUSIVE_AREA_05();
         }
         else
         {
             *BytesRemaining = 0;
+            SchM_Exit_Uart_UART_EXCLUSIVE_AREA_05();
         }
     }
+#if (LPUART_UART_IP_HAS_DMA_ENABLED == STD_ON)
+    else if ((BytesRemaining != NULL_PTR) && (LPUART_UART_IP_USING_DMA == UartUserCfg->TransferType))
+    {
+        SchM_Enter_Uart_UART_EXCLUSIVE_AREA_05();
+        localStatus = UartState->TransmitStatus;
+        if (UartState->IsTxBusy)
+        {
+            SchM_Exit_Uart_UART_EXCLUSIVE_AREA_05();
+            /* In DMA-based communication, the remaining bytes are retrieved
+            * from the current DMA major loop count
+            */
+            (void)Dma_Ip_GetLogicChannelParam(UartUserCfg->TxDMAChannel, DmaLogicChnParam, BytesRemaining);
+        }
+        else
+        {
+            *BytesRemaining = 0;
+            SchM_Exit_Uart_UART_EXCLUSIVE_AREA_05();
+        }
+    }
+#endif
+    else
+    {
+        SchM_Enter_Uart_UART_EXCLUSIVE_AREA_05();
+        localStatus = UartState->TransmitStatus;
+        SchM_Exit_Uart_UART_EXCLUSIVE_AREA_05();
+    }
 
-    return UartState->TransmitStatus;
+    return localStatus;
 }
 
 /*FUNCTION**********************************************************************
@@ -588,12 +595,11 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_GetTransmitStatus(const uint8 Instance,
  * early. During a non-blocking LPUART transmission, the user has the option to
  * terminate the transmission early if the transmission is still in progress.
  *
- * Implements    : Lpuart_Uart_Ip_AbortSendingData_Activity
  *END**************************************************************************/
-/* implements     Lpuart_Uart_Ip_AbortSendingData_Activity*/
+/* @implements     Lpuart_Uart_Ip_AbortSendingData_Activity*/
 Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_AbortSendingData(const uint8 Instance)
 {
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
 
     Lpuart_Uart_Ip_StateStructureType * UartState;
     const Lpuart_Uart_Ip_UserConfigType *UartUserCfg;
@@ -649,24 +655,17 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_AbortSendingData(const uint8 Instance)
  * Function Name : Lpuart_Uart_Ip_SyncReceive
  * Description   : Receive multiple bytes of data using polling method.
  *
- * Implements    : Lpuart_Uart_Ip_SyncReceive_Activity
  *END**************************************************************************/
-/* implements     Lpuart_Uart_Ip_SyncReceive_Activity*/
-Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_SyncReceive(const uint8 Instance,
-                                                     uint8 *RxBuff,
-                                                     const uint32 RxSize,
-                                                     const uint32 Timeout)
+/* @implements     Lpuart_Uart_Ip_SyncReceive_Activity*/
+Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_SyncReceive(const uint8 Instance, uint8 *RxBuff, const uint32 RxSize, const uint32 Timeout)
 {
     /* Check the validity of the parameters */
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
     LPUART_UART_IP_DEV_ASSERT(RxBuff != NULL_PTR);
     LPUART_UART_IP_DEV_ASSERT(RxSize > 0U);
 
     LPUART_Type * Base = Lpuart_Uart_Ip_apBases[Instance];
     Lpuart_Uart_Ip_StateStructureType * UartState;
-    uint32 StartTime;
-    uint32 TimeoutTicks;
-    uint32 ElapsedTicks = 0;
     boolean IsReturn = FALSE;
     Lpuart_Uart_Ip_StatusType RetVal = LPUART_UART_IP_STATUS_SUCCESS;
 
@@ -695,15 +694,7 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_SyncReceive(const uint8 Instance,
         /* Enable the LPUART receiver */
         Lpuart_Uart_Ip_SetReceiverCmd((LPUART_Type *)Base, TRUE);
 
-        Lpuart_Uart_Ip_StartTimeout(&StartTime, &TimeoutTicks, Timeout, LPUART_UART_IP_TIMEOUT_TYPE);
-
-        Lpuart_Uart_Ip_StartGetData(Instance, &StartTime, &ElapsedTicks, TimeoutTicks);
-
-        /* Check if Timeout occur */
-        if (Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
-        {
-            UartState->ReceiveStatus = LPUART_UART_IP_STATUS_TIMEOUT;
-        }
+        Lpuart_Uart_Ip_StartGetData(Instance, Timeout);
 
         /* Check other success receiving case*/
         if (LPUART_UART_IP_STATUS_BUSY == UartState->ReceiveStatus)
@@ -735,56 +726,72 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_SyncReceive(const uint8 Instance,
  * Description   : Start Getting Data in SyncReceive mode
  *
  *END**************************************************************************/
-static void Lpuart_Uart_Ip_StartGetData(const uint8 Instance, uint32 * StartTime, uint32 * ElapsedTicks, uint32 TimeoutTicks)
+static void Lpuart_Uart_Ip_StartGetData(const uint8 Instance, const uint32 Timeout)
 {
-        Lpuart_Uart_Ip_StateStructureType * UartState;
-        UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
-        LPUART_Type * Base = Lpuart_Uart_Ip_apBases[Instance];
-        uint8 StatusIndex = 0U;
-        uint32 Mask = 0U;
-        const Lpuart_Uart_Ip_StatusFlagType Lpuart_Uart_Ip_StatusFlagTypeArray[4U] = {LPUART_UART_IP_RX_OVERRUN,
+    uint32 StartTime;
+    uint32 TimeoutTicks;
+    uint32 ElapsedTicks = 0;
+    Lpuart_Uart_Ip_StateStructureType * UartState;
+    LPUART_Type * Base = Lpuart_Uart_Ip_apBases[Instance];
+    uint8 StatusIndex = 0U;
+    uint32 Mask = 0U;
+    const Lpuart_Uart_Ip_StatusFlagType Lpuart_Uart_Ip_StatusFlagTypeArray[4U] = {LPUART_UART_IP_RX_OVERRUN,
                                                                                       LPUART_UART_IP_FRAME_ERR,
                                                                                       LPUART_UART_IP_NOISE_DETECT,
-                                                                                      LPUART_UART_IP_PARITY_ERR};
-        const Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_ReceiveStatusArray[4U] = {LPUART_UART_IP_STATUS_RX_OVERRUN,
+                                                                                      LPUART_UART_IP_PARITY_ERR
+                                                                                     };
+    const Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_ReceiveStatusArray[4U] = {LPUART_UART_IP_STATUS_RX_OVERRUN,
                                                                                  LPUART_UART_IP_STATUS_FRAMING_ERROR,
                                                                                  LPUART_UART_IP_STATUS_NOISE_ERROR,
-                                                                                 LPUART_UART_IP_STATUS_PARITY_ERROR};
-        const uint32 Lpuart_Uart_Ip_StatusRegMask[4U] = {LPUART_STAT_OR_MASK,
+                                                                                 LPUART_UART_IP_STATUS_PARITY_ERROR
+                                                                                };
+    const uint32 Lpuart_Uart_Ip_StatusRegMask[4U] = {LPUART_STAT_OR_MASK,
                                                          LPUART_STAT_FE_MASK,
                                                          LPUART_STAT_NF_MASK,
-                                                         LPUART_STAT_PF_MASK};
-        while ((UartState->RxSize > 0U) && \
-                !Lpuart_Uart_Ip_CheckTimeout(StartTime, ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
+                                                         LPUART_STAT_PF_MASK
+                                                        };
+
+    UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
+
+    Lpuart_Uart_Ip_StartTimeout(&StartTime, &TimeoutTicks, Timeout, LPUART_UART_IP_TIMEOUT_TYPE);
+    while ((UartState->RxSize > 0U) && \
+            !Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
+    {
+        /* Wait until data reception flag is set or timeout occurs if there is an error during reception */
+        while (!Lpuart_Uart_Ip_GetStatusFlag((const LPUART_Type*)Base, LPUART_UART_IP_DATA_REG_FULL) && \
+               !Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE) \
+              )
+        {}
+        /* Check for errors on received data */
+        for (StatusIndex = 0U; StatusIndex <= 3U; StatusIndex++)
         {
-            /* Wait until data reception flag is set or timeout occurs if there is an error during reception */
-            while (!Lpuart_Uart_Ip_GetStatusFlag((const LPUART_Type*)Base, LPUART_UART_IP_DATA_REG_FULL) && \
-                   !Lpuart_Uart_Ip_CheckTimeout(StartTime, ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
-            {}
-            /* Check for errors on received data */
-            for(StatusIndex = 0U; StatusIndex <= 3U; StatusIndex++)
+            if (Lpuart_Uart_Ip_GetStatusFlag((const LPUART_Type*)Base, Lpuart_Uart_Ip_StatusFlagTypeArray[StatusIndex]))
             {
-              if(Lpuart_Uart_Ip_GetStatusFlag((const LPUART_Type*)Base, Lpuart_Uart_Ip_StatusFlagTypeArray[StatusIndex]))
-              {
                 UartState->ReceiveStatus = Lpuart_Uart_Ip_ReceiveStatusArray[StatusIndex];
                 Mask |= Lpuart_Uart_Ip_StatusRegMask[StatusIndex];
-              }
-            }
-
-            if(Mask > 0U)
-            {
-              /* Disable the LPUART receiver */
-              Lpuart_Uart_Ip_SetReceiverCmd((LPUART_Type *)Base, FALSE);
-              /* Clear the flag */
-              Lpuart_Uart_Ip_ClearStatusFlagWithMask(Base, Mask);
-              break;
-            }
-            else
-            {
-              /* Get received data */
-              Lpuart_Uart_Ip_GetData(Instance);
             }
         }
+
+        if (Mask > 0U)
+        {
+            /* Disable the LPUART receiver */
+            Lpuart_Uart_Ip_SetReceiverCmd((LPUART_Type *)Base, FALSE);
+            /* Clear the flag */
+            Lpuart_Uart_Ip_ClearStatusFlagWithMask(Base, Mask);
+            break;
+        }
+        else
+        {
+            /* Get received data */
+            Lpuart_Uart_Ip_GetData(Instance);
+        }
+    }
+
+    /* Check if Timeout occur */
+    if (Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
+    {
+        UartState->ReceiveStatus = LPUART_UART_IP_STATUS_TIMEOUT;
+    }
 }
 
 /*FUNCTION**********************************************************************
@@ -797,24 +804,21 @@ static void Lpuart_Uart_Ip_StartGetData(const uint8 Instance, uint32 * StartTime
  * function, the application must get the receive status to check if receive
  * is completed or not.
  *
- * Implements    : Lpuart_Uart_Ip_ReceiveData_Activity
  *END**************************************************************************/
-/* implements     Lpuart_Uart_Ip_AsyncReceive_Activity*/
-Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_AsyncReceive(const uint8 Instance,
-                                                      uint8 * RxBuff,
-                                                      const uint32 RxSize)
+/* @implements     Lpuart_Uart_Ip_AsyncReceive_Activity*/
+Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_AsyncReceive(const uint8 Instance, uint8 * RxBuff, const uint32 RxSize)
 {
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
     LPUART_UART_IP_DEV_ASSERT(RxBuff != NULL_PTR);
     LPUART_UART_IP_DEV_ASSERT(RxSize > 0U);
 
     const Lpuart_Uart_Ip_UserConfigType *UartUserCfg;
     Lpuart_Uart_Ip_StateStructureType * UartState;
     Lpuart_Uart_Ip_StatusType RetVal = LPUART_UART_IP_STATUS_SUCCESS;
-    UartUserCfg = Lpuart_Uart_Ip_apUserConfig[Instance];
-    UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
     boolean IsReturn = FALSE;
 
+    UartUserCfg = Lpuart_Uart_Ip_apUserConfig[Instance];
+    UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
     LPUART_UART_IP_DEV_ASSERT(UartState != NULL_PTR);
 
     SchM_Enter_Uart_UART_EXCLUSIVE_AREA_03();
@@ -832,7 +836,8 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_AsyncReceive(const uint8 Instance,
 
         LPUART_UART_IP_DEV_ASSERT(UartUserCfg != NULL_PTR);
         LPUART_UART_IP_DEV_ASSERT((LPUART_UART_IP_USING_INTERRUPTS == UartUserCfg->TransferType) ||
-                                  (LPUART_UART_IP_USING_DMA == UartUserCfg->TransferType));
+                                  (LPUART_UART_IP_USING_DMA == UartUserCfg->TransferType)
+                                 );
 
         if (LPUART_UART_IP_USING_INTERRUPTS == UartUserCfg->TransferType)
         {
@@ -859,52 +864,90 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_AsyncReceive(const uint8 Instance,
  * or complete. In addition, if the receive is still in progress, the user can
  * obtain the number of words that have been currently received.
  *
- * Implements    : Lpuart_Uart_Ip_GetReceiveStatus_Activity
  *END**************************************************************************/
-/* implements     Lpuart_Uart_Ip_GetReceiveStatus_Activity*/
+/* @implements     Lpuart_Uart_Ip_GetReceiveStatus_Activity*/
 Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_GetReceiveStatus(const uint8 Instance, uint32 * BytesRemaining)
 {
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
     const Lpuart_Uart_Ip_StateStructureType * UartState;
     const Lpuart_Uart_Ip_UserConfigType *UartUserCfg;
+    Lpuart_Uart_Ip_StatusType localStatus;
 #if (LPUART_UART_IP_HAS_DMA_ENABLED == STD_ON)
     const Dma_Ip_LogicChannelInfoParamType DmaLogicChnParam = DMA_IP_CH_GET_CURRENT_ITER_COUNT;
 #endif
+
     UartState = (const Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
     UartUserCfg = Lpuart_Uart_Ip_apUserConfig[Instance];
 
     LPUART_UART_IP_DEV_ASSERT(UartState != NULL_PTR);
     LPUART_UART_IP_DEV_ASSERT(UartUserCfg != NULL_PTR);
 
-    if (BytesRemaining != NULL_PTR)
-    {
-        if (UartState->IsRxBusy)
+    if ((BytesRemaining != NULL_PTR) && (LPUART_UART_IP_USING_INTERRUPTS == UartUserCfg->TransferType))
         {
-            /* Fill in the bytes transferred. */
-            if (LPUART_UART_IP_USING_INTERRUPTS == UartUserCfg->TransferType)
+            SchM_Enter_Uart_UART_EXCLUSIVE_AREA_04();
+            localStatus = UartState->ReceiveStatus;
+            if (UartState->IsRxBusy)
             {
                 /* In interrupt-based communication, the remaining bytes are retrieved
-                 * from the state structure
-                 */
+                * from the state structure
+                */
                 *BytesRemaining = UartState->RxSize;
+                SchM_Exit_Uart_UART_EXCLUSIVE_AREA_04();
             }
-#if (LPUART_UART_IP_HAS_DMA_ENABLED == STD_ON)
             else
             {
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+                if (LPUART_UART_IP_STATUS_RX_IDLE_STATE == UartState->ReceiveStatus)
+                {
+                    *BytesRemaining = UartState->RxSize;
+                    SchM_Exit_Uart_UART_EXCLUSIVE_AREA_04();
+                }
+                else
+#endif
+                {
+                    *BytesRemaining = 0;
+                    SchM_Exit_Uart_UART_EXCLUSIVE_AREA_04();
+                }
+            }
+        }
+    #if (LPUART_UART_IP_HAS_DMA_ENABLED == STD_ON)
+        else if ((BytesRemaining != NULL_PTR) && (LPUART_UART_IP_USING_DMA == UartUserCfg->TransferType))
+        {
+            SchM_Enter_Uart_UART_EXCLUSIVE_AREA_04();
+            localStatus = UartState->ReceiveStatus;
+            if (UartState->IsRxBusy)
+            {
+                SchM_Exit_Uart_UART_EXCLUSIVE_AREA_04();
                 /* In DMA-based communication, the remaining bytes are retrieved
-                 * from the current DMA major loop count
-                 */
+                * from the current DMA major loop count
+                */
                 (void)Dma_Ip_GetLogicChannelParam(UartUserCfg->RxDMAChannel, DmaLogicChnParam, BytesRemaining);
             }
+            else
+            {
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+                if (LPUART_UART_IP_STATUS_RX_IDLE_STATE == UartState->ReceiveStatus)
+                {
+                    SchM_Exit_Uart_UART_EXCLUSIVE_AREA_04();
+                    (void)Dma_Ip_GetLogicChannelParam(UartUserCfg->RxDMAChannel, DmaLogicChnParam, BytesRemaining);
+                }
+                else
 #endif
+                {
+                    *BytesRemaining = 0;
+                    SchM_Exit_Uart_UART_EXCLUSIVE_AREA_04();
+                }
+            }
         }
+    #endif
         else
         {
-            *BytesRemaining = 0;
+            SchM_Enter_Uart_UART_EXCLUSIVE_AREA_04();
+            localStatus = UartState->ReceiveStatus;
+            SchM_Exit_Uart_UART_EXCLUSIVE_AREA_04();
         }
-    }
 
-    return UartState->ReceiveStatus;
+    return localStatus;
 }
 
 /*FUNCTION**********************************************************************
@@ -912,24 +955,23 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_GetReceiveStatus(const uint8 Instance, 
  * Function Name : Lpuart_Uart_Ip_AbortReceivingData
  * Description   : Terminates a non-blocking receive early.
  *
- * Implements    : Lpuart_Uart_Ip_AbortReceivingData_Activity
  *END**************************************************************************/
-/* implements     Lpuart_Uart_Ip_AbortReceivingData_Activity*/
+/* @implements     Lpuart_Uart_Ip_AbortReceivingData_Activity*/
 Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_AbortReceivingData(const uint8 Instance)
 {
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
 
     Lpuart_Uart_Ip_StateStructureType * UartState;
     const Lpuart_Uart_Ip_UserConfigType *UartUserCfg;
     LPUART_Type * Base = Lpuart_Uart_Ip_apBases[Instance];
+    boolean IsReturn = FALSE;
+    Lpuart_Uart_Ip_StatusType RetVal = LPUART_UART_IP_STATUS_SUCCESS;
 
     UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
     UartUserCfg = Lpuart_Uart_Ip_apUserConfig[Instance];
 
     LPUART_UART_IP_DEV_ASSERT(UartState != NULL_PTR);
     LPUART_UART_IP_DEV_ASSERT(UartUserCfg != NULL_PTR);
-    boolean IsReturn = FALSE;
-    Lpuart_Uart_Ip_StatusType RetVal = LPUART_UART_IP_STATUS_SUCCESS;
 
     /* Check if a transfer is running. */
     if (!UartState->IsRxBusy)
@@ -977,14 +1019,14 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_AbortReceivingData(const uint8 Instance
  * before calling this function.
  * Generally, this may be applied to all LPUARTs to ensure safe operation.
  *
- * Implements    : Lpuart_Uart_Ip_SetBaudRate_Activity
  *END**************************************************************************/
-/* implements     Lpuart_Uart_Ip_SetBaudRate_Activity*/
+/* @implements     Lpuart_Uart_Ip_SetBaudRate_Activity*/
 Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_SetBaudRate(const uint8 Instance,
                                                      const Lpuart_Uart_Ip_BaudrateType DesiredBaudrate,
-                                                     const uint32 ClockFrequency)
+                                                     const uint32 ClockFrequency
+                                                    )
 {
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
 
     uint16 Sbr;
     uint16 SbrTemp;
@@ -997,9 +1039,9 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_SetBaudRate(const uint8 Instance,
     uint32 ExpectedBaud = (uint32)DesiredBaudrate;
     LPUART_Type * Base = Lpuart_Uart_Ip_apBases[Instance];
     Lpuart_Uart_Ip_StateStructureType * UartState;
-    UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
     Lpuart_Uart_Ip_StatusType Status;
 
+    UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
     LPUART_UART_IP_DEV_ASSERT(UartState != NULL_PTR);
 
     if ((TRUE == UartState->IsTxBusy) || (TRUE == UartState->IsRxBusy))
@@ -1011,7 +1053,7 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_SetBaudRate(const uint8 Instance,
         /* Check if current instance is clock gated off. */
         LPUART_UART_IP_DEV_ASSERT(ClockFrequency > 0U);
         /* Check if the desired baud rate can be configured with the current protocol clock. */
-        LPUART_UART_IP_DEV_ASSERT(ClockFrequency >= (ExpectedBaud * 5U));
+        LPUART_UART_IP_DEV_ASSERT(ClockFrequency >= (ExpectedBaud * 4U));
 
         /* This lpuart instantiation uses a slightly different baud rate calculation
          * The idea is to use the best OSR (over-sampling rate) possible
@@ -1087,12 +1129,11 @@ Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_SetBaudRate(const uint8 Instance,
  * Function Name : Lpuart_Uart_Ip_GetBaudRate
  * Description   : Returns the LPUART configured baud rate.
  *
- * Implements    : Lpuart_Uart_Ip_GetBaudRate_Activity
  *END**************************************************************************/
-/* implements     Lpuart_Uart_Ip_GetBaudRate_Activity*/
+/* @implements     Lpuart_Uart_Ip_GetBaudRate_Activity*/
 void Lpuart_Uart_Ip_GetBaudRate(const uint8 Instance, uint32 * ConfiguredBaudRate)
 {
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
     LPUART_UART_IP_DEV_ASSERT(ConfiguredBaudRate != NULL_PTR);
     const Lpuart_Uart_Ip_StateStructureType * UartState;
 
@@ -1108,14 +1149,11 @@ void Lpuart_Uart_Ip_GetBaudRate(const uint8 Instance, uint32 * ConfiguredBaudRat
  *                 Can be called from the tx callback to provide a different
  *                 buffer for continuous transmission.
  *
- * Implements    : Lpuart_Uart_Ip_SetTxBuffer_Activity
  *END**************************************************************************/
-/* implements     Lpuart_Uart_Ip_SetTxBuffer_Activity*/
-void Lpuart_Uart_Ip_SetTxBuffer(const uint8 Instance,
-                                const uint8 * TxBuff,
-                                const uint32 TxSize)
+/* @implements     Lpuart_Uart_Ip_SetTxBuffer_Activity*/
+void Lpuart_Uart_Ip_SetTxBuffer(const uint8 Instance, const uint8 * TxBuff, const uint32 TxSize)
 {
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
     LPUART_UART_IP_DEV_ASSERT(TxBuff != NULL_PTR);
     LPUART_UART_IP_DEV_ASSERT(TxSize > 0U);
     Lpuart_Uart_Ip_StateStructureType * UartState;
@@ -1134,14 +1172,11 @@ void Lpuart_Uart_Ip_SetTxBuffer(const uint8 Instance,
  *                 Can be called from the rx callback to provide a different
  *                 buffer for continuous reception.
  *
- * Implements    : Lpuart_Uart_Ip_SetRxBuffer_Activity
  *END**************************************************************************/
-/* implements     Lpuart_Uart_Ip_SetRxBuffer_Activity*/
-void Lpuart_Uart_Ip_SetRxBuffer(const uint8 Instance,
-                                uint8 * RxBuff,
-                                const uint32 RxSize)
+/* @implements     Lpuart_Uart_Ip_SetRxBuffer_Activity*/
+void Lpuart_Uart_Ip_SetRxBuffer(const uint8 Instance, uint8 * RxBuff, const uint32 RxSize)
 {
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
     LPUART_UART_IP_DEV_ASSERT(RxBuff != NULL_PTR);
     LPUART_UART_IP_DEV_ASSERT(RxSize > 0U);
     Lpuart_Uart_Ip_StateStructureType * UartState;
@@ -1161,16 +1196,16 @@ void Lpuart_Uart_Ip_SetRxBuffer(const uint8 Instance,
  * occurs.
  *
  *END**************************************************************************/
-/* implements     Lpuart_Uart_Ip_IrqHandler_Activity*/
+/* @implements     Lpuart_Uart_Ip_IrqHandler_Activity*/
 void Lpuart_Uart_Ip_IrqHandler(const uint8 Instance)
 {
-    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_UART_IP_NUMBER_OF_INSTANCES);
+    LPUART_UART_IP_DEV_ASSERT(Instance < LPUART_INSTANCE_COUNT);
 
     LPUART_Type * Base;
     const Lpuart_Uart_Ip_StateStructureType * UartState;
+
     Base = Lpuart_Uart_Ip_apBases[Instance];
     UartState = (const Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
-    boolean IsReturn = FALSE;
 
     /* Case of spurious interrupt when driver is not at all initialized or it is not in transmit/receive process*/
     if (NULL_PTR == UartState)
@@ -1184,48 +1219,7 @@ void Lpuart_Uart_Ip_IrqHandler(const uint8 Instance)
     else
     {
         Lpuart_Uart_Ip_ErrIrqHandler(Instance);
-        /* Handle receive data full interrupt */
-        if (Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_DATA_REG_FULL))
-        {
-            if (Lpuart_Uart_Ip_GetIntMode(Base, LPUART_UART_IP_INT_RX_DATA_REG_FULL))
-            {
-                Lpuart_Uart_Ip_RxIrqHandler(Instance);
-            }
-            /* Case of spurious interrupt when the interupt enable flag is not set and respective interrupt status flag is set */
-            else
-            {
-                /* Read dummy to clear RDRF flag */
-                (void)Lpuart_Uart_Ip_Getchar(Base);
-            }
-            IsReturn = TRUE;
-        }
-        /* Handle transmitter data register empty interrupt */
-        if (Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_TX_DATA_REG_EMPTY) && (FALSE == IsReturn))
-        {
-            if (Lpuart_Uart_Ip_GetIntMode(Base, LPUART_UART_IP_INT_TX_DATA_REG_EMPTY))
-            {
-                Lpuart_Uart_Ip_TxEmptyIrqHandler(Instance);
-                IsReturn = TRUE;
-            }
-            /* Case of spurious interrupt when the interupt enable flag is not set and respective interrupt status flag is set */
-            else
-            {
-                /* Do nothing, because TDRE can not clear without affecting to normal operation*/
-            }
-        }
-        /* Handle transmission complete interrupt */
-        if (Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_TX_COMPLETE) && (FALSE == IsReturn))
-        {
-            if (Lpuart_Uart_Ip_GetIntMode(Base, LPUART_UART_IP_INT_TX_COMPLETE))
-            {
-                Lpuart_Uart_Ip_TxCompleteIrqHandler(Instance);
-            }
-            /* Case of spurious interrupt when the interupt enable flag is not set and respective interrupt status flag is set */
-            else
-            {
-                /* Do nothing, because TC can not clear without affecting to normal operation*/
-            }
-        }
+        Lpuart_Uart_Ip_TxRxIrqHandler(Instance);
     }
 }
 
@@ -1353,6 +1347,7 @@ static void Lpuart_Uart_Ip_ErrIrqHandler(const uint8 Instance)
     LPUART_Type * Base;
     boolean IsError = FALSE;
     boolean IsReturn = FALSE;
+
     Base = Lpuart_Uart_Ip_apBases[Instance];
     UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
     UartUserCfg = Lpuart_Uart_Ip_apUserConfig[Instance];
@@ -1360,9 +1355,6 @@ static void Lpuart_Uart_Ip_ErrIrqHandler(const uint8 Instance)
     /* Handle receive overrun interrupt */
     if (Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_RX_OVERRUN))
     {
-        /* Clear the flag */
-        Lpuart_Uart_Ip_ClearStatusFlag(Base, LPUART_UART_IP_RX_OVERRUN);
-        /* Case of spurious interrupt when interrupt enable bit is not set*/
         if (!Lpuart_Uart_Ip_GetIntMode(Base, LPUART_UART_IP_INT_RX_OVERRUN))
         {
             IsReturn = TRUE;
@@ -1372,14 +1364,13 @@ static void Lpuart_Uart_Ip_ErrIrqHandler(const uint8 Instance)
             /* Update the status */
             IsError = TRUE;
             UartState->ReceiveStatus = LPUART_UART_IP_STATUS_RX_OVERRUN;
+            /* Clear the flag */
+            Lpuart_Uart_Ip_ClearStatusFlag(Base, LPUART_UART_IP_RX_OVERRUN);
         }
     }
     /* Handle framing error interrupt */
     if (Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_FRAME_ERR) && (FALSE == IsReturn))
     {
-        /* Clear the flag */
-        Lpuart_Uart_Ip_ClearStatusFlag(Base, LPUART_UART_IP_FRAME_ERR);
-        /* Case of spurious interrupt when interrupt enable bit is not set*/
         if (!Lpuart_Uart_Ip_GetIntMode(Base, LPUART_UART_IP_INT_FRAME_ERR_FLAG))
         {
             IsReturn = TRUE;
@@ -1389,14 +1380,13 @@ static void Lpuart_Uart_Ip_ErrIrqHandler(const uint8 Instance)
             /* Update the status */
             IsError = TRUE;
             UartState->ReceiveStatus = LPUART_UART_IP_STATUS_FRAMING_ERROR;
+            /* Clear the flag */
+            Lpuart_Uart_Ip_ClearStatusFlag(Base, LPUART_UART_IP_FRAME_ERR);
         }
     }
     /* Handle parity error interrupt */
     if (Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_PARITY_ERR) && (FALSE == IsReturn))
     {
-        /* Clear the flag */
-        Lpuart_Uart_Ip_ClearStatusFlag(Base, LPUART_UART_IP_PARITY_ERR);
-        /* Case of spurious interrupt when interrupt enable bit is not set*/
         if (!Lpuart_Uart_Ip_GetIntMode(Base, LPUART_UART_IP_INT_PARITY_ERR_FLAG))
         {
             IsReturn = TRUE;
@@ -1406,14 +1396,13 @@ static void Lpuart_Uart_Ip_ErrIrqHandler(const uint8 Instance)
             /* Update the status */
             IsError = TRUE;
             UartState->ReceiveStatus = LPUART_UART_IP_STATUS_PARITY_ERROR;
+            /* Clear the flag */
+            Lpuart_Uart_Ip_ClearStatusFlag(Base, LPUART_UART_IP_PARITY_ERR);
         }
     }
     /* Handle noise error interrupt */
     if (Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_NOISE_DETECT) && (FALSE == IsReturn))
     {
-        /* Clear the flag */
-        Lpuart_Uart_Ip_ClearStatusFlag(Base, LPUART_UART_IP_NOISE_DETECT);
-        /* Case of spurious interrupt when interrupt enable bit is not set*/
         if (!Lpuart_Uart_Ip_GetIntMode(Base, LPUART_UART_IP_INT_NOISE_ERR_FLAG))
         {
             IsReturn = TRUE;
@@ -1423,8 +1412,34 @@ static void Lpuart_Uart_Ip_ErrIrqHandler(const uint8 Instance)
             /* Update the internal status */
             IsError = TRUE;
             UartState->ReceiveStatus = LPUART_UART_IP_STATUS_NOISE_ERROR;
+            /* Clear the flag */
+            Lpuart_Uart_Ip_ClearStatusFlag(Base, LPUART_UART_IP_NOISE_DETECT);
         }
     }
+
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+        /* Handle the error interrupts if timeout error */
+    if (Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_TIMEOUT) && (FALSE == IsReturn))
+    {
+        /* This checking also ensures that the feature is activated for the current instance
+         * because the Interrupt can be enabled only in this case.
+         */
+        if (Lpuart_Uart_Ip_GetIntMode(Base, LPUART_UART_IP_INT_TIMEOUT))
+        {
+            /* Update the internal status */
+            IsError = TRUE;
+            /* Update the status */
+            UartState->ReceiveStatus = LPUART_UART_IP_STATUS_RX_IDLE_STATE;
+            /* Clear Timeout Interrupt Error flag */
+            Lpuart_Uart_Ip_ClearStatusFlag(Base, LPUART_UART_IP_TIMEOUT);
+        }
+        else
+        {
+            IsReturn = TRUE;
+        }
+    }
+#endif
+
     if (FALSE == IsReturn)
     {
         if (TRUE == IsError)
@@ -1445,7 +1460,16 @@ static void Lpuart_Uart_Ip_ErrIrqHandler(const uint8 Instance)
             /* Invoke callback if there is one */
             if (UartUserCfg->Callback != NULL_PTR)
             {
-                UartUserCfg->Callback(Instance, LPUART_UART_IP_EVENT_ERROR, UartUserCfg->CallbackParam);
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+                if (LPUART_UART_IP_STATUS_RX_IDLE_STATE == UartState->ReceiveStatus)
+                {
+                    UartUserCfg->Callback(Instance, LPUART_UART_IP_EVENT_IDLE_STATE, UartUserCfg->CallbackParam);
+                }
+                else
+#endif
+                {
+                    UartUserCfg->Callback(Instance, LPUART_UART_IP_EVENT_ERROR, UartUserCfg->CallbackParam);
+                }
             }
         }
     }
@@ -1459,9 +1483,7 @@ static void Lpuart_Uart_Ip_ErrIrqHandler(const uint8 Instance)
  * This is not a public API as it is called from other driver functions.
  *
  *END**************************************************************************/
-static Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_StartSendDataUsingInt(const uint8 Instance,
-                                                                      const uint8 * TxBuff,
-                                                                      const uint32 TxSize)
+static Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_StartSendDataUsingInt(const uint8 Instance, const uint8 * TxBuff, const uint32 TxSize)
 {
     LPUART_Type * Base;
     Lpuart_Uart_Ip_StateStructureType * UartState;
@@ -1492,9 +1514,7 @@ static Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_StartSendDataUsingInt(const uint
  * This is not a public API as it is called from other driver functions.
  *
  *END**************************************************************************/
-static Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_StartSendDataUsingDma(const uint8 Instance,
-                                                                      const uint8 * TxBuff,
-                                                                      const uint32 TxSize)
+static Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_StartSendDataUsingDma(const uint8 Instance, const uint8 * TxBuff, const uint32 TxSize)
 {
     Lpuart_Uart_Ip_StateStructureType * UartState;
     const Lpuart_Uart_Ip_UserConfigType *UartUserCfg;
@@ -1581,7 +1601,8 @@ static void Lpuart_Uart_Ip_CompleteSendDataUsingInt(const uint8 Instance)
     Lpuart_Uart_Ip_StartTimeout(&StartTime, &TimeoutTicks, LPUART_UART_IP_TIMEOUT_VALUE_US, LPUART_UART_IP_TIMEOUT_TYPE);
     /* Wait until the data is completely shifted out of shift register */
     while (!Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_TX_COMPLETE) && \
-           !Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
+           !Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE) \
+          )
     {}
 
     if (Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
@@ -1603,7 +1624,6 @@ static void Lpuart_Uart_Ip_CompleteSendDataUsingInt(const uint8 Instance)
 }
 
 #if (LPUART_UART_IP_HAS_DMA_ENABLED == STD_ON)
-
 /*FUNCTION**********************************************************************
  *
  * Function Name : Lpuart_Uart_Ip_CompleteSendUsingDma
@@ -1616,17 +1636,13 @@ void Lpuart_Uart_Ip_CompleteSendUsingDma(uint8 Instance)
 {
     Lpuart_Uart_Ip_StateStructureType * UartState;
     const Lpuart_Uart_Ip_UserConfigType *UartUserCfg;
-    LPUART_Type * Base;
     Dma_Ip_LogicChannelTransferListType DmaTransferList[LPUART_UART_IP_DMA_CONFIG_LIST_DIMENSION];
     Dma_Ip_ReturnType DmaReturnStatus;
     Dma_Ip_LogicChannelStatusType DmaStatus;
-    uint32 StartTime;
-    uint32 TimeoutTicks;
-    uint32 ElapsedTicks = 0;
 
-    Base = Lpuart_Uart_Ip_apBases[Instance];
     UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
     UartUserCfg = Lpuart_Uart_Ip_apUserConfig[Instance];
+    DmaStatus.ChStateValue = DMA_IP_CH_ERROR_STATE;
 
     /* Get Dma Ip Logic Channel Status */
     (void)Dma_Ip_GetLogicChannelStatus(UartUserCfg->TxDMAChannel, &DmaStatus);
@@ -1681,37 +1697,8 @@ void Lpuart_Uart_Ip_CompleteSendUsingDma(uint8 Instance)
     }
     else
     {
-        /* Disable tx DMA requests for the current instance */
-        Lpuart_Uart_Ip_SetTxDmaCmd(Base, FALSE);
-
-        /* Wait until the last transmission complete */
-        Lpuart_Uart_Ip_StartTimeout(&StartTime, &TimeoutTicks, LPUART_UART_IP_TIMEOUT_VALUE_US, LPUART_UART_IP_TIMEOUT_TYPE);
-        while (!Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_TX_COMPLETE) && \
-           !Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
-        {}
-
-        if (Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
-        {
-            /* In case timeout occur */
-            UartState->TransmitStatus = LPUART_UART_IP_STATUS_TIMEOUT;
-        }
-
-        /* Disable the transmitter */
-        Lpuart_Uart_Ip_SetTransmitterCmd(Base, FALSE);
-
-        if (LPUART_UART_IP_STATUS_BUSY == UartState->TransmitStatus)
-        {
-            /* If the transfer is completed, update the transmit status */
-            UartState->TransmitStatus = LPUART_UART_IP_STATUS_SUCCESS;
-            /* Invoke callback if there is one */
-            if (UartUserCfg->Callback != NULL_PTR)
-            {
-                UartUserCfg->Callback(Instance, LPUART_UART_IP_EVENT_END_TRANSFER, UartUserCfg->CallbackParam);
-            }
-        }
-
-        /* Update the busy flag */
-        UartState->IsTxBusy = FALSE;
+        /* Operation for complete send */
+        Lpuart_Uart_Ip_CompleteTxOperationUsingDma(Instance);
     }
 }
 #endif
@@ -1724,9 +1711,7 @@ void Lpuart_Uart_Ip_CompleteSendUsingDma(uint8 Instance)
  * This is not a public API as it is called from other driver functions.
  *
  *END**************************************************************************/
-static Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_StartReceiveDataUsingInt(const uint8 Instance,
-                                                                         uint8 * RxBuff,
-                                                                         const uint32 RxSize)
+static Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_StartReceiveDataUsingInt(const uint8 Instance, uint8 * RxBuff, const uint32 RxSize)
 {
     LPUART_Type * Base;
     Lpuart_Uart_Ip_StateStructureType * UartState;
@@ -1743,6 +1728,11 @@ static Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_StartReceiveDataUsingInt(const u
 
     /* Clear all the error flags */
     Lpuart_Uart_Ip_ClearErrorFlags(Base);
+
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+        Lpuart_Uart_Ip_ClearStatusFlag(Base, LPUART_UART_IP_TIMEOUT);
+#endif
+
     /* Flush the Tx Buffer */
     Lpuart_Uart_Ip_FlushRxBuffer(Base);
 
@@ -1754,6 +1744,13 @@ static Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_StartReceiveDataUsingInt(const u
     Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_PARITY_ERR_FLAG, TRUE);
     Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_NOISE_ERR_FLAG, TRUE);
     Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_FRAME_ERR_FLAG, TRUE);
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+    if (Lpuart_Uart_Ip_InstHasTimeoutInterruptEnabled[Instance])
+    {
+        /* Enable interrupt */
+        Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_TIMEOUT, TRUE);
+    }
+#endif
 
     /* Enable receive data full interrupt */
     Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_RX_DATA_REG_FULL, TRUE);
@@ -1770,9 +1767,7 @@ static Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_StartReceiveDataUsingInt(const u
  * This is not a public API as it is called from other driver functions.
  *
  *END**************************************************************************/
-static Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_StartReceiveDataUsingDma(const uint8 Instance,
-                                                                         uint8 * RxBuff,
-                                                                         const uint32 RxSize)
+static Lpuart_Uart_Ip_StatusType Lpuart_Uart_Ip_StartReceiveDataUsingDma(const uint8 Instance, uint8 * RxBuff, const uint32 RxSize)
 {
     Lpuart_Uart_Ip_StateStructureType * UartState;
     const Lpuart_Uart_Ip_UserConfigType *UartUserCfg;
@@ -1859,6 +1854,14 @@ static void Lpuart_Uart_Ip_CompleteReceiveDataUsingInt(const uint8 Instance)
     Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_NOISE_ERR_FLAG, FALSE);
     Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_FRAME_ERR_FLAG, FALSE);
 
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+    if (Lpuart_Uart_Ip_InstHasTimeoutInterruptEnabled[Instance])
+    {
+        /* Disable timeout interrupt */
+        Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_TIMEOUT, FALSE);
+    }
+#endif
+
     /* Disable receive data full and rx overrun interrupt. */
     Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_RX_DATA_REG_FULL, FALSE);
 
@@ -1868,7 +1871,8 @@ static void Lpuart_Uart_Ip_CompleteReceiveDataUsingInt(const uint8 Instance)
         Lpuart_Uart_Ip_StartTimeout(&StartTime, &TimeoutTicks, LPUART_UART_IP_TIMEOUT_VALUE_US, LPUART_UART_IP_TIMEOUT_TYPE);
         /* Wait until the data is completely received */
         while (!Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_DATA_REG_FULL) && \
-               !Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
+               !Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE) \
+              )
         {}
 
         if (Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
@@ -1878,8 +1882,13 @@ static void Lpuart_Uart_Ip_CompleteReceiveDataUsingInt(const uint8 Instance)
         }
     }
 
-    /* Disable receiver */
-    Lpuart_Uart_Ip_SetReceiverCmd(Base, FALSE);
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+    if (LPUART_UART_IP_STATUS_RX_IDLE_STATE != UartState->ReceiveStatus)
+#endif
+    {
+        /* Disable receiver */
+        Lpuart_Uart_Ip_SetReceiverCmd(Base, FALSE);
+    }
 
     /* Read dummy to clear RDRF flag */
     (void)Lpuart_Uart_Ip_Getchar(Base);
@@ -1906,17 +1915,13 @@ void Lpuart_Uart_Ip_CompleteReceiveUsingDma(uint8 Instance)
 {
     Lpuart_Uart_Ip_StateStructureType * UartState;
     const Lpuart_Uart_Ip_UserConfigType *UartUserCfg;
-    LPUART_Type * Base;
     Dma_Ip_LogicChannelTransferListType DmaTransferList[LPUART_UART_IP_DMA_CONFIG_LIST_DIMENSION];
     Dma_Ip_ReturnType DmaReturnStatus;
     Dma_Ip_LogicChannelStatusType DmaStatus;
-    uint32 StartTime;
-    uint32 TimeoutTicks;
-    uint32 ElapsedTicks = 0;
 
-    Base = Lpuart_Uart_Ip_apBases[Instance];
     UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
     UartUserCfg = Lpuart_Uart_Ip_apUserConfig[Instance];
+    DmaStatus.ChStateValue = DMA_IP_CH_ERROR_STATE;
 
     /* Get Dma Ip Logic Channel Status */
     (void)Dma_Ip_GetLogicChannelStatus(UartUserCfg->RxDMAChannel, &DmaStatus);
@@ -1970,44 +1975,8 @@ void Lpuart_Uart_Ip_CompleteReceiveUsingDma(uint8 Instance)
     }
     else
     {
-        /* Disable error interrupts and disable rx DMA requests for the current instance*/
-        Lpuart_Uart_Ip_SetupIntDmaMode(Instance, FALSE);
-
-        /* In Abort case, the transmission need to stop instantly */
-        if (LPUART_UART_IP_STATUS_ABORTED == UartState->ReceiveStatus)
-        {
-            /* Wait until the last transmission complete */
-            Lpuart_Uart_Ip_StartTimeout(&StartTime, &TimeoutTicks, LPUART_UART_IP_TIMEOUT_VALUE_US, LPUART_UART_IP_TIMEOUT_TYPE);
-            while (!Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_DATA_REG_FULL) && \
-               !Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
-            {}
-            if (Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
-            {
-              /* In case timeout occur */
-                UartState->ReceiveStatus = LPUART_UART_IP_STATUS_TIMEOUT;
-            }
-        }
-
-        /* Disable receiver */
-        Lpuart_Uart_Ip_SetReceiverCmd(Base, FALSE);
-
-        /* Read dummy to clear RDRF flag */
-        (void)Lpuart_Uart_Ip_Getchar(Base);
-
-        /* Update the information of the module driver state */
-        UartState->IsRxBusy = FALSE;
-
-        /* If the current reception hasn't been aborted, update the status and call the callback */
-        if (LPUART_UART_IP_STATUS_BUSY == UartState->ReceiveStatus)
-        {
-            UartState->ReceiveStatus = LPUART_UART_IP_STATUS_SUCCESS;
-
-            /* Call the callback to notify application that the transfer is complete */
-            if (UartUserCfg->Callback != NULL_PTR)
-            {
-                UartUserCfg->Callback(Instance, LPUART_UART_IP_EVENT_END_TRANSFER, UartUserCfg->CallbackParam);
-            }
-        }
+        /* Operation for complete receive data */
+        Lpuart_Uart_Ip_CompleteRxOperationUsingDma(Instance);
     }
 }
 
@@ -2029,6 +1998,12 @@ static void Lpuart_Uart_Ip_SetupIntDmaMode(const uint8 Instance, boolean Enable)
       Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_PARITY_ERR_FLAG, Enable);
       Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_NOISE_ERR_FLAG, Enable);
       Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_FRAME_ERR_FLAG, Enable);
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+      if (Lpuart_Uart_Ip_InstHasTimeoutInterruptEnabled[Instance])
+      {
+          Lpuart_Uart_Ip_SetIntMode(Base, LPUART_UART_IP_INT_TIMEOUT, Enable);
+      }
+#endif
       /* Setup rx DMA requests for the current instance */
       Lpuart_Uart_Ip_SetRxDmaCmd(Base, Enable);
 }
@@ -2155,12 +2130,273 @@ static void Lpuart_Uart_Ip_GetData(const uint8 Instance)
     }
 }
 
+
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : Linflexd_Uart_Ip_SetUp_Baudrate
+ * Description   : Set up baudrate for Lpuart Uart.
+ *
+ *END**************************************************************************/
+static void Lpuart_Uart_Ip_SetUp_Baudrate(const uint8 Instance)
+{
+    LPUART_Type * Base = Lpuart_Uart_Ip_apBases[Instance];
+    const Lpuart_Uart_Ip_UserConfigType *UartUserCfg;
+
+    UartUserCfg = Lpuart_Uart_Ip_apUserConfig[Instance];
+
+    /* Check if Osr is between 4x and 7x oversampling.
+     * If so, then "BOTHEDGE" sampling must be turned on */
+    if (UartUserCfg->BaudOverSamplingRatio < 8U)
+    {
+        Lpuart_Uart_Ip_EnableBothEdgeSamplingCmd(Base);
+    }
+
+    /* Program the Osr value (bit value is one less than actual value) */
+    Lpuart_Uart_Ip_SetOversamplingRatio(Base, (uint32)UartUserCfg->BaudOverSamplingRatio -1U);
+
+    /* Write the Sbr value to the BAUD registers */
+    Lpuart_Uart_Ip_SetBaudRateDivisor(Base, UartUserCfg->BaudRateDivisor);
+}
+
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : Lpuart_Uart_Ip_SetUp_Parity
+ * Description   : Set up parity for Lpuart Uart.
+ *
+ *END**************************************************************************/
+static void Lpuart_Uart_Ip_SetUp_Parity(const uint8 Instance)
+{
+    LPUART_Type * Base = Lpuart_Uart_Ip_apBases[Instance];
+    const Lpuart_Uart_Ip_UserConfigType *UartUserCfg;
+
+    UartUserCfg = Lpuart_Uart_Ip_apUserConfig[Instance];
+
+    if (UartUserCfg->ParityMode != LPUART_UART_IP_PARITY_DISABLED)
+    {
+        Lpuart_Uart_Ip_SetBitCountPerChar(Base, UartUserCfg->BitCountPerChar, TRUE);
+    }
+    else
+    {
+        Lpuart_Uart_Ip_SetBitCountPerChar(Base, UartUserCfg->BitCountPerChar, FALSE);
+    }
+    Lpuart_Uart_Ip_SetParityMode(Base, UartUserCfg->ParityMode);
+}
+
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : Lpuart_Uart_Ip_TxRxIrqHandler
+ * Description   : Transmit/Receive Interrupt handler for LPUART.
+ *
+ *END**************************************************************************/
+static void Lpuart_Uart_Ip_TxRxIrqHandler(const uint8 Instance)
+{
+    const LPUART_Type * Base;
+    boolean IsReturn = FALSE;
+
+    Base = Lpuart_Uart_Ip_apBases[Instance];
+
+    /* Handle receive data full interrupt */
+    if (Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_DATA_REG_FULL))
+    {
+        if (Lpuart_Uart_Ip_GetIntMode(Base, LPUART_UART_IP_INT_RX_DATA_REG_FULL))
+        {
+            Lpuart_Uart_Ip_RxIrqHandler(Instance);
+        }
+        /* Case of spurious interrupt when the interupt enable flag is not set and respective interrupt status flag is set */
+        else
+        {
+            /* CPR_RTD_00664.uart Spurious interrupt*/
+            /* Do nothing - Return immediately */
+        }
+        IsReturn = TRUE;
+    }
+    /* Handle transmitter data register empty interrupt */
+    if (Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_TX_DATA_REG_EMPTY) && (FALSE == IsReturn))
+    {
+        if (Lpuart_Uart_Ip_GetIntMode(Base, LPUART_UART_IP_INT_TX_DATA_REG_EMPTY))
+        {
+            Lpuart_Uart_Ip_TxEmptyIrqHandler(Instance);
+            IsReturn = TRUE;
+        }
+        /* Case of spurious interrupt when the interupt enable flag is not set and respective interrupt status flag is set */
+        else
+        {
+            /* Do nothing, because TDRE can not clear without affecting to normal operation*/
+        }
+    }
+    /* Handle transmission complete interrupt */
+    if (Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_TX_COMPLETE) && (FALSE == IsReturn))
+    {
+        if (Lpuart_Uart_Ip_GetIntMode(Base, LPUART_UART_IP_INT_TX_COMPLETE))
+        {
+            Lpuart_Uart_Ip_TxCompleteIrqHandler(Instance);
+        }
+        /* Case of spurious interrupt when the interupt enable flag is not set and respective interrupt status flag is set */
+        else
+        {
+            /* Do nothing, because TC can not clear without affecting to normal operation*/
+        }
+    }
+}
+
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : Lpuart_Uart_Ip_SyncSendData
+ * Description   : Sync data sending process for Lpuart Uart.
+ *
+ *END**************************************************************************/
+static void Lpuart_Uart_Ip_SyncSendData(const uint8 Instance, const uint32 Timeout)
+{
+    const LPUART_Type * Base;
+    Lpuart_Uart_Ip_StateStructureType * UartState;
+    uint32 StartTime;
+    uint32 TimeoutTicks;
+    uint32 ElapsedTicks = 0;
+
+    Base = Lpuart_Uart_Ip_apBases[Instance];
+    UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
+
+    Lpuart_Uart_Ip_StartTimeout(&StartTime, &TimeoutTicks, Timeout, LPUART_UART_IP_TIMEOUT_TYPE);
+
+    while ((UartState->TxSize > 0U) && \
+            !Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE) \
+          )
+    {
+        Lpuart_Uart_Ip_PutData(Instance);
+        while (!Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_TX_DATA_REG_EMPTY)  && \
+               !Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE) \
+              )
+        {}
+    }
+
+    /* Check if Timeout occur */
+    if (Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
+    {
+        UartState->TransmitStatus = LPUART_UART_IP_STATUS_TIMEOUT;
+    }
+    else /* The transmit process is complete */
+    {
+        UartState->TransmitStatus = LPUART_UART_IP_STATUS_SUCCESS;
+    }
+}
+#if (LPUART_UART_IP_HAS_DMA_ENABLED == STD_ON)
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : Lpuart_Uart_Ip_CompleteTxOperationUsingDma
+ * Description   : Complete operation of the UART transmission using DMA.
+ *
+ *END**************************************************************************/
+static void Lpuart_Uart_Ip_CompleteTxOperationUsingDma(const uint8 Instance)
+{
+    Lpuart_Uart_Ip_StateStructureType * UartState;
+    const Lpuart_Uart_Ip_UserConfigType *UartUserCfg;
+    LPUART_Type * Base;
+    uint32 StartTime;
+    uint32 TimeoutTicks;
+    uint32 ElapsedTicks = 0;
+
+    Base = Lpuart_Uart_Ip_apBases[Instance];
+    UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
+    UartUserCfg = Lpuart_Uart_Ip_apUserConfig[Instance];
+
+    /* Disable tx DMA requests for the current instance */
+    Lpuart_Uart_Ip_SetTxDmaCmd(Base, FALSE);
+
+    /* Wait until the last transmission complete */
+    Lpuart_Uart_Ip_StartTimeout(&StartTime, &TimeoutTicks, LPUART_UART_IP_TIMEOUT_VALUE_US, LPUART_UART_IP_TIMEOUT_TYPE);
+    while (!Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_TX_COMPLETE) && \
+       !Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
+    {}
+
+    if (Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
+    {
+        /* In case timeout occur */
+        UartState->TransmitStatus = LPUART_UART_IP_STATUS_TIMEOUT;
+    }
+
+    /* Disable the transmitter */
+    Lpuart_Uart_Ip_SetTransmitterCmd(Base, FALSE);
+
+    if (LPUART_UART_IP_STATUS_BUSY == UartState->TransmitStatus)
+    {
+        /* If the transfer is completed, update the transmit status */
+        UartState->TransmitStatus = LPUART_UART_IP_STATUS_SUCCESS;
+        /* Invoke callback if there is one */
+        if (UartUserCfg->Callback != NULL_PTR)
+        {
+            UartUserCfg->Callback(Instance, LPUART_UART_IP_EVENT_END_TRANSFER, UartUserCfg->CallbackParam);
+        }
+    }
+
+    /* Update the busy flag */
+    UartState->IsTxBusy = FALSE;
+}
+
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : Lpuart_Uart_Ip_CompleteRxOperationUsingDma
+ * Description   : Complete operation of the UART transmission using DMA.
+ *
+ *END**************************************************************************/
+static void Lpuart_Uart_Ip_CompleteRxOperationUsingDma(const uint8 Instance)
+{
+    Lpuart_Uart_Ip_StateStructureType * UartState;
+    const Lpuart_Uart_Ip_UserConfigType *UartUserCfg;
+    LPUART_Type * Base;
+    uint32 StartTime;
+    uint32 TimeoutTicks;
+    uint32 ElapsedTicks = 0;
+
+    Base = Lpuart_Uart_Ip_apBases[Instance];
+    UartState = (Lpuart_Uart_Ip_StateStructureType *)Lpuart_Uart_Ip_apStateStructuresArray[Instance];
+    UartUserCfg = Lpuart_Uart_Ip_apUserConfig[Instance];
+
+    /* Disable error interrupts and disable rx DMA requests for the current instance*/
+    Lpuart_Uart_Ip_SetupIntDmaMode(Instance, FALSE);
+
+    /* In Abort case, the transmission need to stop instantly */
+    if (LPUART_UART_IP_STATUS_ABORTED == UartState->ReceiveStatus)
+    {
+        /* Wait until the last transmission complete */
+        Lpuart_Uart_Ip_StartTimeout(&StartTime, &TimeoutTicks, LPUART_UART_IP_TIMEOUT_VALUE_US, LPUART_UART_IP_TIMEOUT_TYPE);
+        while (!Lpuart_Uart_Ip_GetStatusFlag(Base, LPUART_UART_IP_DATA_REG_FULL) && \
+               !Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE) \
+              )
+        {}
+        if (Lpuart_Uart_Ip_CheckTimeout(&StartTime, &ElapsedTicks, TimeoutTicks, LPUART_UART_IP_TIMEOUT_TYPE))
+        {
+          /* In case timeout occur */
+            UartState->ReceiveStatus = LPUART_UART_IP_STATUS_TIMEOUT;
+        }
+    }
+
+    /* Disable receiver */
+    Lpuart_Uart_Ip_SetReceiverCmd(Base, FALSE);
+
+    /* Read dummy to clear RDRF flag */
+    (void)Lpuart_Uart_Ip_Getchar(Base);
+
+    /* Update the information of the module driver state */
+    UartState->IsRxBusy = FALSE;
+
+    /* If the current reception hasn't been aborted, update the status and call the callback */
+    if (LPUART_UART_IP_STATUS_BUSY == UartState->ReceiveStatus)
+    {
+        UartState->ReceiveStatus = LPUART_UART_IP_STATUS_SUCCESS;
+
+        /* Call the callback to notify application that the transfer is complete */
+        if (UartUserCfg->Callback != NULL_PTR)
+        {
+            UartUserCfg->Callback(Instance, LPUART_UART_IP_EVENT_END_TRANSFER, UartUserCfg->CallbackParam);
+        }
+    }
+}
+#endif
 #define UART_STOP_SEC_CODE
 #include "Uart_MemMap.h"
 
 #ifdef __cplusplus
 }
+#endif
 
 /** @} */
-
-#endif

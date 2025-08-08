@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : FLEXCAN
 *   Dependencies         : 
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -49,7 +48,7 @@ extern "C"{
 #include "Mcal.h"
 #include "FlexCAN_Ip_DeviceReg.h"
 #include "FlexCAN_Ip_Types.h"
-#include "StandardTypes.h"
+#include "Std_Types.h"
 #include "FlexCAN_Ip_Cfg.h"
 #include "FlexCAN_Ip_Wrapper.h"
 /*==================================================================================================
@@ -57,9 +56,9 @@ extern "C"{
 ==================================================================================================*/
 #define FLEXCAN_IP_VENDOR_ID_H                      43
 #define FLEXCAN_IP_AR_RELEASE_MAJOR_VERSION_H       4
-#define FLEXCAN_IP_AR_RELEASE_MINOR_VERSION_H       4
+#define FLEXCAN_IP_AR_RELEASE_MINOR_VERSION_H       7
 #define FLEXCAN_IP_AR_RELEASE_REVISION_VERSION_H    0
-#define FLEXCAN_IP_SW_MAJOR_VERSION_H               2
+#define FLEXCAN_IP_SW_MAJOR_VERSION_H               5
 #define FLEXCAN_IP_SW_MINOR_VERSION_H               0
 #define FLEXCAN_IP_SW_PATCH_VERSION_H               0
 /*==================================================================================================
@@ -142,11 +141,11 @@ extern "C"{
 #endif
 
 #ifndef DISABLE_MCAL_INTERMODULE_ASR_CHECK
-    /* Check if current file and StandardTypes header file are of the same Autosar version */
+    /* Check if current file and Std_Types header file are of the same Autosar version */
 #if ((FLEXCAN_IP_AR_RELEASE_MAJOR_VERSION_H    != STD_AR_RELEASE_MAJOR_VERSION) || \
      (FLEXCAN_IP_AR_RELEASE_MINOR_VERSION_H    != STD_AR_RELEASE_MINOR_VERSION) \
     )
-    #error "AutoSar Version Numbers of FlexCAN_Ip_DeviceReg.h and StandardTypes.h are different"
+    #error "AutoSar Version Numbers of FlexCAN_Ip_DeviceReg.h and Std_Types.h are different"
 #endif
     /* Check if current file and Mcal header file are of the same Autosar version */
 #if ((FLEXCAN_IP_AR_RELEASE_MAJOR_VERSION_H    != MCAL_AR_RELEASE_MAJOR_VERSION) || \
@@ -170,8 +169,8 @@ extern "C"{
 /*==================================================================================================
 *                                GLOBAL VARIABLE DECLARATIONS
 ==================================================================================================*/
-#define CAN_START_SEC_CONFIG_DATA_UNSPECIFIED
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_START_SEC_CONFIG_DATA_UNSPECIFIED
+#include "Can_43_FLEXCAN_MemMap.h"
 
 /* Calling the external Configuration symbols defined by FlexCAN_Ip_Cfg.h */
 FLEXCAN_IP_CONFIG_EXT
@@ -180,21 +179,21 @@ FLEXCAN_IP_CONFIG_EXT
 FLEXCAN_IP_PN_CONFIG_EXT
 #endif
 
-#define CAN_STOP_SEC_CONFIG_DATA_UNSPECIFIED
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_STOP_SEC_CONFIG_DATA_UNSPECIFIED
+#include "Can_43_FLEXCAN_MemMap.h"
 
-#define CAN_START_SEC_VAR_CLEARED_UNSPECIFIED
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_START_SEC_VAR_CLEARED_UNSPECIFIED
+#include "Can_43_FLEXCAN_MemMap.h"
 
 FLEXCAN_IP_STATE_EXT
 
-#define CAN_STOP_SEC_VAR_CLEARED_UNSPECIFIED
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_STOP_SEC_VAR_CLEARED_UNSPECIFIED
+#include "Can_43_FLEXCAN_MemMap.h"
 /*==================================================================================================
 *                                    FUNCTION PROTOTYPES
 ==================================================================================================*/
-#define CAN_START_SEC_CODE
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_START_SEC_CODE
+#include "Can_43_FLEXCAN_MemMap.h"
 /**
  *  @brief Initializes the FlexCAN peripheral.
  *  @details This function will config FlexCAN module and will leave the module in freeze mode.
@@ -341,6 +340,17 @@ Flexcan_Ip_StatusType FlexCAN_Ip_Receive(uint8 instance,
  */
 #define FlexCAN_Ip_ConfigEnhancedRxFifo(instance, id_filter_table) \
         Call_FlexCAN_Ip_ConfigEnhancedRxFifo(instance, id_filter_table)
+
+#if (FLEXCAN_IP_ENABLE_IDHIT_CALLOUT == STD_ON)
+/*!
+ * @brief       Callout function when using Enhanced Rx Fifo. It shall be defined by user application.
+ * @details     Callout function shall provide the id_hit of the received CAN frame and request the user to set the pointer to where data will be stored.
+ * @param       instance  FlexCAN instance number.
+ * @param       id_hit    The id_hit of the received CAN frame.
+ * @param       rxFifo    The pointer to pointer that point to where data will be stored.
+ */
+void FlexCAN_Ip_IdHit_Callout(uint8 instance, uint8 id_hit, Flexcan_Ip_MsgBuffType ** rxFifo);
+#endif
 
 #endif /* (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON) */
 
@@ -527,9 +537,10 @@ void FlexCAN_Ip_MainFunctionWrite(uint8 instance, uint8 mb_idx);
 #define FlexCAN_Ip_SetStartMode(instance) \
         Call_FlexCAN_Ip_SetStartMode(instance)
 
+
 /**
  *  @brief     Set the FlexCAN instance in STOP mode
- *  @details   Set the FlexCAN instance in START mode, this will prevent instance to participate to
+ *  @details   Set the FlexCAN instance in STOP mode, this will prevent instance to participate to
  *  bus transactions and disable module clocks.
  *  @param[in] instance A FlexCAN instance number
  *  @return    FLEXCAN_STATUS_SUCCESS if successful;<br>
@@ -538,6 +549,7 @@ void FlexCAN_Ip_MainFunctionWrite(uint8 instance, uint8 mb_idx);
  */
 #define FlexCAN_Ip_SetStopMode(instance) \
         Call_FlexCAN_Ip_SetStopMode(instance)
+
 
 /**
  *  @brief     Enable\Disable listen Only Mode
@@ -963,33 +975,148 @@ void FlexCAN_Ip_GetWMB(uint8 u8Instance,
  */
 Flexcan_Ip_StatusType FlexCAN_Ip_ManualBusOffRecovery(uint8 Instance);
 
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+/*!
+ * @brief Set Memory Error Detection and Correction in FlexCAN memory.
+ * @note  All FlexCAN memory must be initialized first by calling FlexCAN_Ip_Init.
+ *
+ * @param[in]   Instance    The FlexCAN instance number.
+ * @param[in]   IsEnable    Enable/Disable the Memory Error Detection and Correction feature.
+ * @return FLEXCAN_STATUS_SUCCESS if successful operation.
+ *         FLEXCAN_STATUS_ERROR if fail to set.
+ */
+Flexcan_Ip_StatusType FlexCAN_Ip_SetMemErrorDetection(uint8 Instance, boolean IsEnable);
+
+/*!
+ * @brief Set Memory Error Detection and Correction interrupt for corresponding error source.
+ * @note  Memory Error Detection and Correction feature must be enabled before calling this function.
+ *
+ * @param[in]   Instance   The FlexCAN instance number.
+ * @param[in]   ErrorType  The Type of error source to be detected.
+ * @param[in]   IsEnable   Enable/Disable interrupt of errror source.
+ * @return FLEXCAN_STATUS_SUCCESS if successful operation.
+ *         FLEXCAN_STATUS_ERROR if fail to set.
+ */
+#define FlexCAN_Ip_SetMemErrorDetectionInt(Instance, ErrorType, IsEnable) \
+        Call_FlexCAN_Ip_SetMemErrorDetectionInt(Instance, ErrorType, IsEnable)
+
+/*!
+ * @brief Set Memory Error Injection for corresponding error source.
+ * @note  Memory Error Detection and Correction feature must be enabled before calling this function.
+ *
+ * @param[in]   Instance           The FlexCAN instance number.
+ * @param[in]   MemErrorInjection  The pointer point to the struct contains the information of memory error to be injected.
+ * @param[in]   IsEnable           Enable/Disable Memory Error Injection.
+ * @return FLEXCAN_STATUS_SUCCESS if successful operation.
+ *         FLEXCAN_STATUS_ERROR if fail to set.
+ */
+Flexcan_Ip_StatusType FlexCAN_Ip_SetMemErrorInjection(uint8 Instance,
+                                                      Flexcan_Ip_MemErrorInjectionType * MemErrorInjection,
+                                                      boolean IsEnable);
+
+/*!
+ * @brief Check the memory error occurred and detected by FlexCAN hardware.
+ * @note  Memory Error Detection and Correction feature must be enabled before calling this function.
+ *
+ * @param[in]   Instance           The FlexCAN instance number.
+ * @return FLEXCAN_STATUS_SUCCESS if successful operation.
+ *         FLEXCAN_STATUS_ERROR if fail to set.
+ */
+Flexcan_Ip_StatusType FlexCAN_Ip_MainFunctionMemErrorDetection(uint8 Instance);
+
+/*!
+ * @brief Read Memory Error Report.
+ * @note  Memory Error Detection and Correction feature must be enabled before calling this function.
+ *
+ * @param[in]   Instance           The FlexCAN instance number.
+ * @param[in]   ErrorReport        The pointer point to where error infor stored.
+ * @return FLEXCAN_STATUS_SUCCESS if successful operation.
+ *         FLEXCAN_STATUS_ERROR if fail to set.
+ */
+Flexcan_Ip_StatusType FlexCAN_Ip_ReadMemErrorReport(uint8 Instance, Flexcan_Ip_MemErrorReportType * ErrorReport);
+
+#endif /* (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON) */
+#endif /* (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON) */
+
 #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
 void DMA_Can_Callback0(void);
-#if FLEXCAN_INSTANCE_COUNT > 1U
+#if FLEXCAN_IP_INSTANCE_COUNT > 1U
 void DMA_Can_Callback1(void);
 #endif
-#if FLEXCAN_INSTANCE_COUNT > 2U
+#if FLEXCAN_IP_INSTANCE_COUNT > 2U
 void DMA_Can_Callback2(void);
 #endif
-#if FLEXCAN_INSTANCE_COUNT > 3U
+#if FLEXCAN_IP_INSTANCE_COUNT > 3U
 void DMA_Can_Callback3(void);
 #endif
-#if FLEXCAN_INSTANCE_COUNT > 4U
+#if FLEXCAN_IP_INSTANCE_COUNT > 4U
 void DMA_Can_Callback4(void);
 #endif
-#if FLEXCAN_INSTANCE_COUNT > 5U
+#if FLEXCAN_IP_INSTANCE_COUNT > 5U
 void DMA_Can_Callback5(void);
 #endif
-#if FLEXCAN_INSTANCE_COUNT > 6U
+#if FLEXCAN_IP_INSTANCE_COUNT > 6U
 void DMA_Can_Callback6(void);
 #endif
-#if FLEXCAN_INSTANCE_COUNT > 7U
+#if FLEXCAN_IP_INSTANCE_COUNT > 7U
 void DMA_Can_Callback7(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 8U
+void DMA_Can_Callback8(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 9U
+void DMA_Can_Callback9(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 10U
+void DMA_Can_Callback10(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 11U
+void DMA_Can_Callback11(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 12U
+void DMA_Can_Callback12(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 13U
+void DMA_Can_Callback13(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 14U
+void DMA_Can_Callback14(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 15U
+void DMA_Can_Callback15(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 16U
+void DMA_Can_Callback16(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 17U
+void DMA_Can_Callback17(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 18U
+void DMA_Can_Callback18(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 19U
+void DMA_Can_Callback19(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 20U
+void DMA_Can_Callback20(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 21U
+void DMA_Can_Callback21(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 22U
+void DMA_Can_Callback22(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 23U
+void DMA_Can_Callback23(void);
+#endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 24U
+void DMA_Can_Callback24(void);
 #endif
 #endif /* FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE */
 
-#define CAN_STOP_SEC_CODE
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_STOP_SEC_CODE
+#include "Can_43_FLEXCAN_MemMap.h"
 
 #ifdef __cplusplus
 }

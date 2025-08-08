@@ -1,19 +1,18 @@
 /*==================================================================================================
-* Project : RTD AUTOSAR 4.4
+* Project : RTD AUTOSAR 4.7
 * Platform : CORTEXM
 * Peripheral : Stm_Pit_Rtc_Emios
 * Dependencies : none
 *
-* Autosar Version : 4.4.0
-* Autosar Revision : ASR_REL_4_4_REV_0000
+* Autosar Version : 4.7.0
+* Autosar Revision : ASR_REL_4_7_REV_0000
 * Autosar Conf.Variant :
-* SW Version : 2.0.0
-* Build Version : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+* SW Version : 5.0.0
+* Build Version : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-* (c) Copyright 2020 - 2022 NXP Semiconductors
-* All Rights Reserved.
+* Copyright 2020 - 2024 NXP
 *
-* NXP Confidential. This software is owned or controlled by NXP and may only be
+* NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 * used strictly in accordance with the applicable license terms. By expressly
 * accepting such terms or by downloading, installing, activating and/or otherwise
 * using the software, you are agreeing that you have read, and that you agree to
@@ -22,8 +21,8 @@
 * activate or otherwise use the software.
 ==================================================================================================*/
 
-#ifndef PIT_IP_BOARD_INITPERIPHERALS_PBCFG_H
-#define PIT_IP_BOARD_INITPERIPHERALS_PBCFG_H
+#ifndef PIT_IP_PBCFG_H
+#define PIT_IP_PBCFG_H
 
 /**
 *   @file           Pit_Ip_PBcfg.h
@@ -49,31 +48,31 @@ extern "C"
 *                              SOURCE FILE VERSION INFORMATION
 ==================================================================================================*/
 /* Inclusion of incompatible header files shall be avoided */
-#define PIT_IP_VENDOR_ID_BOARD_INITPERIPHERALS_PBCFG_H                    43
-#define PIT_IP_AR_RELEASE_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H     4
-#define PIT_IP_AR_RELEASE_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H     4
-#define PIT_IP_AR_RELEASE_REVISION_VERSION_BOARD_INITPERIPHERALS_PBCFG_H  0
-#define PIT_IP_SW_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H             2
-#define PIT_IP_SW_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H             0
-#define PIT_IP_SW_PATCH_VERSION_BOARD_INITPERIPHERALS_PBCFG_H             0
+#define PIT_IP_VENDOR_ID_PBCFG_H                    43
+#define PIT_IP_AR_RELEASE_MAJOR_VERSION_PBCFG_H     4
+#define PIT_IP_AR_RELEASE_MINOR_VERSION_PBCFG_H     7
+#define PIT_IP_AR_RELEASE_REVISION_VERSION_PBCFG_H  0
+#define PIT_IP_SW_MAJOR_VERSION_PBCFG_H             5
+#define PIT_IP_SW_MINOR_VERSION_PBCFG_H             0
+#define PIT_IP_SW_PATCH_VERSION_PBCFG_H             0
 
 /*==================================================================================================
                                       FILE VERSION CHECKS
 ==================================================================================================*/
-#if (PIT_IP_VENDOR_ID_BOARD_INITPERIPHERALS_PBCFG_H != PIT_IP_TYPES_VENDOR_ID)
+#if (PIT_IP_VENDOR_ID_PBCFG_H != PIT_IP_TYPES_VENDOR_ID)
     #error "Pit_Ip_PBcfg.h and Pit_Ip_Types.h have different vendor ids"
 #endif
 /* Check if this header file and header file are of the same Autosar version */
-#if ((PIT_IP_AR_RELEASE_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H != PIT_IP_TYPES_AR_RELEASE_MAJOR_VERSION) || \
-     (PIT_IP_AR_RELEASE_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H != PIT_IP_TYPES_AR_RELEASE_MINOR_VERSION) || \
-     (PIT_IP_AR_RELEASE_REVISION_VERSION_BOARD_INITPERIPHERALS_PBCFG_H != PIT_IP_TYPES_AR_RELEASE_REVISION_VERSION) \
+#if ((PIT_IP_AR_RELEASE_MAJOR_VERSION_PBCFG_H != PIT_IP_TYPES_AR_RELEASE_MAJOR_VERSION) || \
+     (PIT_IP_AR_RELEASE_MINOR_VERSION_PBCFG_H != PIT_IP_TYPES_AR_RELEASE_MINOR_VERSION) || \
+     (PIT_IP_AR_RELEASE_REVISION_VERSION_PBCFG_H != PIT_IP_TYPES_AR_RELEASE_REVISION_VERSION) \
     )
     #error "AutoSar Version Numbers of Pit_Ip_PBcfg.h and Pit_Ip_Types.h are different"
 #endif
 /* Check if this header file and header file are of the same Software version */
-#if ((PIT_IP_SW_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H != PIT_IP_TYPES_SW_MAJOR_VERSION) || \
-     (PIT_IP_SW_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H != PIT_IP_TYPES_SW_MINOR_VERSION) || \
-     (PIT_IP_SW_PATCH_VERSION_BOARD_INITPERIPHERALS_PBCFG_H != PIT_IP_TYPES_SW_PATCH_VERSION) \
+#if ((PIT_IP_SW_MAJOR_VERSION_PBCFG_H != PIT_IP_TYPES_SW_MAJOR_VERSION) || \
+     (PIT_IP_SW_MINOR_VERSION_PBCFG_H != PIT_IP_TYPES_SW_MINOR_VERSION) || \
+     (PIT_IP_SW_PATCH_VERSION_PBCFG_H != PIT_IP_TYPES_SW_PATCH_VERSION) \
     )
     #error "Software Version Numbers of Pit_Ip_PBcfg.h and Pit_Ip_Types.h are different"
 #endif
@@ -110,8 +109,8 @@ extern const Pit_Ip_ChannelConfigType PIT_0_ChannelConfig_PB[1U];
 
 #ifdef __cplusplus
 }
-#endif
-
+#endif /* PIT_IP_PBCFG_H */
 /** @} */
-#endif /* PIT_IP_PBCFG_H*/
+
+#endif
 

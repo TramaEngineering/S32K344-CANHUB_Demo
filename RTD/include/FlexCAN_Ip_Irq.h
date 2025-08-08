@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : FLEXCAN
 *   Dependencies         : 
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -45,9 +44,9 @@
 ==================================================================================================*/
 #define FLEXCAN_IP_IRQ_VENDOR_ID_H                      43
 #define FLEXCAN_IP_IRQ_AR_RELEASE_MAJOR_VERSION_H       4
-#define FLEXCAN_IP_IRQ_AR_RELEASE_MINOR_VERSION_H       4
+#define FLEXCAN_IP_IRQ_AR_RELEASE_MINOR_VERSION_H       7
 #define FLEXCAN_IP_IRQ_AR_RELEASE_REVISION_VERSION_H    0
-#define FLEXCAN_IP_IRQ_SW_MAJOR_VERSION_H               2
+#define FLEXCAN_IP_IRQ_SW_MAJOR_VERSION_H               5
 #define FLEXCAN_IP_IRQ_SW_MINOR_VERSION_H               0
 #define FLEXCAN_IP_IRQ_SW_PATCH_VERSION_H               0
 /*==================================================================================================
@@ -81,8 +80,8 @@
 /*==================================================================================================
 *                                    FUNCTION PROTOTYPES
 ==================================================================================================*/
-#define CAN_START_SEC_CODE
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_START_SEC_CODE
+#include "Can_43_FLEXCAN_MemMap.h"
 
 void FlexCAN_IRQHandler
 (
@@ -97,7 +96,11 @@ void FlexCAN_IRQHandler
 /* always exist due to FLEXCAN_IP_FEATURE_BUSOFF_ERROR_INTERRUPT_UNIFIED defined as (STD_ON) */
 void FlexCAN_Busoff_Error_IRQHandler(uint8 instance);
 
-#define CAN_STOP_SEC_CODE
-#include "Can_MemMap.h"
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+void FlexCAN_MemError_IRQHandler(uint8 Instance);
+#endif
+
+#define CAN_43_FLEXCAN_STOP_SEC_CODE
+#include "Can_43_FLEXCAN_MemMap.h"
 #endif /* FLEXCAN_IP_IRQ_H*/
 /** @} */

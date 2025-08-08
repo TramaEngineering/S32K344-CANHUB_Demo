@@ -65,7 +65,7 @@
 /*select the UART PAL instance and configuration for the console re-target implementation */
 #ifdef S32K3_WB
 #define CONSOLE_UART_INST  		2U
-#define CONSOLE_UART_CONFIG   	&Lpuart_Uart_Ip_xHwConfigPB_2_BOARD_INITPERIPHERALS
+#define CONSOLE_UART_CONFIG   	&Lpuart_Uart_Ip_xHwConfigPB_2
 #endif
 
 #ifndef LOGI

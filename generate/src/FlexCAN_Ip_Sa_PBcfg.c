@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : FLEXCAN
 *   Dependencies         : 
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -50,68 +49,68 @@ extern "C"{
 /*==================================================================================================
 *                              SOURCE FILE VERSION INFORMATION
 ==================================================================================================*/
-#define FLEXCAN_IP_SA_VENDOR_ID_BOARD_INITPERIPHERALS_PBCFG_C                     43
-#define FLEXCAN_IP_SA_AR_RELEASE_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C      4
-#define FLEXCAN_IP_SA_AR_RELEASE_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C      4
-#define FLEXCAN_IP_SA_AR_RELEASE_REVISION_VERSION_BOARD_INITPERIPHERALS_PBCFG_C   0
-#define FLEXCAN_IP_SA_SW_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C              2
-#define FLEXCAN_IP_SA_SW_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C              0
-#define FLEXCAN_IP_SA_SW_PATCH_VERSION_BOARD_INITPERIPHERALS_PBCFG_C              0
+#define FLEXCAN_IP_SA_VENDOR_ID_PBCFG_C                     43
+#define FLEXCAN_IP_SA_AR_RELEASE_MAJOR_VERSION_PBCFG_C      4
+#define FLEXCAN_IP_SA_AR_RELEASE_MINOR_VERSION_PBCFG_C      7
+#define FLEXCAN_IP_SA_AR_RELEASE_REVISION_VERSION_PBCFG_C   0
+#define FLEXCAN_IP_SA_SW_MAJOR_VERSION_PBCFG_C              5
+#define FLEXCAN_IP_SA_SW_MINOR_VERSION_PBCFG_C              0
+#define FLEXCAN_IP_SA_SW_PATCH_VERSION_PBCFG_C              0
 /*==================================================================================================
 *                                     FILE VERSION CHECKS
 ==================================================================================================*/
 /* Checks against current file and FlexCAN_Ip_Types.h */
-#if (FLEXCAN_IP_SA_VENDOR_ID_BOARD_INITPERIPHERALS_PBCFG_C != FLEXCAN_IP_TYPES_VENDOR_ID_H)
-    #error "FlexCAN_Ip_Sa_BOARD_InitPeripherals_PBcfg.c and FlexCAN_Ip_Types.h have different vendor ids"
+#if (FLEXCAN_IP_SA_VENDOR_ID_PBCFG_C != FLEXCAN_IP_TYPES_VENDOR_ID_H)
+    #error "FlexCAN_Ip_Sa_PBcfg.c and FlexCAN_Ip_Types.h have different vendor ids"
 #endif
-#if ((FLEXCAN_IP_SA_AR_RELEASE_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C     != FLEXCAN_IP_TYPES_AR_RELEASE_MAJOR_VERSION_H) || \
-     (FLEXCAN_IP_SA_AR_RELEASE_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C     != FLEXCAN_IP_TYPES_AR_RELEASE_MINOR_VERSION_H) || \
-     (FLEXCAN_IP_SA_AR_RELEASE_REVISION_VERSION_BOARD_INITPERIPHERALS_PBCFG_C  != FLEXCAN_IP_TYPES_AR_RELEASE_REVISION_VERSION_H) \
+#if ((FLEXCAN_IP_SA_AR_RELEASE_MAJOR_VERSION_PBCFG_C     != FLEXCAN_IP_TYPES_AR_RELEASE_MAJOR_VERSION_H) || \
+     (FLEXCAN_IP_SA_AR_RELEASE_MINOR_VERSION_PBCFG_C     != FLEXCAN_IP_TYPES_AR_RELEASE_MINOR_VERSION_H) || \
+     (FLEXCAN_IP_SA_AR_RELEASE_REVISION_VERSION_PBCFG_C  != FLEXCAN_IP_TYPES_AR_RELEASE_REVISION_VERSION_H) \
     )
-    #error "AUTOSAR Version Numbers of FlexCAN_Ip_Sa_BOARD_InitPeripherals_PBcfg.c and FlexCAN_Ip_Types.h are different"
+    #error "AutoSar Version Numbers of FlexCAN_Ip_Sa_PBcfg.c and FlexCAN_Ip_Types.h are different"
 #endif
-#if ((FLEXCAN_IP_SA_SW_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C != FLEXCAN_IP_TYPES_SW_MAJOR_VERSION_H) || \
-     (FLEXCAN_IP_SA_SW_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C != FLEXCAN_IP_TYPES_SW_MINOR_VERSION_H) || \
-     (FLEXCAN_IP_SA_SW_PATCH_VERSION_BOARD_INITPERIPHERALS_PBCFG_C != FLEXCAN_IP_TYPES_SW_PATCH_VERSION_H) \
+#if ((FLEXCAN_IP_SA_SW_MAJOR_VERSION_PBCFG_C != FLEXCAN_IP_TYPES_SW_MAJOR_VERSION_H) || \
+     (FLEXCAN_IP_SA_SW_MINOR_VERSION_PBCFG_C != FLEXCAN_IP_TYPES_SW_MINOR_VERSION_H) || \
+     (FLEXCAN_IP_SA_SW_PATCH_VERSION_PBCFG_C != FLEXCAN_IP_TYPES_SW_PATCH_VERSION_H) \
     )
-    #error "Software Version Numbers of FlexCAN_Ip_Sa_BOARD_InitPeripherals_PBcfg.c and FlexCAN_Ip_Types.h are different"
+    #error "Software Version Numbers of FlexCAN_Ip_Sa_PBcfg.c and FlexCAN_Ip_Types.h are different"
 #endif
 
 #ifndef DISABLE_MCAL_INTERMODULE_ASR_CHECK
     /* Checks against current file and Dma_Ip.h */
     #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
-        #if ((FLEXCAN_IP_SA_AR_RELEASE_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C    != DMA_IP_AR_RELEASE_MAJOR_VERSION) || \
-            (FLEXCAN_IP_SA_AR_RELEASE_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C     != DMA_IP_AR_RELEASE_MINOR_VERSION) \
+        #if ((FLEXCAN_IP_SA_AR_RELEASE_MAJOR_VERSION_PBCFG_C != DMA_IP_AR_RELEASE_MAJOR_VERSION) || \
+             (FLEXCAN_IP_SA_AR_RELEASE_MINOR_VERSION_PBCFG_C != DMA_IP_AR_RELEASE_MINOR_VERSION) \
             )
-            #error "AUTOSAR Version Numbers of FlexCAN_Ip_Sa_BOARD_InitPeripherals_PBcfg.c and Dma_Ip.h are different"
+            #error "AutoSar Version Numbers of FlexCAN_Ip_Sa_PBcfg.c and Dma_Ip.h are different"
         #endif
     #endif
 #endif
 /*==================================================================================================
 *                                   GLOBAL FUNCTION PROTOTYPES
 ==================================================================================================*/
-#define CAN_START_SEC_CODE
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_START_SEC_CODE
+#include "Can_43_FLEXCAN_MemMap.h"
 
 extern void can_interrupt(uint8 instance, Flexcan_Ip_EventType eventType,
-                  uint32 buffIdx, const Flexcan_Ip_StateType * flexcanState);
+                uint32 buffIdx, const Flexcan_Ip_StateType * flexcanState);
 extern void can_interrupt(uint8 instance, Flexcan_Ip_EventType eventType,
-                  uint32 buffIdx, const Flexcan_Ip_StateType * flexcanState);
+                uint32 buffIdx, const Flexcan_Ip_StateType * flexcanState);
 extern void can_interrupt(uint8 instance, Flexcan_Ip_EventType eventType,
-                  uint32 buffIdx, const Flexcan_Ip_StateType * flexcanState);
+                uint32 buffIdx, const Flexcan_Ip_StateType * flexcanState);
 extern void can_interrupt(uint8 instance, Flexcan_Ip_EventType eventType,
-                  uint32 buffIdx, const Flexcan_Ip_StateType * flexcanState);
+                uint32 buffIdx, const Flexcan_Ip_StateType * flexcanState);
 extern void can_interrupt(uint8 instance, Flexcan_Ip_EventType eventType,
-                  uint32 buffIdx, const Flexcan_Ip_StateType * flexcanState);
+                uint32 buffIdx, const Flexcan_Ip_StateType * flexcanState);
 extern void can_interrupt(uint8 instance, Flexcan_Ip_EventType eventType,
-                  uint32 buffIdx, const Flexcan_Ip_StateType * flexcanState);
-#define CAN_STOP_SEC_CODE
-#include "Can_MemMap.h"
+                uint32 buffIdx, const Flexcan_Ip_StateType * flexcanState);
+#define CAN_43_FLEXCAN_STOP_SEC_CODE
+#include "Can_43_FLEXCAN_MemMap.h"
 /*==================================================================================================
 *                                GLOBAL VARIABLE DECLARATIONS
 ==================================================================================================*/
-#define CAN_START_SEC_VAR_CLEARED_UNSPECIFIED
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_START_SEC_VAR_CLEARED_UNSPECIFIED
+#include "Can_43_FLEXCAN_MemMap.h"
 /* FlexCAN State Structure used By driver
 User should not modify this structure */
 Flexcan_Ip_StateType FlexCAN_State0;
@@ -130,13 +129,13 @@ Flexcan_Ip_StateType FlexCAN_State4;
 /* FlexCAN State Structure used By driver
 User should not modify this structure */
 Flexcan_Ip_StateType FlexCAN_State5;
-#define CAN_STOP_SEC_VAR_CLEARED_UNSPECIFIED
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_STOP_SEC_VAR_CLEARED_UNSPECIFIED
+#include "Can_43_FLEXCAN_MemMap.h"
 /*==================================================================================================
 *                                      GLOBAL CONSTANTS
 ==================================================================================================*/
-#define CAN_START_SEC_CONFIG_DATA_UNSPECIFIED
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_START_SEC_CONFIG_DATA_UNSPECIFIED
+#include "Can_43_FLEXCAN_MemMap.h"
 
 const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
     /* Number Of Message Buffer used .max_num_mb  */
@@ -171,6 +170,12 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
     },
 #endif /* (FLEXCAN_IP_FEATURE_HAS_TS_ENABLE == STD_ON) */
     FLEXCAN_NORMAL_MODE,
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+    /* Memory error response .flexcanModeErrResponse */
+    FLEXCAN_NORMAL_MODE,
+#endif
+#endif
      /*ctrlOptions*/
     (uint32)(FLEXCAN_IP_ISO_U32 | \
     FLEXCAN_IP_BUSOFF_RECOVERY_U32 | \
@@ -202,13 +207,13 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
         },
             /*values for FD baudrate .bitrate*/
         {   /* Prop Seg */
-            (4U),
+            (7U),
             /* Phase Seg 1 */
-            (0U),
+            (5U),
             /* Phase Seg 2*/
             (1U),
             /* Pre Divider */
-            (0U),
+            (4U),
             /* Resync jump width */
             (1U)
         },
@@ -216,10 +221,10 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
         FLEXCAN_RXFIFO_USING_INTERRUPTS,
 #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
      /* DMA channel number used for transfers. */
-        0,
+         0,
   #endif
     /* Controller Callback */
-    can_interrupt,
+    &can_interrupt,
     /* Error Callback */
     NULL_PTR
     };
@@ -232,9 +237,9 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
     (boolean)FALSE,
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
     /* The number of standard ID filter elements */
-    2U,
+    0U,
     /* The number of extended ID filter elements */
-    1U,
+    0U,
     /* The number of enhanced Rx FIFO watermark */
     0U,
     /* The Enhanced Rx FIFO feature is enabled or not. */
@@ -256,6 +261,12 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
     },
 #endif /* (FLEXCAN_IP_FEATURE_HAS_TS_ENABLE == STD_ON) */
     FLEXCAN_NORMAL_MODE,
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+    /* Memory error response .flexcanModeErrResponse */
+    FLEXCAN_NORMAL_MODE,
+#endif
+#endif
      /*ctrlOptions*/
     (uint32)(FLEXCAN_IP_ISO_U32 | \
     FLEXCAN_IP_BUSOFF_RECOVERY_U32 | \
@@ -301,10 +312,10 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
         FLEXCAN_RXFIFO_USING_INTERRUPTS,
 #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
      /* DMA channel number used for transfers. */
-        0,
+         0,
   #endif
     /* Controller Callback */
-    can_interrupt,
+    &can_interrupt,
     /* Error Callback */
     NULL_PTR
     };
@@ -317,9 +328,9 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
     (boolean)FALSE,
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
     /* The number of standard ID filter elements */
-    2U,
+    0U,
     /* The number of extended ID filter elements */
-    1U,
+    0U,
     /* The number of enhanced Rx FIFO watermark */
     0U,
     /* The Enhanced Rx FIFO feature is enabled or not. */
@@ -341,6 +352,12 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
     },
 #endif /* (FLEXCAN_IP_FEATURE_HAS_TS_ENABLE == STD_ON) */
     FLEXCAN_NORMAL_MODE,
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+    /* Memory error response .flexcanModeErrResponse */
+    FLEXCAN_NORMAL_MODE,
+#endif
+#endif
      /*ctrlOptions*/
     (uint32)(FLEXCAN_IP_ISO_U32 | \
     FLEXCAN_IP_BUSOFF_RECOVERY_U32 | \
@@ -386,10 +403,10 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
         FLEXCAN_RXFIFO_USING_INTERRUPTS,
 #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
      /* DMA channel number used for transfers. */
-        0,
+         0,
   #endif
     /* Controller Callback */
-    can_interrupt,
+    &can_interrupt,
     /* Error Callback */
     NULL_PTR
     };
@@ -402,9 +419,9 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
     (boolean)FALSE,
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
     /* The number of standard ID filter elements */
-    2U,
+    0U,
     /* The number of extended ID filter elements */
-    1U,
+    0U,
     /* The number of enhanced Rx FIFO watermark */
     0U,
     /* The Enhanced Rx FIFO feature is enabled or not. */
@@ -426,6 +443,12 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
     },
 #endif /* (FLEXCAN_IP_FEATURE_HAS_TS_ENABLE == STD_ON) */
     FLEXCAN_NORMAL_MODE,
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+    /* Memory error response .flexcanModeErrResponse */
+    FLEXCAN_NORMAL_MODE,
+#endif
+#endif
      /*ctrlOptions*/
     (uint32)(FLEXCAN_IP_ISO_U32 | \
     FLEXCAN_IP_BUSOFF_RECOVERY_U32 | \
@@ -471,10 +494,10 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
         FLEXCAN_RXFIFO_USING_INTERRUPTS,
 #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
      /* DMA channel number used for transfers. */
-        0,
+         0,
   #endif
     /* Controller Callback */
-    can_interrupt,
+    &can_interrupt,
     /* Error Callback */
     NULL_PTR
     };
@@ -487,9 +510,9 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
     (boolean)FALSE,
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
     /* The number of standard ID filter elements */
-    2U,
+    0U,
     /* The number of extended ID filter elements */
-    1U,
+    0U,
     /* The number of enhanced Rx FIFO watermark */
     0U,
     /* The Enhanced Rx FIFO feature is enabled or not. */
@@ -511,6 +534,12 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
     },
 #endif /* (FLEXCAN_IP_FEATURE_HAS_TS_ENABLE == STD_ON) */
     FLEXCAN_NORMAL_MODE,
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+    /* Memory error response .flexcanModeErrResponse */
+    FLEXCAN_NORMAL_MODE,
+#endif
+#endif
      /*ctrlOptions*/
     (uint32)(FLEXCAN_IP_ISO_U32 | \
     FLEXCAN_IP_BUSOFF_RECOVERY_U32 | \
@@ -556,10 +585,10 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
         FLEXCAN_RXFIFO_USING_INTERRUPTS,
 #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
      /* DMA channel number used for transfers. */
-        0,
+         0,
   #endif
     /* Controller Callback */
-    can_interrupt,
+    &can_interrupt,
     /* Error Callback */
     NULL_PTR
     };
@@ -572,9 +601,9 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
     (boolean)FALSE,
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
     /* The number of standard ID filter elements */
-    2U,
+    0U,
     /* The number of extended ID filter elements */
-    1U,
+    0U,
     /* The number of enhanced Rx FIFO watermark */
     0U,
     /* The Enhanced Rx FIFO feature is enabled or not. */
@@ -596,6 +625,12 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
     },
 #endif /* (FLEXCAN_IP_FEATURE_HAS_TS_ENABLE == STD_ON) */
     FLEXCAN_NORMAL_MODE,
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+    /* Memory error response .flexcanModeErrResponse */
+    FLEXCAN_NORMAL_MODE,
+#endif
+#endif
      /*ctrlOptions*/
     (uint32)(FLEXCAN_IP_ISO_U32 | \
     FLEXCAN_IP_BUSOFF_RECOVERY_U32 | \
@@ -641,16 +676,16 @@ const Flexcan_Ip_ConfigType FlexCAN_Config0  = {
         FLEXCAN_RXFIFO_USING_INTERRUPTS,
 #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
      /* DMA channel number used for transfers. */
-        0,
+         0,
   #endif
     /* Controller Callback */
-    can_interrupt,
+    &can_interrupt,
     /* Error Callback */
     NULL_PTR
     };
     
-#define CAN_STOP_SEC_CONFIG_DATA_UNSPECIFIED
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_STOP_SEC_CONFIG_DATA_UNSPECIFIED
+#include "Can_43_FLEXCAN_MemMap.h"
 
 #ifdef __cplusplus
 }

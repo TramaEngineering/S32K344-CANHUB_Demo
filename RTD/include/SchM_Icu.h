@@ -1,36 +1,40 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : 
 *   Dependencies         : none
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
-*   used strictly in accordance with the applicable license terms. By expressly
-*   accepting such terms or by downloading, installing, activating and/or otherwise
-*   using the software, you are agreeing that you have read, and that you agree to
-*   comply with and are bound by, such license terms. If you do not agree to be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be 
+*   used strictly in accordance with the applicable license terms.  By expressly 
+*   accepting such terms or by downloading, installing, activating and/or otherwise 
+*   using the software, you are agreeing that you have read, and that you agree to 
+*   comply with and are bound by, such license terms.  If you do not agree to be 
 *   bound by the applicable license terms, then you may not retain, install,
 *   activate or otherwise use the software.
 ==================================================================================================*/
 
-#ifndef SCHM_ICU_H
-#define SCHM_ICU_H
-
 /**
-*   @file
+*   @file    SchM_Icu.h
+*   @version 5.0.0
+*
+*   @brief   AUTOSAR Rte - module interface
+*   @details This file contains the functions prototypes and data types of the AUTOSAR Rte.
+*            This file contains sample code only. It is not part of the production code deliverables.
 *
 *   @addtogroup RTE_MODULE
 *   @{
 */
+
+#ifndef SCHM_ICU_H
+#define SCHM_ICU_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,9 +50,9 @@ extern "C" {
 *                               SOURCE FILE VERSION INFORMATION
 ==================================================================================================*/
 #define SCHM_ICU_AR_RELEASE_MAJOR_VERSION     4
-#define SCHM_ICU_AR_RELEASE_MINOR_VERSION     4
+#define SCHM_ICU_AR_RELEASE_MINOR_VERSION     7
 #define SCHM_ICU_AR_RELEASE_REVISION_VERSION  0
-#define SCHM_ICU_SW_MAJOR_VERSION             2
+#define SCHM_ICU_SW_MAJOR_VERSION             5
 #define SCHM_ICU_SW_MINOR_VERSION             0
 #define SCHM_ICU_SW_PATCH_VERSION             0
 
@@ -64,6 +68,7 @@ extern "C" {
 /*==================================================================================================
 *                                       DEFINES AND MACROS
 ==================================================================================================*/
+#define NUMBER_OF_CORES         (uint8)(4U)
 
 /*==================================================================================================
 *                                             ENUMS
@@ -82,16 +87,6 @@ extern "C" {
 ==================================================================================================*/
 #define RTE_START_SEC_CODE
 #include "Rte_MemMap.h"
-
-/*==================================================================================================
-*                                           CONSTANTS
-==================================================================================================*/
-
-/*==================================================================================================
-*                                       DEFINES AND MACROS
-==================================================================================================*/
-/* Number of cores id */
-#define NUMBER_OF_CORES         (uint8)(2U)
 
 #ifdef MCAL_TESTING_ENVIRONMENT
 /** 

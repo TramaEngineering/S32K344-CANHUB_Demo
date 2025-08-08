@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : FLEXCAN
 *   Dependencies         : 
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -55,9 +54,9 @@ extern "C"{
 ==================================================================================================*/
 #define FLEXCAN_IP_HWACCESS_VENDOR_ID_H                      43
 #define FLEXCAN_IP_HWACCESS_AR_RELEASE_MAJOR_VERSION_H       4
-#define FLEXCAN_IP_HWACCESS_AR_RELEASE_MINOR_VERSION_H       4
+#define FLEXCAN_IP_HWACCESS_AR_RELEASE_MINOR_VERSION_H       7
 #define FLEXCAN_IP_HWACCESS_AR_RELEASE_REVISION_VERSION_H    0
-#define FLEXCAN_IP_HWACCESS_SW_MAJOR_VERSION_H               2
+#define FLEXCAN_IP_HWACCESS_SW_MAJOR_VERSION_H               5
 #define FLEXCAN_IP_HWACCESS_SW_MINOR_VERSION_H               0
 #define FLEXCAN_IP_HWACCESS_SW_PATCH_VERSION_H               0
 /*==================================================================================================
@@ -88,14 +87,14 @@ extern "C"{
         #if ((FLEXCAN_IP_HWACCESS_AR_RELEASE_MAJOR_VERSION_H    !=  DEVASSERT_AR_RELEASE_MAJOR_VERSION) || \
              (FLEXCAN_IP_HWACCESS_AR_RELEASE_MINOR_VERSION_H     !=  DEVASSERT_AR_RELEASE_MINOR_VERSION) \
             )
-            #error "AUTOSAR Version Numbers of FlexCAN_Ip_HwAccess.h and Devassert.h are different"
+            #error "AutoSar Version Numbers of FlexCAN_Ip_HwAccess.h and Devassert.h are different"
         #endif
     #endif
     /* Check if current file and osif header file are of the same version */
     #if ((FLEXCAN_IP_HWACCESS_AR_RELEASE_MAJOR_VERSION_H    !=  OSIF_AR_RELEASE_MAJOR_VERSION) || \
          (FLEXCAN_IP_HWACCESS_AR_RELEASE_MINOR_VERSION_H     !=  OSIF_AR_RELEASE_MINOR_VERSION) \
         )
-        #error "AUTOSAR Version Numbers of FlexCAN_Ip_HwAccess.h and OsIf.h are different"
+        #error "AutoSar Version Numbers of FlexCAN_Ip_HwAccess.h and OsIf.h are different"
     #endif
 #endif
 /*==================================================================================================
@@ -122,6 +121,8 @@ extern "C"{
 #define FLEXCAN_IP_ENHANCED_RXFIFO_UNDERFLOW           (31U)
 /*! @brief FlexCAN Enhanced Fifo Embedded RAM address offset */
 #define FLEXCAN_IP_FEATURE_ENHANCED_FIFO_RAM_OFFSET        (0x00002000u)
+/*! @brief FlexCAN Enhacend Fifo FilterDepth */
+#define FLEXCAN_IP_ENHANCED_RXFIFO_FILTERDEPTH         (128U)
 #endif /* (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON) */
 
 /*! @brief FlexCAN Embedded RAM address offset */
@@ -139,6 +140,14 @@ extern "C"{
 #define FLEXCAN_IP_ERROR_INT                           (0x300002U)                 /*!< Masks for ErrorOvr, ErrorFast, Error */
 #endif
 #define FLEXCAN_IP_ESR1_FLTCONF_BUS_OFF                        (0x00000020U)
+
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+#define FLEXCAN_MECR_ERROR_INT_MASK         (FLEXCAN_MECR_HANCEI_MSK_MASK | FLEXCAN_MECR_FANCEI_MSK_MASK | FLEXCAN_MECR_CEI_MSK_MASK)
+#define FLEXCAN_ERRSR_ERROR_FLAG_MASK       (FLEXCAN_ERRSR_HANCEIF_MASK | FLEXCAN_ERRSR_FANCEIF_MASK | FLEXCAN_ERRSR_CEIF_MASK)
+#define FLEXCAN_ERRSR_OVERRUN_FLAG_MASK     (FLEXCAN_ERRSR_HANCEIOF_MASK | FLEXCAN_ERRSR_FANCEIOF_MASK | FLEXCAN_ERRSR_CEIOF_MASK)
+#endif
+#endif
 
 #define FLEXCAN_IP_ID_EXT_MASK                                   0x3FFFFu
 #define FLEXCAN_IP_ID_EXT_SHIFT                                  0
@@ -305,7 +314,31 @@ typedef enum
     FLEXCAN_INT_ERR        = FLEXCAN_CTRL1_ERRMSK_MASK,      /*!< Error interrupt*/
     FLEXCAN_INT_ERR_FAST,                                    /*!< Error Fast interrupt*/
     FLEXCAN_INT_BUSOFF     = FLEXCAN_CTRL1_BOFFMSK_MASK,     /*!< Bus off interrupt*/
-} flexcan_int_type_t;
+} Flexcan_Ip_ErrorIntMaskType;
+
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+/*! @brief FlexCAN memory error detection and correction interrupt types
+ */
+typedef enum
+{
+    FLEXCAN_INT_HOST_ACCESS_ERROR    = FLEXCAN_MECR_HANCEI_MSK_MASK,       /*!< Host Access with Non-Correctable Errors Interrupt */
+    FLEXCAN_INT_FLEXCAN_ACCESS_ERROR = FLEXCAN_MECR_FANCEI_MSK_MASK,       /*!< FlexCAN Access with Non-Correctable Errors Interrupt */
+    FLEXCAN_INT_CORRECTABLE_ERROR    = FLEXCAN_MECR_CEI_MSK_MASK,          /*!< Correctable Errors Interrupt */
+    FLEXCAN_INT_ALL_ECC_ERROR        = FLEXCAN_MECR_ERROR_INT_MASK
+} Flexcan_Ip_MemErrDetectionIntMaskType;
+
+/*! @brief FlexCAN memory error injection types
+ */
+typedef enum
+{
+    FLEXCAN_INJECT_HOST_ACCESS_ERROR    = FLEXCAN_MECR_HAERRIE_MASK,       /*!< Host Access Error Injection */
+    FLEXCAN_INJECT_FLEXCAN_ACCESS_ERROR = FLEXCAN_MECR_FAERRIE_MASK,       /*!< FlexCAN Access Error Injection. Apply error injection only to the 32-bit word */
+    FLEXCAN_INJECT_EXTENDED_FLEXCAN_ACCESS_ERROR = (FLEXCAN_MECR_FAERRIE_MASK | FLEXCAN_MECR_EXTERRIE_MASK)       /*!< Extended Error Injection for FlexCAN Access. Apply error injection to the 64-bit word */
+} Flexcan_Ip_MemErrInjectionMaskType;
+
+#endif /* (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON) */
+#endif /* (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON) */
 
 /*==================================================================================================
 *                                STRUCTURES AND OTHER TYPEDEFS
@@ -330,8 +363,8 @@ typedef struct
 /*==================================================================================================
 *                                    FUNCTION PROTOTYPES
 ==================================================================================================*/
-#define CAN_START_SEC_CODE
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_START_SEC_CODE
+#include "Can_43_FLEXCAN_MemMap.h"
 
 
 void FLEXCAN_ClearMsgBuffIntCmd(FLEXCAN_Type * pBase,
@@ -341,7 +374,7 @@ void FLEXCAN_ClearMsgBuffIntCmd(FLEXCAN_Type * pBase,
                                );
 
 void FlexCAN_SetErrIntCmd(FLEXCAN_Type * base,
-                          flexcan_int_type_t errType,
+                          Flexcan_Ip_ErrorIntMaskType errType,
                           boolean enable
                          );
 
@@ -636,28 +669,6 @@ static inline boolean FlexCAN_IsEnabled(const FLEXCAN_Type * pBase)
 {
     return (((pBase->MCR & FLEXCAN_MCR_MDIS_MASK) >> FLEXCAN_MCR_MDIS_SHIFT) != 0U) ? FALSE : TRUE;
 }
-
-#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
-/*!
- * @brief Disable Error Detection and Correction of Memory Errors.
- *
- * @param   base  The FlexCAN base address
- */
-static inline void FlexCAN_DisableMemErrorDetection(FLEXCAN_Type * base)
-{
-    /* Enable write of MECR register */
-    base->CTRL2 |=  FLEXCAN_CTRL2_ECRWRE(1);
-    /* Enable write of MECR */
-    base->MECR = FLEXCAN_MECR_ECRWRDIS(0);
-    /* Disable Error Detection and Correction mechanism,
-     * that will set CAN in Freez Mode in case of trigger */
-    base->MECR = FLEXCAN_MECR_NCEFAFRZ(0);
-    /* Disable memory error correction */
-    base->MECR |= FLEXCAN_MECR_ECCDIS(1);
-    /* Disable write of MECR */
-    base->CTRL2 &= ~FLEXCAN_CTRL2_ECRWRE(1);
-}
-#endif /* FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET */
 
 /*!
  * @brief Enables/Disables Flexible Data rate (if supported).
@@ -1229,9 +1240,9 @@ static inline boolean FlexCAN_IsListenOnlyModeEnabled(const FLEXCAN_Type * base)
  * @param   x    Number of Configured RxFIFO Filters
  * @return  number of last MB occupied by RxFIFO
  */
-static inline uint32 RxFifoOcuppiedLastMsgBuff(uint32 x)
+static inline uint32 RxFifoOcuppiedLastMsgBuff(uint8 x)
 {
-    return 5U + ((((x) + 1U) * 8U) / 4U);
+    return 5U + (((((uint32)x) + 1U) * 8U) / 4U);
 }
 
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
@@ -1554,7 +1565,7 @@ Flexcan_Ip_StatusType FlexCAN_EnableEnhancedRxFifo(FLEXCAN_Type * base,
                                                    uint32 numOfExtIDFilters,
                                                    uint32 numOfWatermark
                                                   );
-void FlexCAN_SetEnhancedRxFifoFilter(FLEXCAN_Type * base, const Flexcan_Ip_EnhancedIdTableType * idFilterTable);
+void FlexCAN_SetEnhancedRxFifoFilter(const uint8 u8Instance, const Flexcan_Ip_EnhancedIdTableType * idFilterTable);
 
 #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
 /*!
@@ -1566,7 +1577,7 @@ void FlexCAN_SetEnhancedRxFifoFilter(FLEXCAN_Type * base, const Flexcan_Ip_Enhan
 void FlexCAN_ClearOutputEnhanceFIFO(FLEXCAN_Type * base);
 #endif /* (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON) */
 
-void FlexCAN_ReadEnhancedRxFifo(const FLEXCAN_Type * base, Flexcan_Ip_MsgBuffType * rxFifo);
+void FlexCAN_ReadEnhancedRxFifo(const uint8 u8Instance, Flexcan_Ip_MsgBuffType * rxFifo);
 #endif /* (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON) */
 #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
 /*!
@@ -1580,7 +1591,7 @@ void FlexCAN_ClearOutputLegacyFIFO(FLEXCAN_Type * base);
 
 #if (FLEXCAN_IP_FEATURE_HAS_TS_ENABLE == STD_ON)
 
-void FlexCAN_ConfigTimestamp(FLEXCAN_Type * base, const Flexcan_Ip_TimeStampConfigType * config);
+void FlexCAN_ConfigTimestamp(uint8 instance, FLEXCAN_Type * base, const Flexcan_Ip_TimeStampConfigType * config);
 
 #if (FLEXCAN_IP_FEATURE_HAS_HR_TIMER == STD_ON)
 /*!
@@ -1623,8 +1634,8 @@ static inline void FlexCAN_SetRegDefaultVal(FLEXCAN_Type * base)
     if (TRUE == FlexCAN_IsFDAvailable(base))
     {
     #endif /* defined(CAN_FEATURE_S32K1XX) */
-        base->FDCBT = FLEXCAN_IP_FDCBT_DEFAULT_VALUE_U32;
-        base->FDCTRL = FLEXCAN_IP_FDCTRL_DEFAULT_VALUE_U32;
+    base->FDCBT = FLEXCAN_IP_FDCBT_DEFAULT_VALUE_U32;
+    base->FDCTRL = FLEXCAN_IP_FDCTRL_DEFAULT_VALUE_U32;
     #if defined(CAN_FEATURE_S32K1XX)
     }
     #endif /* defined(CAN_FEATURE_S32K1XX) */
@@ -1679,6 +1690,9 @@ static inline void FlexCAN_SetRegDefaultVal(FLEXCAN_Type * base)
     base->ENCBT = FLEXCAN_IP_ENCBT_DEFAULT_VALUE_U32;
     base->EDCBT = FLEXCAN_IP_EDCBT_DEFAULT_VALUE_U32;
     base->ETDC  = FLEXCAN_IP_ETDC_DEFAULT_VALUE_U32;
+#endif
+#if defined(S32K5XX)
+    base->FLTCONF_IE = FLEXCAN_IP_FLTCONF_IE_DEFAULT_VALUE_U32;
 #endif
     base->MCR = FLEXCAN_IP_MCR_DEFAULT_VALUE_U32;
 }
@@ -1966,8 +1980,101 @@ static inline void FlexCAN_ClearWUMF(FLEXCAN_Type * pBase)
  */
 void FlexCAN_ResetImaskBuff(uint8 Instance);
 
-#define CAN_STOP_SEC_CODE
-#include "Can_MemMap.h"
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+/*!
+ * @brief Check if error correction configuration register write and error configuration register write enable.
+ *
+ * @param   pBase  The FlexCAN base address
+ */
+static inline boolean FlexCAN_HasMemErrorConfigureEnable(FLEXCAN_Type * pBase)
+{
+ return (((pBase->CTRL2 & FLEXCAN_CTRL2_ECRWRE_MASK) >> FLEXCAN_CTRL2_ECRWRE_SHIFT) != 0U) &&
+        (((pBase->MECR & FLEXCAN_MECR_ECRWRDIS_MASK) >> FLEXCAN_MECR_ECRWRDIS_SHIFT) != 1U) ? TRUE : FALSE;
+}
+
+/*!
+ * @brief Check if Memory Error Detection and Correction mechanism is enabled.
+ *
+ * @param   pBase  The FlexCAN base address
+ */
+static inline boolean FlexCAN_IsMemErrorDetectionEnabled(FLEXCAN_Type * pBase)
+{
+    return (((pBase->MECR & FLEXCAN_MECR_ECCDIS_MASK) >> FLEXCAN_MECR_ECCDIS_SHIFT) != 0U) ? FALSE : TRUE;
+}
+
+/*!
+ * @brief Read Memory Error Report.
+ *
+ * @param   pBase  The FlexCAN base address
+ * @param   reportAddr  store report address
+ * @param   reportData  store report data
+ * @param   reportSyndrome  store report syndrome
+ */
+static inline void FlexCAN_ReadReportError(FLEXCAN_Type * pBase, uint32 * reportAddr, uint32 * reportData, uint32 * reportSyndrome)
+{
+    *reportAddr = pBase->RERRAR;
+    *reportData = pBase->RERRDR;
+    *reportSyndrome = pBase->RERRSYNR;
+}
+
+/*!
+ * @brief Enable Memory Error Detection and Correction in FlexCAN memory.
+ *
+ * @param   pBase  The FlexCAN base address
+ * @param   isFreezeMode  The response when non-correctable error detected.
+ *                        True: put in freeze mode, False: keep normal mode.
+ */
+void FlexCAN_EnableMemErrorDetection(FLEXCAN_Type * pBase, boolean isFreezeMode);
+
+/*!
+ * @brief Set Memory Error Detection and Correction interrupts.
+ *
+ * @param   pBase  The FlexCAN base address
+ * @param   ErrorMaskType  The Memory Error Detection and Correction interrupt mask
+ * @param   IsEnable  Enable/disable interrupt
+ */
+void FlexCAN_SetMemErrorDetectionIntCmd(FLEXCAN_Type * pBase,
+                                        Flexcan_Ip_MemErrDetectionIntMaskType ErrorMaskType,
+                                        boolean IsEnable);
+
+/*!
+ * @brief Set Memory Error Injection info.
+ *
+ * @param   pBase  The FlexCAN base address
+ * @param   u32InjectionAddr  Error Injection Address
+ * @param   u32InjectionData  Error Injection Data Pattern
+ * @param   u32InjectionParity  Error Injection Parity Pattern 
+ */
+void FlexCAN_SetMemErrorInjectionInfo(FLEXCAN_Type * pBase,
+                                      uint32 u32InjectionAddr,
+                                      uint32 u32InjectionData,
+                                      uint32 u32InjectionParity);
+
+/*!
+ * @brief Enable/disable Memory Error Injection.
+ *
+ * @param   pBase  The FlexCAN base address
+ * @param   ErrorMaskType  The Memory Error Injection mask
+ * @param   IsEnable  Enable/disable injection
+ */
+void FlexCAN_SetMemErrorInjectionCmd(FLEXCAN_Type * pBase,
+                                     Flexcan_Ip_MemErrInjectionMaskType ErrorMaskType,
+                                     boolean IsEnable);
+
+#endif /* (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON) */
+
+/*!
+ * @brief Disable Memory Error Detection and Correction in FlexCAN memory.
+ *
+ * @param   pBase  The FlexCAN base address
+ */
+void FlexCAN_DisableMemErrorDetection(FLEXCAN_Type * pBase);
+
+#endif /* (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON) */
+
+#define CAN_43_FLEXCAN_STOP_SEC_CODE
+#include "Can_43_FLEXCAN_MemMap.h"
 
 #ifdef __cplusplus
 }

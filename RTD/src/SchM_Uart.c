@@ -1,29 +1,33 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : 
 *   Dependencies         : none
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
-*   used strictly in accordance with the applicable license terms. By expressly
-*   accepting such terms or by downloading, installing, activating and/or otherwise
-*   using the software, you are agreeing that you have read, and that you agree to
-*   comply with and are bound by, such license terms. If you do not agree to be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be 
+*   used strictly in accordance with the applicable license terms.  By expressly 
+*   accepting such terms or by downloading, installing, activating and/or otherwise 
+*   using the software, you are agreeing that you have read, and that you agree to 
+*   comply with and are bound by, such license terms.  If you do not agree to be 
 *   bound by the applicable license terms, then you may not retain, install,
 *   activate or otherwise use the software.
 ==================================================================================================*/
 
 /**
-*   @file
+*   @file    SchM_Uart.c
+*   @version 5.0.0
+*
+*   @brief   AUTOSAR Rte - module implementation
+*   @details This module implements stubs for the AUTOSAR Rte
+*            This file contains sample code only. It is not part of the production code deliverables.
 *
 *   @addtogroup RTE_MODULE
 *   @{
@@ -51,9 +55,9 @@ extern "C"{
 *                               SOURCE FILE VERSION INFORMATION
 ==================================================================================================*/
 #define SCHM_UART_AR_RELEASE_MAJOR_VERSION_C     4
-#define SCHM_UART_AR_RELEASE_MINOR_VERSION_C     4
+#define SCHM_UART_AR_RELEASE_MINOR_VERSION_C     7
 #define SCHM_UART_AR_RELEASE_REVISION_VERSION_C  0
-#define SCHM_UART_SW_MAJOR_VERSION_C             2
+#define SCHM_UART_SW_MAJOR_VERSION_C             5
 #define SCHM_UART_SW_MINOR_VERSION_C             0
 #define SCHM_UART_SW_PATCH_VERSION_C             0
 
@@ -130,6 +134,32 @@ static volatile uint32 msr_UART_EXCLUSIVE_AREA_07[NUMBER_OF_CORES];
 static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_07[NUMBER_OF_CORES];
 static volatile uint32 msr_UART_EXCLUSIVE_AREA_08[NUMBER_OF_CORES];
 static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_08[NUMBER_OF_CORES];
+static volatile uint32 msr_UART_EXCLUSIVE_AREA_09[NUMBER_OF_CORES];
+static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_09[NUMBER_OF_CORES];
+static volatile uint32 msr_UART_EXCLUSIVE_AREA_10[NUMBER_OF_CORES];
+static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_10[NUMBER_OF_CORES];
+static volatile uint32 msr_UART_EXCLUSIVE_AREA_11[NUMBER_OF_CORES];
+static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_11[NUMBER_OF_CORES];
+static volatile uint32 msr_UART_EXCLUSIVE_AREA_12[NUMBER_OF_CORES];
+static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_12[NUMBER_OF_CORES];
+static volatile uint32 msr_UART_EXCLUSIVE_AREA_13[NUMBER_OF_CORES];
+static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_13[NUMBER_OF_CORES];
+static volatile uint32 msr_UART_EXCLUSIVE_AREA_14[NUMBER_OF_CORES];
+static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_14[NUMBER_OF_CORES];
+static volatile uint32 msr_UART_EXCLUSIVE_AREA_15[NUMBER_OF_CORES];
+static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_15[NUMBER_OF_CORES];
+static volatile uint32 msr_UART_EXCLUSIVE_AREA_16[NUMBER_OF_CORES];
+static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_16[NUMBER_OF_CORES];
+static volatile uint32 msr_UART_EXCLUSIVE_AREA_17[NUMBER_OF_CORES];
+static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_17[NUMBER_OF_CORES];
+static volatile uint32 msr_UART_EXCLUSIVE_AREA_18[NUMBER_OF_CORES];
+static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_18[NUMBER_OF_CORES];
+static volatile uint32 msr_UART_EXCLUSIVE_AREA_19[NUMBER_OF_CORES];
+static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_19[NUMBER_OF_CORES];
+static volatile uint32 msr_UART_EXCLUSIVE_AREA_20[NUMBER_OF_CORES];
+static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_20[NUMBER_OF_CORES];
+static volatile uint32 msr_UART_EXCLUSIVE_AREA_21[NUMBER_OF_CORES];
+static volatile uint32 reentry_guard_UART_EXCLUSIVE_AREA_21[NUMBER_OF_CORES];
 
 #define RTE_STOP_SEC_VAR_CLEARED_32_NO_CACHEABLE
 #include "Rte_MemMap.h"
@@ -296,7 +326,7 @@ uint32 Uart_schm_read_msr(void)
 
 #endif  /*HighTec compiler only*/
  /*================================================================================================*/
-#ifdef _LINARO_C_S32K3XX_
+#ifdef _GCC_C_S32K3XX_
 /** 
 * @brief   This function returns the MSR register value (32 bits). 
 * @details This function returns the MSR register value (32 bits). 
@@ -324,7 +354,7 @@ uint32 Uart_schm_read_msr(void)
     #endif
     return (uint32)reg_tmp;
 }
-#endif   /* _LINARO_C_S32K3XX_*/
+#endif   /* _GCC_C_S32K3XX_*/
 /*================================================================================================*/
 
 #ifdef _ARM_DS5_C_S32K3XX_
@@ -394,22 +424,24 @@ uint32 Uart_schm_read_msr(void)
 
 void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_00(void)
 {
+    uint32 msr;
     uint32 u32CoreId = (uint32)OsIf_GetCoreID();
 
     if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_00[u32CoreId])
     {
 #if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
-        msr_UART_EXCLUSIVE_AREA_00[u32CoreId] = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
 #else
-        msr_UART_EXCLUSIVE_AREA_00[u32CoreId] = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
 #endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
-        if (ISR_ON(msr_UART_EXCLUSIVE_AREA_00[u32CoreId])) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
         {
             OsIf_SuspendAllInterrupts();
 #ifdef _ARM_DS5_C_S32K3XX_
             ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
 #endif
         }
+        msr_UART_EXCLUSIVE_AREA_00[u32CoreId] = msr;
     }
     reentry_guard_UART_EXCLUSIVE_AREA_00[u32CoreId]++;
 }
@@ -430,22 +462,24 @@ void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_00(void)
 
 void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_01(void)
 {
+    uint32 msr;
     uint32 u32CoreId = (uint32)OsIf_GetCoreID();
 
     if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_01[u32CoreId])
     {
 #if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
-        msr_UART_EXCLUSIVE_AREA_01[u32CoreId] = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
 #else
-        msr_UART_EXCLUSIVE_AREA_01[u32CoreId] = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
 #endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
-        if (ISR_ON(msr_UART_EXCLUSIVE_AREA_01[u32CoreId])) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
         {
             OsIf_SuspendAllInterrupts();
 #ifdef _ARM_DS5_C_S32K3XX_
             ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
 #endif
         }
+        msr_UART_EXCLUSIVE_AREA_01[u32CoreId] = msr;
     }
     reentry_guard_UART_EXCLUSIVE_AREA_01[u32CoreId]++;
 }
@@ -466,22 +500,24 @@ void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_01(void)
 
 void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_02(void)
 {
+    uint32 msr;
     uint32 u32CoreId = (uint32)OsIf_GetCoreID();
 
     if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_02[u32CoreId])
     {
 #if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
-        msr_UART_EXCLUSIVE_AREA_02[u32CoreId] = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
 #else
-        msr_UART_EXCLUSIVE_AREA_02[u32CoreId] = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
 #endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
-        if (ISR_ON(msr_UART_EXCLUSIVE_AREA_02[u32CoreId])) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
         {
             OsIf_SuspendAllInterrupts();
 #ifdef _ARM_DS5_C_S32K3XX_
             ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
 #endif
         }
+        msr_UART_EXCLUSIVE_AREA_02[u32CoreId] = msr;
     }
     reentry_guard_UART_EXCLUSIVE_AREA_02[u32CoreId]++;
 }
@@ -502,22 +538,24 @@ void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_02(void)
 
 void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_03(void)
 {
+    uint32 msr;
     uint32 u32CoreId = (uint32)OsIf_GetCoreID();
 
     if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_03[u32CoreId])
     {
 #if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
-        msr_UART_EXCLUSIVE_AREA_03[u32CoreId] = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
 #else
-        msr_UART_EXCLUSIVE_AREA_03[u32CoreId] = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
 #endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
-        if (ISR_ON(msr_UART_EXCLUSIVE_AREA_03[u32CoreId])) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
         {
             OsIf_SuspendAllInterrupts();
 #ifdef _ARM_DS5_C_S32K3XX_
             ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
 #endif
         }
+        msr_UART_EXCLUSIVE_AREA_03[u32CoreId] = msr;
     }
     reentry_guard_UART_EXCLUSIVE_AREA_03[u32CoreId]++;
 }
@@ -538,22 +576,24 @@ void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_03(void)
 
 void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_04(void)
 {
+    uint32 msr;
     uint32 u32CoreId = (uint32)OsIf_GetCoreID();
 
     if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_04[u32CoreId])
     {
 #if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
-        msr_UART_EXCLUSIVE_AREA_04[u32CoreId] = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
 #else
-        msr_UART_EXCLUSIVE_AREA_04[u32CoreId] = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
 #endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
-        if (ISR_ON(msr_UART_EXCLUSIVE_AREA_04[u32CoreId])) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
         {
             OsIf_SuspendAllInterrupts();
 #ifdef _ARM_DS5_C_S32K3XX_
             ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
 #endif
         }
+        msr_UART_EXCLUSIVE_AREA_04[u32CoreId] = msr;
     }
     reentry_guard_UART_EXCLUSIVE_AREA_04[u32CoreId]++;
 }
@@ -574,22 +614,24 @@ void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_04(void)
 
 void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_05(void)
 {
+    uint32 msr;
     uint32 u32CoreId = (uint32)OsIf_GetCoreID();
 
     if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_05[u32CoreId])
     {
 #if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
-        msr_UART_EXCLUSIVE_AREA_05[u32CoreId] = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
 #else
-        msr_UART_EXCLUSIVE_AREA_05[u32CoreId] = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
 #endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
-        if (ISR_ON(msr_UART_EXCLUSIVE_AREA_05[u32CoreId])) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
         {
             OsIf_SuspendAllInterrupts();
 #ifdef _ARM_DS5_C_S32K3XX_
             ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
 #endif
         }
+        msr_UART_EXCLUSIVE_AREA_05[u32CoreId] = msr;
     }
     reentry_guard_UART_EXCLUSIVE_AREA_05[u32CoreId]++;
 }
@@ -610,22 +652,24 @@ void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_05(void)
 
 void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_06(void)
 {
+    uint32 msr;
     uint32 u32CoreId = (uint32)OsIf_GetCoreID();
 
     if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_06[u32CoreId])
     {
 #if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
-        msr_UART_EXCLUSIVE_AREA_06[u32CoreId] = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
 #else
-        msr_UART_EXCLUSIVE_AREA_06[u32CoreId] = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
 #endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
-        if (ISR_ON(msr_UART_EXCLUSIVE_AREA_06[u32CoreId])) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
         {
             OsIf_SuspendAllInterrupts();
 #ifdef _ARM_DS5_C_S32K3XX_
             ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
 #endif
         }
+        msr_UART_EXCLUSIVE_AREA_06[u32CoreId] = msr;
     }
     reentry_guard_UART_EXCLUSIVE_AREA_06[u32CoreId]++;
 }
@@ -646,22 +690,24 @@ void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_06(void)
 
 void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_07(void)
 {
+    uint32 msr;
     uint32 u32CoreId = (uint32)OsIf_GetCoreID();
 
     if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_07[u32CoreId])
     {
 #if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
-        msr_UART_EXCLUSIVE_AREA_07[u32CoreId] = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
 #else
-        msr_UART_EXCLUSIVE_AREA_07[u32CoreId] = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
 #endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
-        if (ISR_ON(msr_UART_EXCLUSIVE_AREA_07[u32CoreId])) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
         {
             OsIf_SuspendAllInterrupts();
 #ifdef _ARM_DS5_C_S32K3XX_
             ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
 #endif
         }
+        msr_UART_EXCLUSIVE_AREA_07[u32CoreId] = msr;
     }
     reentry_guard_UART_EXCLUSIVE_AREA_07[u32CoreId]++;
 }
@@ -682,22 +728,24 @@ void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_07(void)
 
 void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_08(void)
 {
+    uint32 msr;
     uint32 u32CoreId = (uint32)OsIf_GetCoreID();
 
     if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_08[u32CoreId])
     {
 #if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
-        msr_UART_EXCLUSIVE_AREA_08[u32CoreId] = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
 #else
-        msr_UART_EXCLUSIVE_AREA_08[u32CoreId] = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
 #endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
-        if (ISR_ON(msr_UART_EXCLUSIVE_AREA_08[u32CoreId])) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
         {
             OsIf_SuspendAllInterrupts();
 #ifdef _ARM_DS5_C_S32K3XX_
             ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
 #endif
         }
+        msr_UART_EXCLUSIVE_AREA_08[u32CoreId] = msr;
     }
     reentry_guard_UART_EXCLUSIVE_AREA_08[u32CoreId]++;
 }
@@ -716,6 +764,499 @@ void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_08(void)
     }
 }
 
+void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_09(void)
+{
+    uint32 msr;
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_09[u32CoreId])
+    {
+#if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+#else
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+#endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        {
+            OsIf_SuspendAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+            ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+        }
+        msr_UART_EXCLUSIVE_AREA_09[u32CoreId] = msr;
+    }
+    reentry_guard_UART_EXCLUSIVE_AREA_09[u32CoreId]++;
+}
+
+void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_09(void)
+{
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    reentry_guard_UART_EXCLUSIVE_AREA_09[u32CoreId]--;
+    if ((ISR_ON(msr_UART_EXCLUSIVE_AREA_09[u32CoreId]))&&(0UL == reentry_guard_UART_EXCLUSIVE_AREA_09[u32CoreId]))         /*if interrupts were enabled*/
+    {
+        OsIf_ResumeAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+        ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+    }
+}
+
+void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_10(void)
+{
+    uint32 msr;
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_10[u32CoreId])
+    {
+#if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+#else
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+#endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        {
+            OsIf_SuspendAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+            ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+        }
+        msr_UART_EXCLUSIVE_AREA_10[u32CoreId] = msr;
+    }
+    reentry_guard_UART_EXCLUSIVE_AREA_10[u32CoreId]++;
+}
+
+void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_10(void)
+{
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    reentry_guard_UART_EXCLUSIVE_AREA_10[u32CoreId]--;
+    if ((ISR_ON(msr_UART_EXCLUSIVE_AREA_10[u32CoreId]))&&(0UL == reentry_guard_UART_EXCLUSIVE_AREA_10[u32CoreId]))         /*if interrupts were enabled*/
+    {
+        OsIf_ResumeAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+        ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+    }
+}
+
+void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_11(void)
+{
+    uint32 msr;
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_11[u32CoreId])
+    {
+#if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+#else
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+#endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        {
+            OsIf_SuspendAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+            ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+        }
+        msr_UART_EXCLUSIVE_AREA_11[u32CoreId] = msr;
+    }
+    reentry_guard_UART_EXCLUSIVE_AREA_11[u32CoreId]++;
+}
+
+void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_11(void)
+{
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    reentry_guard_UART_EXCLUSIVE_AREA_11[u32CoreId]--;
+    if ((ISR_ON(msr_UART_EXCLUSIVE_AREA_11[u32CoreId]))&&(0UL == reentry_guard_UART_EXCLUSIVE_AREA_11[u32CoreId]))         /*if interrupts were enabled*/
+    {
+        OsIf_ResumeAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+        ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+    }
+}
+
+void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_12(void)
+{
+    uint32 msr;
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_12[u32CoreId])
+    {
+#if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+#else
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+#endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        {
+            OsIf_SuspendAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+            ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+        }
+        msr_UART_EXCLUSIVE_AREA_12[u32CoreId] = msr;
+    }
+    reentry_guard_UART_EXCLUSIVE_AREA_12[u32CoreId]++;
+}
+
+void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_12(void)
+{
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    reentry_guard_UART_EXCLUSIVE_AREA_12[u32CoreId]--;
+    if ((ISR_ON(msr_UART_EXCLUSIVE_AREA_12[u32CoreId]))&&(0UL == reentry_guard_UART_EXCLUSIVE_AREA_12[u32CoreId]))         /*if interrupts were enabled*/
+    {
+        OsIf_ResumeAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+        ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+    }
+}
+
+void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_13(void)
+{
+    uint32 msr;
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_13[u32CoreId])
+    {
+#if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+#else
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+#endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        {
+            OsIf_SuspendAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+            ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+        }
+        msr_UART_EXCLUSIVE_AREA_13[u32CoreId] = msr;
+    }
+    reentry_guard_UART_EXCLUSIVE_AREA_13[u32CoreId]++;
+}
+
+void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_13(void)
+{
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    reentry_guard_UART_EXCLUSIVE_AREA_13[u32CoreId]--;
+    if ((ISR_ON(msr_UART_EXCLUSIVE_AREA_13[u32CoreId]))&&(0UL == reentry_guard_UART_EXCLUSIVE_AREA_13[u32CoreId]))         /*if interrupts were enabled*/
+    {
+        OsIf_ResumeAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+        ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+    }
+}
+
+void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_14(void)
+{
+    uint32 msr;
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_14[u32CoreId])
+    {
+#if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+#else
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+#endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        {
+            OsIf_SuspendAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+            ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+        }
+        msr_UART_EXCLUSIVE_AREA_14[u32CoreId] = msr;
+    }
+    reentry_guard_UART_EXCLUSIVE_AREA_14[u32CoreId]++;
+}
+
+void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_14(void)
+{
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    reentry_guard_UART_EXCLUSIVE_AREA_14[u32CoreId]--;
+    if ((ISR_ON(msr_UART_EXCLUSIVE_AREA_14[u32CoreId]))&&(0UL == reentry_guard_UART_EXCLUSIVE_AREA_14[u32CoreId]))         /*if interrupts were enabled*/
+    {
+        OsIf_ResumeAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+        ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+    }
+}
+
+void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_15(void)
+{
+    uint32 msr;
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_15[u32CoreId])
+    {
+#if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+#else
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+#endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        {
+            OsIf_SuspendAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+            ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+        }
+        msr_UART_EXCLUSIVE_AREA_15[u32CoreId] = msr;
+    }
+    reentry_guard_UART_EXCLUSIVE_AREA_15[u32CoreId]++;
+}
+
+void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_15(void)
+{
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    reentry_guard_UART_EXCLUSIVE_AREA_15[u32CoreId]--;
+    if ((ISR_ON(msr_UART_EXCLUSIVE_AREA_15[u32CoreId]))&&(0UL == reentry_guard_UART_EXCLUSIVE_AREA_15[u32CoreId]))         /*if interrupts were enabled*/
+    {
+        OsIf_ResumeAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+        ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+    }
+}
+
+void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_16(void)
+{
+    uint32 msr;
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_16[u32CoreId])
+    {
+#if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+#else
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+#endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        {
+            OsIf_SuspendAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+            ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+        }
+        msr_UART_EXCLUSIVE_AREA_16[u32CoreId] = msr;
+    }
+    reentry_guard_UART_EXCLUSIVE_AREA_16[u32CoreId]++;
+}
+
+void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_16(void)
+{
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    reentry_guard_UART_EXCLUSIVE_AREA_16[u32CoreId]--;
+    if ((ISR_ON(msr_UART_EXCLUSIVE_AREA_16[u32CoreId]))&&(0UL == reentry_guard_UART_EXCLUSIVE_AREA_16[u32CoreId]))         /*if interrupts were enabled*/
+    {
+        OsIf_ResumeAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+        ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+    }
+}
+
+void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_17(void)
+{
+    uint32 msr;
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_17[u32CoreId])
+    {
+#if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+#else
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+#endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        {
+            OsIf_SuspendAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+            ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+        }
+        msr_UART_EXCLUSIVE_AREA_17[u32CoreId] = msr;
+    }
+    reentry_guard_UART_EXCLUSIVE_AREA_17[u32CoreId]++;
+}
+
+void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_17(void)
+{
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    reentry_guard_UART_EXCLUSIVE_AREA_17[u32CoreId]--;
+    if ((ISR_ON(msr_UART_EXCLUSIVE_AREA_17[u32CoreId]))&&(0UL == reentry_guard_UART_EXCLUSIVE_AREA_17[u32CoreId]))         /*if interrupts were enabled*/
+    {
+        OsIf_ResumeAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+        ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+    }
+}
+
+void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_18(void)
+{
+    uint32 msr;
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_18[u32CoreId])
+    {
+#if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+#else
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+#endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        {
+            OsIf_SuspendAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+            ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+        }
+        msr_UART_EXCLUSIVE_AREA_18[u32CoreId] = msr;
+    }
+    reentry_guard_UART_EXCLUSIVE_AREA_18[u32CoreId]++;
+}
+
+void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_18(void)
+{
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    reentry_guard_UART_EXCLUSIVE_AREA_18[u32CoreId]--;
+    if ((ISR_ON(msr_UART_EXCLUSIVE_AREA_18[u32CoreId]))&&(0UL == reentry_guard_UART_EXCLUSIVE_AREA_18[u32CoreId]))         /*if interrupts were enabled*/
+    {
+        OsIf_ResumeAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+        ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+    }
+}
+
+void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_19(void)
+{
+    uint32 msr;
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_19[u32CoreId])
+    {
+#if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+#else
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+#endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        {
+            OsIf_SuspendAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+            ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+        }
+        msr_UART_EXCLUSIVE_AREA_19[u32CoreId] = msr;
+    }
+    reentry_guard_UART_EXCLUSIVE_AREA_19[u32CoreId]++;
+}
+
+void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_19(void)
+{
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    reentry_guard_UART_EXCLUSIVE_AREA_19[u32CoreId]--;
+    if ((ISR_ON(msr_UART_EXCLUSIVE_AREA_19[u32CoreId]))&&(0UL == reentry_guard_UART_EXCLUSIVE_AREA_19[u32CoreId]))         /*if interrupts were enabled*/
+    {
+        OsIf_ResumeAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+        ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+    }
+}
+
+void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_20(void)
+{
+    uint32 msr;
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_20[u32CoreId])
+    {
+#if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+#else
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+#endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        {
+            OsIf_SuspendAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+            ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+        }
+        msr_UART_EXCLUSIVE_AREA_20[u32CoreId] = msr;
+    }
+    reentry_guard_UART_EXCLUSIVE_AREA_20[u32CoreId]++;
+}
+
+void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_20(void)
+{
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    reentry_guard_UART_EXCLUSIVE_AREA_20[u32CoreId]--;
+    if ((ISR_ON(msr_UART_EXCLUSIVE_AREA_20[u32CoreId]))&&(0UL == reentry_guard_UART_EXCLUSIVE_AREA_20[u32CoreId]))         /*if interrupts were enabled*/
+    {
+        OsIf_ResumeAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+        ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+    }
+}
+
+void SchM_Enter_Uart_UART_EXCLUSIVE_AREA_21(void)
+{
+    uint32 msr;
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    if(0UL == reentry_guard_UART_EXCLUSIVE_AREA_21[u32CoreId])
+    {
+#if (defined MCAL_ENABLE_USER_MODE_SUPPORT)
+        msr = OsIf_Trusted_Call_Return(Uart_schm_read_msr);
+#else
+        msr = Uart_schm_read_msr();  /*read MSR (to store interrupts state)*/
+#endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
+        if (ISR_ON(msr)) /*if MSR[EE] = 0, skip calling Suspend/Resume AllInterrupts*/
+        {
+            OsIf_SuspendAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+            ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+        }
+        msr_UART_EXCLUSIVE_AREA_21[u32CoreId] = msr;
+    }
+    reentry_guard_UART_EXCLUSIVE_AREA_21[u32CoreId]++;
+}
+
+void SchM_Exit_Uart_UART_EXCLUSIVE_AREA_21(void)
+{
+    uint32 u32CoreId = (uint32)OsIf_GetCoreID();
+
+    reentry_guard_UART_EXCLUSIVE_AREA_21[u32CoreId]--;
+    if ((ISR_ON(msr_UART_EXCLUSIVE_AREA_21[u32CoreId]))&&(0UL == reentry_guard_UART_EXCLUSIVE_AREA_21[u32CoreId]))         /*if interrupts were enabled*/
+    {
+        OsIf_ResumeAllInterrupts();
+#ifdef _ARM_DS5_C_S32K3XX_
+        ASM_KEYWORD(" nop ");/* Compiler fix - forces the CSPID instruction to be generated with -02, -Ospace are selected*/
+#endif
+    }
+}
 
 #ifdef MCAL_TESTING_ENVIRONMENT
 /** 
@@ -764,6 +1305,44 @@ void SchM_Check_uart(void)
     EU_ASSERT(0UL == reentry_guard_UART_EXCLUSIVE_AREA_08[u32CoreId]);
     reentry_guard_UART_EXCLUSIVE_AREA_08[u32CoreId] = 0UL; /*reset reentry_guard_UART_EXCLUSIVE_AREA_08 for the next test in the suite*/
 
+    EU_ASSERT(0UL == reentry_guard_UART_EXCLUSIVE_AREA_09[u32CoreId]);
+    reentry_guard_UART_EXCLUSIVE_AREA_09[u32CoreId] = 0UL; /*reset reentry_guard_UART_EXCLUSIVE_AREA_09 for the next test in the suite*/
+
+    EU_ASSERT(0UL == reentry_guard_UART_EXCLUSIVE_AREA_10[u32CoreId]);
+    reentry_guard_UART_EXCLUSIVE_AREA_10[u32CoreId] = 0UL; /*reset reentry_guard_UART_EXCLUSIVE_AREA_10 for the next test in the suite*/
+
+    EU_ASSERT(0UL == reentry_guard_UART_EXCLUSIVE_AREA_11[u32CoreId]);
+    reentry_guard_UART_EXCLUSIVE_AREA_11[u32CoreId] = 0UL; /*reset reentry_guard_UART_EXCLUSIVE_AREA_11 for the next test in the suite*/
+
+    EU_ASSERT(0UL == reentry_guard_UART_EXCLUSIVE_AREA_12[u32CoreId]);
+    reentry_guard_UART_EXCLUSIVE_AREA_12[u32CoreId] = 0UL; /*reset reentry_guard_UART_EXCLUSIVE_AREA_12 for the next test in the suite*/
+
+    EU_ASSERT(0UL == reentry_guard_UART_EXCLUSIVE_AREA_13[u32CoreId]);
+    reentry_guard_UART_EXCLUSIVE_AREA_13[u32CoreId] = 0UL; /*reset reentry_guard_UART_EXCLUSIVE_AREA_13 for the next test in the suite*/
+
+    EU_ASSERT(0UL == reentry_guard_UART_EXCLUSIVE_AREA_14[u32CoreId]);
+    reentry_guard_UART_EXCLUSIVE_AREA_14[u32CoreId] = 0UL; /*reset reentry_guard_UART_EXCLUSIVE_AREA_14 for the next test in the suite*/
+
+    EU_ASSERT(0UL == reentry_guard_UART_EXCLUSIVE_AREA_15[u32CoreId]);
+    reentry_guard_UART_EXCLUSIVE_AREA_15[u32CoreId] = 0UL; /*reset reentry_guard_UART_EXCLUSIVE_AREA_15 for the next test in the suite*/
+
+    EU_ASSERT(0UL == reentry_guard_UART_EXCLUSIVE_AREA_16[u32CoreId]);
+    reentry_guard_UART_EXCLUSIVE_AREA_16[u32CoreId] = 0UL; /*reset reentry_guard_UART_EXCLUSIVE_AREA_16 for the next test in the suite*/
+
+    EU_ASSERT(0UL == reentry_guard_UART_EXCLUSIVE_AREA_17[u32CoreId]);
+    reentry_guard_UART_EXCLUSIVE_AREA_17[u32CoreId] = 0UL; /*reset reentry_guard_UART_EXCLUSIVE_AREA_17 for the next test in the suite*/
+
+    EU_ASSERT(0UL == reentry_guard_UART_EXCLUSIVE_AREA_18[u32CoreId]);
+    reentry_guard_UART_EXCLUSIVE_AREA_18[u32CoreId] = 0UL; /*reset reentry_guard_UART_EXCLUSIVE_AREA_18 for the next test in the suite*/
+
+    EU_ASSERT(0UL == reentry_guard_UART_EXCLUSIVE_AREA_19[u32CoreId]);
+    reentry_guard_UART_EXCLUSIVE_AREA_19[u32CoreId] = 0UL; /*reset reentry_guard_UART_EXCLUSIVE_AREA_19 for the next test in the suite*/
+
+    EU_ASSERT(0UL == reentry_guard_UART_EXCLUSIVE_AREA_20[u32CoreId]);
+    reentry_guard_UART_EXCLUSIVE_AREA_20[u32CoreId] = 0UL; /*reset reentry_guard_UART_EXCLUSIVE_AREA_20 for the next test in the suite*/
+
+    EU_ASSERT(0UL == reentry_guard_UART_EXCLUSIVE_AREA_21[u32CoreId]);
+    reentry_guard_UART_EXCLUSIVE_AREA_21[u32CoreId] = 0UL; /*reset reentry_guard_UART_EXCLUSIVE_AREA_21 for the next test in the suite*/
 
 }
 #endif /*MCAL_TESTING_ENVIRONMENT*/

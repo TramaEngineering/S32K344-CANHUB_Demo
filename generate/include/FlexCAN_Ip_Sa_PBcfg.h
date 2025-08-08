@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : FLEXCAN
 *   Dependencies         : 
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -26,8 +25,8 @@
  * will be overwritten if the respective S32 Configuration Tools is used to update this file.
  **********************************************************************************************************************/
 
-#ifndef FLEXCAN_IP_SA_BOARD_INITPERIPHERALS_PBCFG_H
-#define FLEXCAN_IP_SA_BOARD_INITPERIPHERALS_PBCFG_H
+#ifndef FLEXCAN_IP_SA_PBCFG_H
+#define FLEXCAN_IP_SA_PBCFG_H
 
 /**
 *   @file FlexCAN_IP_PBcfg.h
@@ -51,15 +50,15 @@ extern "C"{
 *                              SOURCE FILE VERSION INFORMATION
 ==================================================================================================*/
 /*
-* @file           FlexCAN_Ip_Sa_BOARD_InitPeripherals_PBcfg.h
+* @file           FlexCAN_Ip_Sa_PBcfg.h
 */
-#define FLEXCAN_IP_SA_VENDOR_ID_BOARD_INITPERIPHERALS_PBCFG_H                     43
-#define FLEXCAN_IP_SA_AR_RELEASE_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H      4
-#define FLEXCAN_IP_SA_AR_RELEASE_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H      4
-#define FLEXCAN_IP_SA_AR_RELEASE_REVISION_VERSION_BOARD_INITPERIPHERALS_PBCFG_H   0
-#define FLEXCAN_IP_SA_SW_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H              2
-#define FLEXCAN_IP_SA_SW_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H              0
-#define FLEXCAN_IP_SA_SW_PATCH_VERSION_BOARD_INITPERIPHERALS_PBCFG_H              0
+#define FLEXCAN_IP_SA_VENDOR_ID_PBCFG_H                     43
+#define FLEXCAN_IP_SA_AR_RELEASE_MAJOR_VERSION_PBCFG_H      4
+#define FLEXCAN_IP_SA_AR_RELEASE_MINOR_VERSION_PBCFG_H      7
+#define FLEXCAN_IP_SA_AR_RELEASE_REVISION_VERSION_PBCFG_H   0
+#define FLEXCAN_IP_SA_SW_MAJOR_VERSION_PBCFG_H              5
+#define FLEXCAN_IP_SA_SW_MINOR_VERSION_PBCFG_H              0
+#define FLEXCAN_IP_SA_SW_PATCH_VERSION_PBCFG_H              0
 /*==================================================================================================
 *                                     FILE VERSION CHECKS
 ==================================================================================================*/
@@ -96,5 +95,5 @@ extern Flexcan_Ip_StateType FlexCAN_State5;
 }
 #endif /* __cplusplus */
 
-#endif /* FLEXCAN_IP_SA_BOARD_INITPERIPHERALS_PBCFG_H */
+#endif /* FLEXCAN_IP_SA_PBCFG_H */
 

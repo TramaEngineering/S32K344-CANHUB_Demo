@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : FLEXCAN
 *   Dependencies         : 
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -37,9 +36,9 @@
 ==================================================================================================*/
 #define FLEXCAN_IP_WRAPPER_VENDOR_ID_H                      43
 #define FLEXCAN_IP_WRAPPER_AR_RELEASE_MAJOR_VERSION_H       4
-#define FLEXCAN_IP_WRAPPER_AR_RELEASE_MINOR_VERSION_H       4
+#define FLEXCAN_IP_WRAPPER_AR_RELEASE_MINOR_VERSION_H       7
 #define FLEXCAN_IP_WRAPPER_AR_RELEASE_REVISION_VERSION_H    0
-#define FLEXCAN_IP_WRAPPER_SW_MAJOR_VERSION_H               2
+#define FLEXCAN_IP_WRAPPER_SW_MAJOR_VERSION_H               5
 #define FLEXCAN_IP_WRAPPER_SW_MINOR_VERSION_H               0
 #define FLEXCAN_IP_WRAPPER_SW_PATCH_VERSION_H               0
 /*==================================================================================================
@@ -70,10 +69,10 @@
                 ((Flexcan_Ip_StatusType)OsIf_Trusted_Call_Return1param((uint32)FlexCAN_Ip_MainFunctionBusOff_Privileged, instance))
 
         #define Call_FlexCAN_Ip_GetStopMode(instance) \
-                (OsIf_Trusted_Call_Return1param((uint32)FlexCAN_Ip_GetStopMode_Privileged, instance))
+                ((boolean)OsIf_Trusted_Call_Return1param((uint32)FlexCAN_Ip_GetStopMode_Privileged, instance))
 
         #define Call_FlexCAN_Ip_GetStartMode(instance) \
-                (OsIf_Trusted_Call_Return1param((uint32)FlexCAN_Ip_GetStartMode_Privileged, instance))
+                ((boolean)OsIf_Trusted_Call_Return1param((uint32)FlexCAN_Ip_GetStartMode_Privileged, instance))
 
         #define Call_FlexCAN_Ip_EnterFreezeMode(instance) \
                 ((Flexcan_Ip_StatusType)OsIf_Trusted_Call_Return1param((uint32)FlexCAN_Ip_EnterFreezeMode_Privileged, instance))
@@ -135,6 +134,12 @@
         #define Call_FlexCAN_Ip_ConfigTimeStamp(instance, time_stamp) \
                 ((Flexcan_Ip_StatusType)OsIf_Trusted_Call_Return2param((uint32)FlexCAN_Ip_ConfigTimeStamp_Privileged, instance, time_stamp))
 #endif
+
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+        #define Call_FlexCAN_Ip_SetMemErrorDetectionInt(Instance, ErrorType, IsEnable) \
+                ((Flexcan_Ip_StatusType)OsIf_Trusted_Call_Return3param((uint32)FlexCAN_Ip_SetMemErrorDetectionInt_Privileged, Instance, ErrorType, IsEnable))
+#endif
+
 #else
         #define Call_FlexCAN_Ip_Init(Flexcan_Ip_u8Instance, Flexcan_Ip_pState, Flexcan_Ip_pData) \
                 FlexCAN_Ip_Init_Privileged(Flexcan_Ip_u8Instance, Flexcan_Ip_pState, Flexcan_Ip_pData)
@@ -216,6 +221,12 @@
         #define Call_FlexCAN_Ip_ConfigTimeStamp(instance, time_stamp) \
                 FlexCAN_Ip_ConfigTimeStamp_Privileged(instance, time_stamp)
 #endif
+
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+        #define Call_FlexCAN_Ip_SetMemErrorDetectionInt(Instance, ErrorType, IsEnable) \
+                FlexCAN_Ip_SetMemErrorDetectionInt_Privileged(Instance, ErrorType, IsEnable)
+#endif
+
 #endif /* (FLEXCAN_IP_ENABLE_USER_MODE_SUPPORT == STD_ON) */
 /*==================================================================================================
 *                                             ENUMS
@@ -232,8 +243,8 @@
 /*==================================================================================================
 *                                    FUNCTION PROTOTYPES
 ==================================================================================================*/
-#define CAN_START_SEC_CODE
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_START_SEC_CODE
+#include "Can_43_FLEXCAN_MemMap.h"
 /**
  *  @brief Initializes the FlexCAN peripheral.
  */
@@ -375,7 +386,16 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetListenOnlyMode_Privileged(uint8 instance, co
 Flexcan_Ip_StatusType FlexCAN_Ip_ConfigTimeStamp_Privileged(uint8 instance, const Flexcan_Ip_TimeStampConfigType * time_stamp);
 #endif
 
-#define CAN_STOP_SEC_CODE
-#include "Can_MemMap.h"
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+/**
+ *  @brief     Set Memory Error Detection and Correction interrupt for corresponding error source.
+ */
+Flexcan_Ip_StatusType FlexCAN_Ip_SetMemErrorDetectionInt_Privileged(uint8 Instance,
+                                                                    Flexcan_Ip_ErrorDetectionType ErrorType,
+                                                                    boolean IsEnable);
+#endif
+
+#define CAN_43_FLEXCAN_STOP_SEC_CODE
+#include "Can_43_FLEXCAN_MemMap.h"
 
 #endif /* FLEXCAN_IP_WRAPPER_H_ */

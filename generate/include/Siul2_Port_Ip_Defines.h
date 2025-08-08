@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : SIUL2
 *   Dependencies         : none
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -49,9 +48,9 @@ extern "C"{
 ==================================================================================================*/
 #define SIUL2_PORT_IP_DEFINES_VENDOR_ID_H                       43
 #define SIUL2_PORT_IP_DEFINES_AR_RELEASE_MAJOR_VERSION_H        4
-#define SIUL2_PORT_IP_DEFINES_AR_RELEASE_MINOR_VERSION_H        4
+#define SIUL2_PORT_IP_DEFINES_AR_RELEASE_MINOR_VERSION_H        7
 #define SIUL2_PORT_IP_DEFINES_AR_RELEASE_REVISION_VERSION_H     0
-#define SIUL2_PORT_IP_DEFINES_SW_MAJOR_VERSION_H                2
+#define SIUL2_PORT_IP_DEFINES_SW_MAJOR_VERSION_H                5
 #define SIUL2_PORT_IP_DEFINES_SW_MINOR_VERSION_H                0
 #define SIUL2_PORT_IP_DEFINES_SW_PATCH_VERSION_H                0
 
@@ -69,25 +68,26 @@ extern "C"{
 /**
 * @brief Number of SIUL2 instances present on the subderivative
 */
-#define SIUL2_NUM_SIUL2_INSTANCES_U8   (1)
+#define SIUL2_NUM_SIUL2_INSTANCES_U8 (1)
 
 /* S32K3XX */
-#define SIUL2_PORT_IP_HAS_ONEBIT_SLEWRATE
-#define SIUL2_PORT_IP_HAS_ADC_INTERLEAVE
-#define SIUL2_PORT_IP_HAS_NO_RECEIVER_SELECT
+#define SIUL2_PORT_IP_HAS_ONEBIT_SLEWRATE           (STD_ON)
+#define SIUL2_PORT_IP_HAS_ADC_INTERLEAVE            (STD_ON)
+#define FEATURE_SIUL2_PORT_IP_HAS_RECEIVER_SELECT   (STD_OFF)
 
 /*! @brief SIUL2 module has DSE bit */
-#define FEATURE_SIUL2_PORT_IP_HAS_DRIVE_STRENGTH
+#define FEATURE_SIUL2_PORT_IP_HAS_DRIVE_STRENGTH    (STD_ON)
 
 /*! @brief SIUL2 module has IFE bit */
-#define FEATURE_SIUL2_PORT_IP_HAS_INPUT_FILTER
+#define FEATURE_SIUL2_PORT_IP_HAS_INPUT_FILTER      (STD_ON)
 
 /*! @brief SIUL2 module has PKE bit */
-#define FEATURE_SIUL2_PORT_IP_HAS_PULL_KEEPER
+#define FEATURE_SIUL2_PORT_IP_HAS_PULL_KEEPER       (STD_ON)
 
 /*! @brief SIUL2 module has INV bit */
-#define FEATURE_SIUL2_PORT_IP_HAS_INVERT_DATA
+#define FEATURE_SIUL2_PORT_IP_HAS_INVERT_DATA       (STD_ON)
 
+#define FEATURE_SIUL2_PORT_IP_HAS_TOUCH_SENSING         (STD_ON)
 /**
 * @brief Macros defined for the SIUL2 IPV that are protected.
 */

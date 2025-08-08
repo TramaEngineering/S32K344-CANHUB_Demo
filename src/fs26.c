@@ -79,7 +79,7 @@ static const uint8_t FS26_CRC_TABLE[FS26_CRC_TBL_SIZE] = {
 		0x2CU, 0x97U, 0x8AU, 0xADU, 0xB0U, 0xE3U, 0xFEU, 0xD9U, 0xC4U
 };
 
-fs26_watchdog_type wd_type = FS26_WD_CHALLENGER;
+fs26_watchdog_type wd_type = FS26_WD_DISABLED;
 static uint16_t watchdog_token = 0x5AB2;
 
 // This will print on the debug console
@@ -203,33 +203,33 @@ uint32_t fs26_getreg(uint8_t regaddr) {
 	spiDataTx  = FS26_REG_ADDR(regaddr);
 	spiDataTx |= (uint32_t)fs26_calcrc((uint8_t*)&spiDataTx, 3);
 
-	debug_printf("fs26 SPI transfer get BeEn, sending: %x\n", (unsigned int)spiDataTx);
+	debug_printf("fs26 SPI transfer get BeEn, sending: %x\r\n", (unsigned int)spiDataTx);
 
 	// do SPI read (transfer)
 	spiStatus = p_fs26SpiTransferCallbackFunctionfp((uint8_t*)&spiDataTx, (uint8_t*)&retVal, 4);
 
-	debug_printf("SPI transfer done (get), error check...\n");
+	debug_printf("SPI transfer done (get), error check...\r\n");
 	// check for errrors
 	if(spiStatus)
 	{
-		printf("SPI Error: could not transfer: %d\n", (int)spiStatus);
+		debug_printf("SPI Error: could not transfer: %d\r\n", (int)spiStatus);
 
-		printf("looping\n");
+		debug_printf("looping\n");
 		while(1);
 	}
 
-	debug_printf("SPI got BeEn: %x\n", (unsigned int)retVal);
+	debug_printf("SPI got BeEn: %x\r\n", (unsigned int)retVal);
 
 	if(fs26_calcrc((uint8_t*)&retVal, 3) != ((uint8_t*)&retVal)[0])
 	{
-		printf("CRC error expected %02x got %02x\n",
+		debug_printf("CRC error expected %02x got %02x\r\n",
 				fs26_calcrc((uint8_t*)&retVal, 3),
 				((uint8_t*)&retVal)[0]);
 		retVal = 0x0;
 	}
 
 	/* DEBUG print */
-	debug_printf("SPI info: %02x->%04lx\n", regaddr, retVal);
+	debug_printf("SPI info: %02x->%04lx\r\n", regaddr, retVal);
 
 	return retVal;
 }

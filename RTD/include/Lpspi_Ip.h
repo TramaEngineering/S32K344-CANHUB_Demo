@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : LPSPI
 *   Dependencies         : 
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -27,7 +26,7 @@
 
 /**
 *   @file    Lpspi_Ip.h
-*   
+*
 *
 *   @brief   LPSPI IP driver header file.
 *   @details LPSPI IP driver header file.
@@ -56,9 +55,9 @@ extern "C"{
 ==================================================================================================*/
 #define LPSPI_IP_VENDOR_ID                       43
 #define LPSPI_IP_AR_RELEASE_MAJOR_VERSION        4
-#define LPSPI_IP_AR_RELEASE_MINOR_VERSION        4
+#define LPSPI_IP_AR_RELEASE_MINOR_VERSION        7
 #define LPSPI_IP_AR_RELEASE_REVISION_VERSION     0
-#define LPSPI_IP_SW_MAJOR_VERSION                2
+#define LPSPI_IP_SW_MAJOR_VERSION                5
 #define LPSPI_IP_SW_MINOR_VERSION                0
 #define LPSPI_IP_SW_PATCH_VERSION                0
 /*==================================================================================================
@@ -149,7 +148,7 @@ Lpspi_Ip_StatusType Lpspi_Ip_DeInit(uint8 Instance);
 *
 * @param[in]        ExternalDevice - pointer to the external device where data is transmitted.
 * @param[in]        TxBuffer - pointer to transmit buffer.
-* @param[in-out]    RxBuffer - pointer to receive buffer.
+* @param[in,out]    RxBuffer - pointer to receive buffer.
 * @param[in]        Length - number of bytes to be sent.
 * @param[in]        TimeOut - duration for sending one frame.
 *
@@ -160,22 +159,21 @@ Lpspi_Ip_StatusType Lpspi_Ip_DeInit(uint8 Instance);
 *
 * @implements Lpspi_Ip_SyncTransmit_Activity
 */
-Lpspi_Ip_StatusType Lpspi_Ip_SyncTransmit(
-                                            const Lpspi_Ip_ExternalDeviceType *ExternalDevice,
-                                            uint8 *TxBuffer,
-                                            uint8 *RxBuffer,
-                                            uint16 Length,
-                                            uint32 TimeOut
-                                         );
+Lpspi_Ip_StatusType Lpspi_Ip_SyncTransmit(const Lpspi_Ip_ExternalDeviceType *ExternalDevice,
+                                          const uint8 *TxBuffer,
+                                          uint8 *RxBuffer,
+                                          uint16 Length,
+                                          uint32 TimeOut);
 
 /**
 * @brief            LPSPI asynchronous transmission.
 * @details          This function initializes an asynchronous transfer using the bus parameters provided
-*                   by external device.
+*                   by external device. After Lpspi_Ip_Init function is called, LPSPI_IP_POLLING
+*                   mode is set as default to change the default mode Lpspi_Ip_UpdateTransferMode should be called.
 *
 * @param[in]        ExternalDevice - pointer to the external device where data is transmitted
 * @param[in]        TxBuffer - pointer to transmit buffer.
-* @param[in-out]    RxBuffer - pointer to receive buffer.
+* @param[in,out]    RxBuffer - pointer to receive buffer.
 * @param[in]        Length - number of bytes to be sent.
 * @param[in]        EndCallback - callback function is called at the end of transfer.
 *
@@ -183,15 +181,13 @@ Lpspi_Ip_StatusType Lpspi_Ip_SyncTransmit(
 *                   LPSPI_IP_STATUS_FAIL: Transmission command has not been accepted.
 * @implements Lpspi_Ip_AsyncTransmit_Activity
 */
-Lpspi_Ip_StatusType Lpspi_Ip_AsyncTransmit(
-                                            const Lpspi_Ip_ExternalDeviceType *ExternalDevice,
-                                            uint8 *TxBuffer,
-                                            uint8 *RxBuffer,
-                                            uint16 Length,
-                                            Lpspi_Ip_CallbackType EndCallback
-                                          );
+Lpspi_Ip_StatusType Lpspi_Ip_AsyncTransmit(const Lpspi_Ip_ExternalDeviceType *ExternalDevice,
+                                           const uint8 *TxBuffer,
+                                           uint8 *RxBuffer,
+                                           uint16 Length,
+                                           Lpspi_Ip_CallbackType EndCallback);
 
-#if (STD_ON == LPSPI_IP_HALF_DUPLEX_MODE_SUPPORT)
+#if (LPSPI_IP_HALF_DUPLEX_MODE_SUPPORT == STD_ON)
 /**
 * @brief            LPSPI synchronous transmission support half duplex mode.
 * @details          This function initializes a synchronous transfer using the bus parameters provided
@@ -200,6 +196,7 @@ Lpspi_Ip_StatusType Lpspi_Ip_AsyncTransmit(
 * @param[in]        ExternalDevice - pointer to the external device where data is transmitted.
 * @param[in]        Buffer - pointer to transmit buffer.
 * @param[in]        Length - number of bytes to be sent.
+* @param[in]        TransferType - Transmit/Receive/Full Duplex
 * @param[in]        TimeOut - duration for sending one frame.
 *
 * @return           LPSPI_IP_STATUS_SUCCESS: Transmission command has been accepted.
@@ -209,13 +206,11 @@ Lpspi_Ip_StatusType Lpspi_Ip_AsyncTransmit(
 *
 * @implements Lpspi_Ip_SyncTransmitHalfDuplex_Activity
 */
-Lpspi_Ip_StatusType Lpspi_Ip_SyncTransmitHalfDuplex(
-                                            const Lpspi_Ip_ExternalDeviceType *ExternalDevice,
-                                            uint8 *Buffer,
-                                            uint16 Length,
-                                            Lpspi_Ip_HalfDuplexType TransferType,
-                                            uint32 TimeOut
-                                         );
+Lpspi_Ip_StatusType Lpspi_Ip_SyncTransmitHalfDuplex(const Lpspi_Ip_ExternalDeviceType *ExternalDevice,
+                                                    uint8 *Buffer,
+                                                    uint16 Length,
+                                                    Lpspi_Ip_HalfDuplexType TransferType,
+                                                    uint32 TimeOut);
 
 /**
 * @brief            LPSPI asynchronous transmission support half duplex mode.
@@ -225,19 +220,18 @@ Lpspi_Ip_StatusType Lpspi_Ip_SyncTransmitHalfDuplex(
 * @param[in]        ExternalDevice - pointer to the external device where data is transmitted
 * @param[in]        Buffer - pointer to transmit buffer.
 * @param[in]        Length - number of bytes to be sent.
+* @param[in]        TransferType - Transmit/Receive/Full Duplex
 * @param[in]        EndCallback - callback function is called at the end of transfer.
 *
 * @return           LPSPI_IP_STATUS_SUCCESS: Transmission command has been accepted.
 *                   LPSPI_IP_STATUS_FAIL: Transmission command has not been accepted.
 * @implements Lpspi_Ip_AsyncTransmitHalfDuplex_Activity
 */
-Lpspi_Ip_StatusType Lpspi_Ip_AsyncTransmitHalfDuplex(
-                                            const Lpspi_Ip_ExternalDeviceType *ExternalDevice,
-                                            uint8 *Buffer,
-                                            uint16 Length,
-                                            Lpspi_Ip_HalfDuplexType TransferType,
-                                            Lpspi_Ip_CallbackType EndCallback
-                                          );
+Lpspi_Ip_StatusType Lpspi_Ip_AsyncTransmitHalfDuplex(const Lpspi_Ip_ExternalDeviceType *ExternalDevice,
+                                                     uint8 *Buffer,
+                                                     uint16 Length,
+                                                     Lpspi_Ip_HalfDuplexType TransferType,
+                                                     Lpspi_Ip_CallbackType EndCallback);
 #endif
 
 #if (LPSPI_IP_DMA_USED == STD_ON)
@@ -247,7 +241,7 @@ Lpspi_Ip_StatusType Lpspi_Ip_AsyncTransmitHalfDuplex(
 * @details          This function initializes an asynchronous transmission for multiple transfers session
 *                   and CPU used only for processing at the end of sequence transfer.
 *                   The list of transfers session is composed of an array of fast transfers settings.
-*                   The settings array is defined by the user needs: it contains entries parameters to be configured 
+*                   The settings array is defined by the user needs: it contains entries parameters to be configured
 *                   for each transfer session as defined in Lpspi_Ip_FastTransferType.
 *
 *    How to use this interface:
@@ -258,20 +252,20 @@ Lpspi_Ip_StatusType Lpspi_Ip_AsyncTransmitHalfDuplex(
 *        b. In each transfer section, the number of data buffer(Length) is NOT higher than 32767 if SpiDataWidth < 9.
 *        c. Only Master mode is supported(SpiPhyUnit/SpiPhyUnitMode = SPI_MASTER).
 *        d. Make sure that SpiPhyUnit/SpiMaxDmaFastTransfer value must NOT lower than total of transfer sessions.
-*        e. Make sure that number of ScatterGathers configuration in SpiPhyUnit/SpiPhyTxDmaChannel must NOT lower than 
+*        e. Make sure that number of ScatterGathers configuration in SpiPhyUnit/SpiPhyTxDmaChannel must NOT lower than
 *        total of transfer sessions plus number of time request CS de-assert(KeepCs = FALSE) at the end of transfer session in the list configured.
 *        f. Make sure that number of ScatterGathers configuration in each SpiPhyUnit/SpiPhyRxDmaChannel must NOT lower than total of transfer sessions.
 *    2. Call the "Lpspi_Ip_AsyncTransmitFast()" interface.
-*    
+*
 *    Example:
 *        The user shall create the desired configuration list for his specific application.
 *        For example use case:
 *        - Requiring 2 transfers session, keep CS assert at the end of first transfer session.
-*        - Transfer session 1: 
+*        - Transfer session 1:
 *            + Use SpiExternalDevice_0 with SpiCsIdentifier = PCS0, SpiCsContinous = TRUE.
 *            + Send 5 bytes. Tx buffer is "uint8 u8TxBuffer1[5u]={0,1,2,3,4};". Rx buffer is "uint8 u8RxBuffer1[5u];".
 *            + Keep CS assert at the end of this transfer session.
-*        - Transfer session 2: 
+*        - Transfer session 2:
 *            + Use SpiExternalDevice_0 with SpiCsIdentifier = PCS0, SpiCsContinous = TRUE.
 *            + Send 10 bytes with default transmit data value is 5. Tx buffer is NULL_PTR. Rx buffer is "uint8 u8RxBuffer2[10u];".
 *            + This is last transfer session, so CS will not kipped by default at the end of last transfer session.
@@ -303,8 +297,8 @@ Lpspi_Ip_StatusType Lpspi_Ip_AsyncTransmitHalfDuplex(
 *                }
 *            };
 *            Lpspi_Ip_AsyncTransmitFast(aUserFastTransferCfgList, 2u, &UserCallbackFunc);
-*            
-* @param[in-out]    FastTransferCfg - pointer to the list of transfers section configuration.
+*
+* @param[in,out]    FastTransferCfg - pointer to the list of transfers section configuration.
 * @param[in]        NumberOfTransfer - number of transfers session in the list is pointed by FastTransferCfg.
 * @param[in]        EndCallback - callback function is called at the end of sequence transfer.
 *
@@ -312,13 +306,28 @@ Lpspi_Ip_StatusType Lpspi_Ip_AsyncTransmitHalfDuplex(
 *                   LPSPI_IP_STATUS_FAIL: Transmission command has not been accepted.
 * @implements Lpspi_Ip_AsyncTransmitFast_Activity
 */
-Lpspi_Ip_StatusType Lpspi_Ip_AsyncTransmitFast(
-                                       const Lpspi_Ip_FastTransferType *FastTransferCfg,
-                                       uint8 NumberOfTransfer,
-                                       Lpspi_Ip_CallbackType EndCallback
-                                      );
+Lpspi_Ip_StatusType Lpspi_Ip_AsyncTransmitFast(const Lpspi_Ip_FastTransferType *FastTransferCfg,
+                                               uint8 NumberOfTransfer,
+                                               Lpspi_Ip_CallbackType EndCallback);
+#endif /*LPSPI_IP_ENABLE_DMAFASTTRANSFER_SUPPORT == STD_ON*/
+#if (LPSPI_IP_ENABLE_DMA_CONT_MEM_TRANSFER_SUPPORT == STD_ON)
+/**
+* @brief            Transmit nonadjacent TX and adjacent RX
+*
+* @param[in]        ExternalDevice Device to which do the transmission
+* @param[in]        SeqTxBufferList Structure holding the multiple tx buffers
+* @param[in]        RxBuffer Receiving buffer
+* @param[in]        EndCallback To be called when transfer is done
+* 
+* @return           LPSPI_IP_STATUS_SUCCESS: Transmission command has been accepted.
+*                   LPSPI_IP_STATUS_FAIL: Transmission command has not been accepted.
+*/
+Lpspi_Ip_StatusType Lpspi_Ip_DmaContMemAsyncTransmit(const Lpspi_Ip_ExternalDeviceType *ExternalDevice,
+                                                     Lpspi_Ip_TxBufferListType *SeqTxBufferList,
+                                                     uint8 *RxBuffer,
+                                                     Lpspi_Ip_CallbackType EndCallback);
 #endif
-#endif
+#endif /*LPSPI_IP_DMA_USED == STD_ON*/
 
 /**
 * @brief            Get status of HW unit.
@@ -333,15 +342,26 @@ Lpspi_Ip_HwStatusType Lpspi_Ip_GetStatus(uint8 Instance);
 
 /**
 * @brief            Process transfer in POLLING mode.
-* @details          This function shall polls the SPI interrupts linked to SPI peripheral instance allocated to 
+* @details          This function shall polls the SPI interrupts linked to SPI peripheral instance allocated to
 *                   the transmission of data to enable the evolution of transmission state machine.
 *
 * @param[in]        Instance - SPI peripheral instance number.
-*
-* @return void
 * @implements Lpspi_Ip_ManageBuffers_Activity
 */
 void Lpspi_Ip_ManageBuffers(uint8 Instance);
+
+/**
+* @brief            Adjust transfer based on external conditions
+* @details          Use parameters to improve transfer
+*
+* @param[in]        ExternalDevice - External device where data is transmitted
+* @param[in]        Param - Parameter with adjustments
+*
+* @return           LPSPI_IP_STATUS_SUCCESS: Setting command has been accepted.
+*                   LPSPI_IP_STATUS_FAIL: Setting command has not been accepted.
+*/
+Lpspi_Ip_StatusType Lpspi_Ip_UpdateTransferParam(const Lpspi_Ip_ExternalDeviceType *ExternalDevice,
+                                                 const Lpspi_Ip_TransferAdjustmentType *Param);
 
 /**
 * @brief            LPSPI change frame size.
@@ -354,7 +374,8 @@ void Lpspi_Ip_ManageBuffers(uint8 Instance);
 *                   LPSPI_IP_STATUS_FAIL: Setting command has not been accepted.
 * @implements Lpspi_Ip_UpdateFrameSize_Activity
 */
-Lpspi_Ip_StatusType Lpspi_Ip_UpdateFrameSize(const Lpspi_Ip_ExternalDeviceType *ExternalDevice, uint8 FrameSize);
+Lpspi_Ip_StatusType Lpspi_Ip_UpdateFrameSize(const Lpspi_Ip_ExternalDeviceType *ExternalDevice,
+                                             uint16 FrameSize);
 
 /**
 * @brief            LPSPI change bit order.
@@ -367,7 +388,23 @@ Lpspi_Ip_StatusType Lpspi_Ip_UpdateFrameSize(const Lpspi_Ip_ExternalDeviceType *
 *                   LPSPI_IP_STATUS_FAIL: Setting command has not been accepted.
 * @implements Lpspi_Ip_UpdateLsb_Activity
 */
-Lpspi_Ip_StatusType Lpspi_Ip_UpdateLsb(const Lpspi_Ip_ExternalDeviceType *ExternalDevice, boolean Lsb);
+Lpspi_Ip_StatusType Lpspi_Ip_UpdateLsb(const Lpspi_Ip_ExternalDeviceType *ExternalDevice,
+                                       boolean Lsb);
+
+/**
+* @brief            LPSPI change byte swap.
+* @details          This function updates to enable byte swap on each 32-bit word when transmitting and receiving
+data.
+*
+* @param[in]        ExternalDevice - pointer to the external device configuration.
+* @param[in]        ByteSwap - Data is transferred with byte swap feature or not.
+*
+* @return           LPSPI_IP_STATUS_SUCCESS: Setting command has been accepted.
+*                   LPSPI_IP_STATUS_FAIL: Setting command has not been accepted.
+* @implements Lpspi_Ip_UpdateByteSwap_Activity
+*/
+Lpspi_Ip_StatusType Lpspi_Ip_UpdateByteSwap(const Lpspi_Ip_ExternalDeviceType *ExternalDevice,
+                                            boolean ByteSwap);
 
 /**
 * @brief            LPSPI change default transmit data.
@@ -380,7 +417,8 @@ Lpspi_Ip_StatusType Lpspi_Ip_UpdateLsb(const Lpspi_Ip_ExternalDeviceType *Extern
 *                   LPSPI_IP_STATUS_FAIL: Setting command has not been accepted.
 * @implements Lpspi_Ip_UpdateDefaultTransmitData_Activity
 */
-Lpspi_Ip_StatusType Lpspi_Ip_UpdateDefaultTransmitData(const Lpspi_Ip_ExternalDeviceType *ExternalDevice, uint32 DefaultData);
+Lpspi_Ip_StatusType Lpspi_Ip_UpdateDefaultTransmitData(const Lpspi_Ip_ExternalDeviceType *ExternalDevice,
+                                                       uint32 DefaultData);
 
 /**
 * @brief            LPSPI change transfer mode.
@@ -393,15 +431,14 @@ Lpspi_Ip_StatusType Lpspi_Ip_UpdateDefaultTransmitData(const Lpspi_Ip_ExternalDe
 *                   LPSPI_IP_STATUS_FAIL: Setting command has not been accepted.
 * @implements Lpspi_Ip_UpdateTransferMode_Activity
 */
-Lpspi_Ip_StatusType Lpspi_Ip_UpdateTransferMode(uint8 Instance, Lpspi_Ip_ModeType Mode);
+Lpspi_Ip_StatusType Lpspi_Ip_UpdateTransferMode(uint8 Instance,
+                                                Lpspi_Ip_ModeType Mode);
 
 /**
 * @brief            LPSPI cancel current asynchronous transmission.
 * @details          This function cancels an asynchronous transmission in progress for the specified SPI Hardware microcontroller peripheral.
 *
 * @param[in]        Instance - SPI peripheral instance number.
-*
-* @return void
 * @implements Lpspi_Ip_Cancel_Activity
 */
 void Lpspi_Ip_Cancel(uint8 Instance);
@@ -418,13 +455,18 @@ void Lpspi_Ip_Cancel(uint8 Instance);
 *                   LPSPI_IP_STATUS_FAIL: Setting command has not been accepted.
 * @implements Lpspi_Ip_SetClockMode_Activity
 */
-Lpspi_Ip_StatusType Lpspi_Ip_SetClockMode(uint8 Instance, Lpspi_Ip_DualClockModeType ClockMode);
+Lpspi_Ip_StatusType Lpspi_Ip_SetClockMode(uint8 Instance,
+                                          Lpspi_Ip_DualClockModeType ClockMode);
+
 #endif
 
 void Lpspi_Ip_IrqHandler(uint8 Instance);
+
 #if (LPSPI_IP_DMA_USED == STD_ON)
 void Lpspi_Ip_IrqTxDmaHandler(uint8 Instance);
+
 void Lpspi_Ip_IrqRxDmaHandler(uint8 Instance);
+
 #endif
 
 #define SPI_STOP_SEC_CODE

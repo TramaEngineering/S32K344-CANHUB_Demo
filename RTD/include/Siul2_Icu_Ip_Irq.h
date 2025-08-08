@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : Emios Siul2 Wkpu LpCmp
 *   Dependencies         : none
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -44,16 +43,15 @@ extern "C"{
 ==================================================================================================*/
 #include "OsIf.h"
 #include "Siul2_Icu_Ip_Cfg.h"
-#include "Siul2_Icu_Ip_Types.h"
 
 /*==================================================================================================
 *                                SOURCE FILE VERSION INFORMATION
 ==================================================================================================*/
 #define SIUL2_ICU_IP_IRQ_VENDOR_ID                    43
 #define SIUL2_ICU_IP_IRQ_AR_RELEASE_MAJOR_VERSION     4
-#define SIUL2_ICU_IP_IRQ_AR_RELEASE_MINOR_VERSION     4
+#define SIUL2_ICU_IP_IRQ_AR_RELEASE_MINOR_VERSION     7
 #define SIUL2_ICU_IP_IRQ_AR_RELEASE_REVISION_VERSION  0
-#define SIUL2_ICU_IP_IRQ_SW_MAJOR_VERSION             2
+#define SIUL2_ICU_IP_IRQ_SW_MAJOR_VERSION             5
 #define SIUL2_ICU_IP_IRQ_SW_MINOR_VERSION             0
 #define SIUL2_ICU_IP_IRQ_SW_PATCH_VERSION             0
 
@@ -66,23 +64,6 @@ extern "C"{
          (SIUL2_ICU_IP_IRQ_AR_RELEASE_MINOR_VERSION != OSIF_AR_RELEASE_MINOR_VERSION))
         #error "AutoSar Version Numbers of Siul2_Icu_Ip_Irq.h and OsIf.h are different"
     #endif
-#endif
-
-/* Check if source file and ICU header file are of the same vendor */
-#if (SIUL2_ICU_IP_IRQ_VENDOR_ID != SIUL2_ICU_IP_TYPES_VENDOR_ID)
-    #error "Siul2_Icu_Ip_Irq.h and Siul2_Icu_Ip_Types.h have different vendor IDs"
-#endif
-/* Check if source file and ICU header file are of the same AutoSar version */
-#if ((SIUL2_ICU_IP_IRQ_AR_RELEASE_MAJOR_VERSION  != SIUL2_ICU_IP_TYPES_AR_RELEASE_MAJOR_VERSION) || \
-     (SIUL2_ICU_IP_IRQ_AR_RELEASE_MINOR_VERSION  != SIUL2_ICU_IP_TYPES_AR_RELEASE_MINOR_VERSION) || \
-     (SIUL2_ICU_IP_IRQ_AR_RELEASE_REVISION_VERSION   != SIUL2_ICU_IP_TYPES_AR_RELEASE_REVISION_VERSION))
-    #error "AutoSar Version Numbers of Siul2_Icu_Ip_Irq.h and Siul2_Icu_Ip_Types.h are different"
-#endif
-/* Check if source file and ICU header file are of the same Software version */
-#if ((SIUL2_ICU_IP_IRQ_SW_MAJOR_VERSION  != SIUL2_ICU_IP_TYPES_SW_MAJOR_VERSION) || \
-     (SIUL2_ICU_IP_IRQ_SW_MINOR_VERSION  != SIUL2_ICU_IP_TYPES_SW_MINOR_VERSION) || \
-     (SIUL2_ICU_IP_IRQ_SW_PATCH_VERSION  != SIUL2_ICU_IP_TYPES_SW_PATCH_VERSION))
-#error "Software Version Numbers of Siul2_Icu_Ip_Irq.h and Siul2_Icu_Ip_Types.h are different"
 #endif
 
 /* Check if source file and ICU header file are of the same vendor */
@@ -117,6 +98,8 @@ extern "C"{
 /*==================================================================================================
 *                                        DEFINES AND MACROS
 ==================================================================================================*/
+#if (STD_ON == SIUL2_ICU_IP_USED)
+
 /** @brief SIUL2 External Interrupt Channels defines. */
 #if ((defined SIUL2_ICU_IRQ_CH_0_ISR_USED) || (defined SIUL2_ICU_IRQ_CH_1_ISR_USED) ||\
      (defined SIUL2_ICU_IRQ_CH_2_ISR_USED) || (defined SIUL2_ICU_IRQ_CH_3_ISR_USED) ||\
@@ -153,7 +136,6 @@ extern "C"{
 #define SIUL2_ICU_IRQ_24   ((uint8)24U)
 
 #endif
-
 /*==================================================================================================
 *                                              ENUMS
 ==================================================================================================*/
@@ -171,46 +153,6 @@ extern "C"{
 ==================================================================================================*/
 #define ICU_START_SEC_CODE
 #include "Icu_MemMap.h"
-
-#if (defined(SIUL2_0_ICU_EIRQ_SINGLE_INT))
-/**
- * @brief     Interrupt handler for SIUL2 instance 0.
- * @details   Process the interrupt of SIUL2 instance 0.
- * @isr
- * @note   This will be defined only if the single interrupt mode is configured.
- */
-ISR(SIUL2_0_ICU_EIRQ_SINGLE_INT_HANDLER);
-#endif /* SIUL2_0_ICU_EIRQ_SINGLE_INT */
-
-#if (defined(SIUL2_1_ICU_EIRQ_SINGLE_INT))
-/**
- * @brief     Interrupt handler for SIUL2 instance 1.
- * @details   Process the interrupt of SIUL2 instance 1.
- * @isr
- * @note   This will be defined only if the single interrupt mode is configured.
- */
-ISR(SIUL2_1_ICU_EIRQ_SINGLE_INT_HANDLER);
-#endif /* SIUL2_1_ICU_EIRQ_SINGLE_INT */
-
-#if (defined(SIUL2_4_ICU_EIRQ_SINGLE_INT))
-/**
- * @brief     Interrupt handler for SIUL2 instance 4.
- * @details   Process the interrupt of SIUL2 instance 4.
- * @isr
- * @note   This will be defined only if the single interrupt mode is configured.
- */
-ISR(SIUL2_4_ICU_EIRQ_SINGLE_INT_HANDLER);
-#endif /* SIUL2_4_ICU_EIRQ_SINGLE_INT */
-
-#if (defined(SIUL2_5_ICU_EIRQ_SINGLE_INT))
-/**
- * @brief     Interrupt handler for SIUL2 instance 5.
- * @details   Process the interrupt of SIUL2 instance 5.
- * @isr
- * @note   This will be defined only if the single interrupt mode is configured.
- */
-ISR(SIUL2_5_ICU_EIRQ_SINGLE_INT_HANDLER);
-#endif /* SIUL2_5_ICU_EIRQ_SINGLE_INT */
 
 #if ((defined SIUL2_ICU_IRQ_CH_0_ISR_USED) || (defined SIUL2_ICU_IRQ_CH_1_ISR_USED) ||\
      (defined SIUL2_ICU_IRQ_CH_2_ISR_USED) || (defined SIUL2_ICU_IRQ_CH_3_ISR_USED) ||\
@@ -266,6 +208,8 @@ ISR(SIUL2_EXT_IRQ_24_31_ISR);
 
 #define ICU_STOP_SEC_CODE
 #include "Icu_MemMap.h"
+
+#endif /* SIUL2_ICU_IP_USED */
 
 #ifdef __cplusplus
 }

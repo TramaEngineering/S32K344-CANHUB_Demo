@@ -18,11 +18,13 @@
 #include "msg_converter.h"
 #include "IntCtrl_Ip.h"
 #include "Gmac_Ip_Hw_Access.h"
-#include "avtp_defs.h"
+//#include "avtp_defs.h"
+#include "ethernet_type.h"
 #include "uart.h"
 #include "./uart_print/retarget.h"
 #include "fs26.h"
 #include "bsp.h"
+//#include "S32K311_DCM_GPR.h"
 
 SemaphoreHandle_t tx_queue_handle;
 QueueHandle_t tx_descr_queue;
@@ -187,15 +189,14 @@ uint8 pDelayResp_frame[68] = {
 Gmac_Ip_BufferType pDelayResp = { .Data = pDelayResp_frame, .Length=68};
 Gmac_Ip_BufferType arpAnnouce = { .Data = annouce_frame, .Length = 48 };
 
-
 Gmac_Ip_StatusType enet_init(QueueHandle_t* tx_descr_queue_m) {
 
 	//RMII mode
-	IP_DCM_GPR->DCMRWF1 = (IP_DCM_GPR->DCMRWF1 & ~DCM_GPR_DCMRWF1_RMII_MII_SEL_MASK) | DCM_GPR_DCMRWF1_RMII_MII_SEL(1U);
+	IP_DCM_GPR->DCMRWF1 = (IP_DCM_GPR->DCMRWF1 & ~DCM_GPR_DCMRWF1_MAC_CONF_SEL_MASK) | DCM_GPR_DCMRWF1_MAC_CONF_SEL(2U);
 
 	/* Initialize and enable the GMAC module */
 	Gmac_Ip_StatusType Status_Init_Gmac = GMAC_STATUS_ERROR;
-	Status_Init_Gmac = Gmac_Ip_Init(INST_GMAC_0, &Gmac_0_ConfigPB_BOARD_INITPERIPHERALS);
+	Status_Init_Gmac = Gmac_Ip_Init(INST_GMAC_0, &Gmac_0_ConfigPB);
 
 	if(Status_Init_Gmac != GMAC_STATUS_SUCCESS)
 	{

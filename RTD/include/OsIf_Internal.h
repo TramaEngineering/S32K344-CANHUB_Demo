@@ -1,25 +1,24 @@
 /*==================================================================================================
-* Project : RTD AUTOSAR 4.4
+* Project : RTD AUTOSAR 4.7
 * Platform : CORTEXM
 * Peripheral : S32K3XX
 * Dependencies : none
 *
-* Autosar Version : 4.4.0
-* Autosar Revision : ASR_REL_4_4_REV_0000
+* Autosar Version : 4.7.0
+* Autosar Revision : ASR_REL_4_7_REV_0000
 * Autosar Conf.Variant :
-* SW Version : 2.0.0
-* Build Version : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+* SW Version : 5.0.0
+* Build Version : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-* (c) Copyright 2020 - 2022 NXP Semiconductors
-* All Rights Reserved.
+* Copyright 2020 - 2024 NXP
 *
-* NXP Confidential. This software is owned or controlled by NXP and may only be
-* used strictly in accordance with the applicable license terms. By expressly
-* accepting such terms or by downloading, installing, activating and/or otherwise
-* using the software, you are agreeing that you have read, and that you agree to
-* comply with and are bound by, such license terms. If you do not agree to be
-* bound by the applicable license terms, then you may not retain, install,
-* activate or otherwise use the software.
+* NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be 
+*   used strictly in accordance with the applicable license terms.  By expressly 
+*   accepting such terms or by downloading, installing, activating and/or otherwise 
+*   using the software, you are agreeing that you have read, and that you agree to 
+*   comply with and are bound by, such license terms.  If you do not agree to be 
+*   bound by the applicable license terms, then you may not retain, install,
+*   activate or otherwise use the software.
 ==================================================================================================*/
 #ifndef OSIF_INTERNAL_H
 #define OSIF_INTERNAL_H
@@ -41,7 +40,7 @@ extern "C"{
 * 2) needed interfaces from external units
 * 3) internal and external interfaces from this unit
 ==================================================================================================*/
-#include "StandardTypes.h"
+#include "Std_Types.h"
 #include "Soc_Ips.h"
 #include "OsIf_Cfg.h"
 
@@ -52,64 +51,116 @@ extern "C"{
 #if defined(USING_OS_ZEPHYR)
 #include "OsIf_Interrupts.h"
 #ifdef MCAL_ENABLE_USER_MODE_SUPPORT
-#include "rtd.h"    /* System calls for RTD */
-#endif
+/* System calls for RTD */
+#include "rtd.h"
+#endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
 #endif /* defined(USING_OS_ZEPHYR) */
+
+#if defined(USING_OS_FREERTOS)
+#include "OsIf_Interrupts.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#endif /* defined(USING_OS_FREERTOS) */
 
 #if !defined(USING_OS_AUTOSAROS)
 #ifdef MCAL_ENABLE_USER_MODE_SUPPORT
+#if (MCAL_PLATFORM_ARM  == MCAL_ARM_MARCH)
 /* prototypes defined in system.h*/
 uint32 Sys_GoToUser_Return(uint32 u32SwitchToSupervisor, uint32 u32returnValue);
 uint32 Sys_GoToSupervisor(void);
 uint32 Sys_GoToUser(void);
+#else
+/* import inline function for switch context from system.h */
+#include "system.h"
+#endif /*  (MCAL_PLATFORM_ARM  == MCAL_ARM_MARCH) */
 void Sys_SuspendInterrupts(void);
 void Sys_ResumeInterrupts(void);
 #endif /* def MCAL_ENABLE_USER_MODE_SUPPORT */
 uint8 Sys_GetCoreID(void);
 #endif /* !defined(USING_OS_AUTOSAROS) */
 
+#if defined(USING_COHORT_DOMAIN_ID)
+#if (USING_COHORT_DOMAIN_ID == STD_ON)
+uint8 Sys_GetCohortID(void);
+uint8 Sys_GetDomainID(void);
+uint8 Sys_GetAID(void);
+#endif
+#endif /* defined(USING_COHORT_DOMAIN_ID) */
+
 #if (MCAL_PLATFORM_ARM  == MCAL_ARM_AARCH32) || (MCAL_PLATFORM_ARM  == MCAL_ARM_RARCH) 
 void Sys_EL1SuspendInterrupts(void);
 void Sys_EL1ResumeInterrupts(void);
+#endif
+
+#ifdef USING_GET_CUSTOM_ID
+uint8 OsIf_GetCustomID(void);
 #endif
 /*==================================================================================================
 *                                 SOURCE FILE VERSION INFORMATION
 ==================================================================================================*/
 #define OSIF_INTERNAL_VENDOR_ID                    43
 #define OSIF_INTERNAL_AR_RELEASE_MAJOR_VERSION     4
-#define OSIF_INTERNAL_AR_RELEASE_MINOR_VERSION     4
+#define OSIF_INTERNAL_AR_RELEASE_MINOR_VERSION     7
 #define OSIF_INTERNAL_AR_RELEASE_REVISION_VERSION  0
-#define OSIF_INTERNAL_SW_MAJOR_VERSION             2
+#define OSIF_INTERNAL_SW_MAJOR_VERSION             5
 #define OSIF_INTERNAL_SW_MINOR_VERSION             0
 #define OSIF_INTERNAL_SW_PATCH_VERSION             0
 
 /*==================================================================================================
 *                                       FILE VERSION CHECKS
 ==================================================================================================*/
-/* Checks against StandardTypes.h */
+/* Check if OsIf_Internal.h file and OsIf_Cfg.h file are of the same vendor */
+#if (OSIF_INTERNAL_VENDOR_ID != OSIF_CFG_VENDOR_ID)
+    #error "OsIf_Internal.h and OsIf_Cfg.h have different vendor ids"
+#endif
+/* Check if OsIf_Internal.h file and OsIf_Cfg.h file are of the same Autosar version */
+#if ((OSIF_INTERNAL_AR_RELEASE_MAJOR_VERSION    != OSIF_CFG_AR_RELEASE_MAJOR_VERSION) || \
+     (OSIF_INTERNAL_AR_RELEASE_MINOR_VERSION    != OSIF_CFG_AR_RELEASE_MINOR_VERSION) || \
+     (OSIF_INTERNAL_AR_RELEASE_REVISION_VERSION != OSIF_CFG_AR_RELEASE_REVISION_VERSION))
+    #error "AUTOSAR Version Numbers of OsIf_Internal.h and OsIf_Cfg.h are different"
+#endif
+/* Check if OsIf_Internal.h file and OsIf_Cfg.h file are of the same Software version */
+#if ((OSIF_INTERNAL_SW_MAJOR_VERSION != OSIF_CFG_SW_MAJOR_VERSION) || \
+     (OSIF_INTERNAL_SW_MINOR_VERSION != OSIF_CFG_SW_MINOR_VERSION) || \
+     (OSIF_INTERNAL_SW_PATCH_VERSION != OSIF_CFG_SW_PATCH_VERSION) \
+    )
+    #error "Software Version Numbers of OsIf_Internal.h and OsIf_Cfg.h are different"
+#endif
+
+/* Check if OsIf_Internal.h file and Std_Types.h file are of the same Autosar version */
 #ifndef DISABLE_MCAL_INTERMODULE_ASR_CHECK
     #if ((OSIF_INTERNAL_AR_RELEASE_MAJOR_VERSION != STD_AR_RELEASE_MAJOR_VERSION) || \
          (OSIF_INTERNAL_AR_RELEASE_MINOR_VERSION != STD_AR_RELEASE_MINOR_VERSION))
-        #error "AutoSar Version Numbers of OsIf_Internal.h and StandardTypes.h are different"
+        #error "AutoSar Version Numbers of OsIf_Internal.h and Std_Types.h are different"
     #endif
-#endif
+#endif /* DISABLE_MCAL_INTERMODULE_ASR_CHECK */
 
-/* Checks against Soc_Ips.h */
+/* Check if OsIf_Internal.h file and Soc_Ips.h file are of the same Autosar version */
 #ifndef DISABLE_MCAL_INTERMODULE_ASR_CHECK
     #if ((OSIF_INTERNAL_AR_RELEASE_MAJOR_VERSION != SOC_IPS_AR_RELEASE_MAJOR_VERSION) || \
          (OSIF_INTERNAL_AR_RELEASE_MINOR_VERSION != SOC_IPS_AR_RELEASE_MINOR_VERSION))
         #error "AutoSar Version Numbers of OsIf_Internal.h and Soc_Ips.h are different"
     #endif
-#endif
+#endif /* DISABLE_MCAL_INTERMODULE_ASR_CHECK */
 
 #if defined(USING_OS_AUTOSAROS)
-/* Checks against Os.h */
+/* Check if OsIf_Internal.h file and Os.h file are of the same Autosar version */
 #ifndef DISABLE_MCAL_INTERMODULE_ASR_CHECK
     #if ((OSIF_INTERNAL_AR_RELEASE_MAJOR_VERSION != OS_AR_RELEASE_MAJOR_VERSION) || \
          (OSIF_INTERNAL_AR_RELEASE_MINOR_VERSION != OS_AR_RELEASE_MINOR_VERSION))
         #error "AutoSar Version Numbers of OsIf_Internal.h and Os.h are different"
     #endif
-#endif
+#endif /* DISABLE_MCAL_INTERMODULE_ASR_CHECK */
+#endif /* defined(USING_OS_AUTOSAROS) */
+
+#if defined(USING_OS_ZEPHYR)
+/* Check if OsIf_Internal.h file and OsIf_Interrupts.h file are of the same Autosar version */
+#ifndef DISABLE_MCAL_INTERMODULE_ASR_CHECK
+    #if ((OSIF_INTERNAL_AR_RELEASE_MAJOR_VERSION != OSIF_INTERRUPTS_AR_RELEASE_MAJOR_VERSION) || \
+         (OSIF_INTERNAL_AR_RELEASE_MINOR_VERSION != OSIF_INTERRUPTS_AR_RELEASE_MINOR_VERSION))
+        #error "AutoSar Version Numbers of OsIf_Internal.h and OsIf_Interrupts.h are different"
+    #endif
+#endif /* DISABLE_MCAL_INTERMODULE_ASR_CHECK */
 #endif /* defined(USING_OS_AUTOSAROS) */
 
 /*==================================================================================================
@@ -190,27 +241,56 @@ void Sys_EL1ResumeInterrupts(void);
     #endif
 #endif
 
+#ifdef USING_GET_PARTITION_ID
+/*
+ * OsIf_GetOsAppId
+ */
+/* USING_OS_AUTOSAROS */
+    #ifdef USING_OS_AUTOSAROS
+        #define OsIf_GetUserId()       (OsIf_apxMultiPartitionPredefinedConfig[GetApplicationID()])
+    #else
+        #define OsIf_GetUserId()       OsIf_GetCoreID()
+    #endif
+#else
+    #ifdef USING_GET_CORE_ID
+        #define OsIf_GetUserId()   OsIf_GetCoreID()
+    #else
+        #define OsIf_GetUserId()   OsIf_GetCustomID()
+    #endif
+#endif
+
 /*
  * OsIf_SuspendAllInterrupts
  * OsIf_ResumeAllInterrupts
  */
 #if (!defined(USING_OS_AUTOSAROS) && !defined(USING_OS_ZEPHYR))
-    /* Baremetal or FreeRTOS case */
-    #if (MCAL_PLATFORM_ARM  == MCAL_ARM_AARCH64)
-        #define ResumeAllInterrupts()   ASM_KEYWORD(" msr DAIFClr,#0x3")
-        #define SuspendAllInterrupts()  ASM_KEYWORD(" msr DAIFSet,#0x3")
-    #elif (MCAL_PLATFORM_ARM  == MCAL_ARM_AARCH32) || (MCAL_PLATFORM_ARM  == MCAL_ARM_RARCH) 
-        #define ResumeAllInterrupts()   Sys_EL1ResumeInterrupts()
-        #define SuspendAllInterrupts()  Sys_EL1SuspendInterrupts()
-    #else
-    #ifdef MCAL_ENABLE_USER_MODE_SUPPORT
-        #define ResumeAllInterrupts()   Sys_ResumeInterrupts()  /* BASEPRI will be set to 0x0 from SVC handler */
-        #define SuspendAllInterrupts()  Sys_SuspendInterrupts() /* BASEPRI will be set to 0x10 from SVC handler */
-    #else
-        #define ResumeAllInterrupts()   ASM_KEYWORD(" cpsie i")
-        #define SuspendAllInterrupts()  ASM_KEYWORD(" cpsid i")
-    #endif /* MCAL_ENABLE_USER_MODE_SUPPORT */
-    #endif /* MCAL_PLATFORM_ARM  == MCAL_ARM_AARCH64 */
+    #ifndef MCAL_ENABLE_USER_MODE_SUPPORT   /*Bare metal not enable user mode*/
+        /* Baremetal or FreeRTOS case */
+        #if (MCAL_PLATFORM_ARM  == MCAL_ARM_AARCH64)
+            #define ResumeAllInterrupts()   ASM_KEYWORD(" msr DAIFClr,#0x3")
+            #define SuspendAllInterrupts()  ASM_KEYWORD(" msr DAIFSet,#0x3")
+        #elif (MCAL_PLATFORM_ARM  == MCAL_ARM_AARCH32) || (MCAL_PLATFORM_ARM  == MCAL_ARM_RARCH) 
+            #define ResumeAllInterrupts()   Sys_EL1ResumeInterrupts()
+            #define SuspendAllInterrupts()  Sys_EL1SuspendInterrupts()
+        #elif (MCAL_PLATFORM_ARM  == MCAL_ARM_MARCH)
+            #if defined(USING_OS_FREERTOS)
+                #define ResumeAllInterrupts()   OsIf_Interrupts_ResumeAllInterrupts()
+                #define SuspendAllInterrupts()  OsIf_Interrupts_SuspendAllInterrupts()
+            #else
+                #define ResumeAllInterrupts()   ASM_KEYWORD(" cpsie i")
+                #define SuspendAllInterrupts()  ASM_KEYWORD(" cpsid i")
+            #endif /* defined(USING_OS_FREERTOS) */
+
+         #endif /* MCAL_PLATFORM_ARM  == MCAL_ARM_AARCH64 */
+    #else  
+        #if (MCAL_PLATFORM_ARM  == MCAL_ARM_AARCH32) || (MCAL_PLATFORM_ARM  == MCAL_ARM_RARCH) 
+            #define ResumeAllInterrupts()  OsIf_Trusted_Call(Sys_EL1ResumeInterrupts)
+            #define SuspendAllInterrupts() OsIf_Trusted_Call(Sys_EL1SuspendInterrupts)
+        #else
+            #define ResumeAllInterrupts()   Sys_ResumeInterrupts()
+            #define SuspendAllInterrupts()  Sys_SuspendInterrupts()
+        #endif  
+    #endif /*MCAL_ENABLE_USER_MODE_SUPPORT */
 #elif defined(USING_OS_ZEPHYR)
     #ifdef MCAL_ENABLE_USER_MODE_SUPPORT
         #define ResumeAllInterrupts()   OsIf_Trusted_Call(OsIf_Interrupts_ResumeAllInterrupts)
@@ -240,6 +320,69 @@ void Sys_EL1ResumeInterrupts(void);
 #endif /* defined (USE_SW_VECTOR_MODE) */
 #endif /* USING_OS_AUTOSAROS */
 
+#if defined(USING_COHORT_DOMAIN_ID)
+#if (USING_COHORT_DOMAIN_ID == STD_ON)
+    #define OsIf_GetCohortID()  Sys_GetCohortID()
+    #define OsIf_GetDomainID()  Sys_GetDomainID()
+    #define OsIf_GetAID()       Sys_GetAID()
+#endif
+#endif /* defined(USING_COHORT_DOMAIN_ID) */
+
+/*
+ * OsIf_EnableInterruptSource
+ */
+#ifdef USING_OS_AUTOSAROS
+    #define OsIf_EnableInterruptSource(ISRID, ClearPending)    EnableInterruptSource(ISRID, ClearPending)
+#elif defined(USING_OS_ZEPHYR)
+    /* specific Zephyr API for enabling interrupts */
+#elif defined(USING_OS_FREERTOS)
+    /* specific FreeRTOS API for enabling interrupts */
+#endif
+
+/*
+ * OsIf_SetEvent
+ */
+#ifdef USING_OS_AUTOSAROS
+    #define OsIf_SetEvent(taskId, mask)    SetEvent(taskId, mask)
+#elif defined(USING_OS_ZEPHYR)
+    /* specific Zephyr API for setting events */
+#elif defined(USING_OS_FREERTOS)
+    /* specific FreeRTOS API for setting events */
+#endif
+
+/*
+ * OsIf_ClearEvent
+ */
+#ifdef USING_OS_AUTOSAROS
+    #define OsIf_ClearEvent(mask)    ClearEvent(mask)
+#elif defined(USING_OS_ZEPHYR)
+    /* specific Zephyr API for clearing events */
+#elif defined(USING_OS_FREERTOS)
+    /* specific FreeRTOS API for clearing events */
+#endif
+
+
+/*
+ * OsIf_WaitEvent
+ */
+#ifdef USING_OS_AUTOSAROS
+    #define OsIf_WaitEvent(mask)    WaitEvent(mask)
+#elif defined(USING_OS_ZEPHYR)
+    /* specific Zephyr API for waiting for events */
+#elif defined(USING_OS_FREERTOS)
+    /* specific FreeRTOS API for waiting for events */
+#endif
+
+/*
+ * OsIf_Schedule
+ */
+#ifdef USING_OS_AUTOSAROS
+    #define OsIf_Schedule()    Schedule()
+#elif defined(USING_OS_ZEPHYR)
+    /* specific Zephyr API for scheduling */
+#elif defined(USING_OS_FREERTOS)
+    /* specific FreeRTOS API for scheduling */
+#endif
 /*==================================================================================================
 *                                              ENUMS
 ==================================================================================================*/

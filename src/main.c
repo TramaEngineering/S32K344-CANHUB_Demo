@@ -29,7 +29,8 @@
 #include "Lpspi_Ip.h"
 #include <stdio.h>
 #include <string.h>
-#include "avtp_defs.h"
+//#include "avtp_defs.h"
+#include "ethernet_type.h"
 
 #include "can.h"
 #include "enet.h"
@@ -186,7 +187,7 @@ int fs26SpiTransferFunction(uint8_t *TxBuffer, uint8_t *RxBuffer, uint16_t Lengt
 {
 	Lpspi_Ip_StatusType spiStat;
 
-	spiStat = Lpspi_Ip_SyncTransmit(&Lpspi_Ip_DeviceAttributes_SpiExternalDevice_3_Instance_3_BOARD_InitPeripherals,
+	spiStat = Lpspi_Ip_SyncTransmit(&Lpspi_Ip_DeviceAttributes_SpiExternalDevice_3_Instance_3,
 			TxBuffer, RxBuffer, Length, 1000);
 
 	return (int)spiStat;
@@ -210,7 +211,7 @@ int main(void)
 
 	/* Initialize all pins using the Port driver */
 	Siul2_Port_Ip_PortStatusType Status_Init_Port = SIUL2_PORT_ERROR;
-	Status_Init_Port = Siul2_Port_Ip_Init(NUM_OF_CONFIGURED_PINS0, g_pin_mux_InitConfigArr0);
+	Status_Init_Port = Siul2_Port_Ip_Init(NUM_OF_CONFIGURED_PINS_PortContainer_0_BOARD_InitPeripherals, g_pin_mux_InitConfigArr_PortContainer_0_BOARD_InitPeripherals);
 
 	if(Status_Init_Port != SIUL2_PORT_SUCCESS)
 	{
@@ -230,13 +231,13 @@ int main(void)
 	}
 
 	/* Initialize the FS26 to stop it from resetting */
-	Lpspi_Ip_Init(&Lpspi_Ip_PhyUnitConfig_SpiPhyUnit_3_Instance_3_BOARD_InitPeripherals);
+	Lpspi_Ip_Init(&Lpspi_Ip_PhyUnitConfig_SpiPhyUnit_3_Instance_3);
 	Console_SerialPort_Init();
 	/*ERROR IN START UP*/
 	fs26_initialize(&fs26SpiTransferFunction);
 
 	/* Intialize for SIUL ICU for external interrupts from the buttons */
-	Siul2_Icu_Ip_Init(0, &Siul2_Icu_Ip_0_Config_PB_BOARD_InitPeripherals);
+	Siul2_Icu_Ip_Init(0, &Siul2_Icu_Ip_0_Config_PB);
 	Siul2_Icu_Ip_EnableInterrupt(0, 5);  /* EIRQ5  PTA25 */
 	Siul2_Icu_Ip_EnableNotification(0, 5);
 	Siul2_Icu_Ip_EnableInterrupt(0, 31); /* EIRQ31 PTD15 */

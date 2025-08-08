@@ -1,5 +1,5 @@
 /*
- * FreeRTOS Kernel V10.4.6
+ * FreeRTOS Kernel V10.5.1
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * SPDX-License-Identifier: MIT
@@ -74,6 +74,20 @@ PRIORITY THAN THIS! (higher priorities are lower numeric values. */
 #define configSUPPORT_DYNAMIC_ALLOCATION            1
 #define configTOTAL_HEAP_SIZE                       (( size_t ) 81920 )
 #define configAPPLICATION_ALLOCATED_HEAP            0
+/*Symmetric Multiprocessing definitions. */
+
+#define configUSE_SMP                               0
+#if (configUSE_SMP == 1)
+#define configUSE_CORE_AFFINITY                     1
+#define configRUN_MULTIPLE_PRIORITIES               1
+#define configUSE_PASSIVE_IDLE_HOOK                 0
+#define configTICK_CORE                             0
+#define configTIMER_SERVICE_TASK_CORE_AFFINITY      0
+#define configRECORD_STACK_HIGH_ADDRESS             0
+#define configUSE_TASK_PREEMPTION_DISABLE           0
+#define configCORE_MASTER                           0
+#define configNUMBER_OF_CORES                       2
+#endif
 
 /* Hook function related definitions. */
 #define configUSE_IDLE_HOOK                         0
@@ -164,7 +178,7 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 
 /* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS
 standard names. */
-#define vPortSVCHandler                             SVC_Handler
+//#define vPortSVCHandler                             SVC_Handler
 #define xPortPendSVHandler                          PendSV_Handler
 #define xPortSysTickHandler                         SysTick_Handler
 

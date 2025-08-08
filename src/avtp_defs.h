@@ -15,7 +15,7 @@
 #define AVTP_DEFS_H
 
 #include <PlatformTypes.h>
-#include "Gmac_Ip_Sa_BOARD_InitPeripherals_PBcfg.h"
+#include "Gmac_Ip_Sa_PBcfg.h"
 
 #ifdef __cplusplus
 extern "C" {

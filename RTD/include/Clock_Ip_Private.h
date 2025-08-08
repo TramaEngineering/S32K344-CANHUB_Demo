@@ -1,23 +1,22 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : 
 *   Dependencies         : none
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
-*   used strictly in accordance with the applicable license terms. By expressly
-*   accepting such terms or by downloading, installing, activating and/or otherwise
-*   using the software, you are agreeing that you have read, and that you agree to
-*   comply with and are bound by, such license terms. If you do not agree to be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be 
+*   used strictly in accordance with the applicable license terms.  By expressly 
+*   accepting such terms or by downloading, installing, activating and/or otherwise 
+*   using the software, you are agreeing that you have read, and that you agree to 
+*   comply with and are bound by, such license terms.  If you do not agree to be 
 *   bound by the applicable license terms, then you may not retain, install,
 *   activate or otherwise use the software.
 ==================================================================================================*/
@@ -27,7 +26,7 @@
 
 /**
 *   @file    Clock_Ip_Private.h
-*   @version    2.0.0
+*   @version    5.0.0
 *
 *   @brief   CLOCK IP driver private header file.
 *   @details CLOCK IP driver private header file.
@@ -68,9 +67,9 @@ extern "C"{
 
 #define CLOCK_IP_PRIVATE_VENDOR_ID                    43
 #define CLOCK_IP_PRIVATE_AR_RELEASE_MAJOR_VERSION     4
-#define CLOCK_IP_PRIVATE_AR_RELEASE_MINOR_VERSION     4
+#define CLOCK_IP_PRIVATE_AR_RELEASE_MINOR_VERSION     7
 #define CLOCK_IP_PRIVATE_AR_RELEASE_REVISION_VERSION  0
-#define CLOCK_IP_PRIVATE_SW_MAJOR_VERSION             2
+#define CLOCK_IP_PRIVATE_SW_MAJOR_VERSION             5
 #define CLOCK_IP_PRIVATE_SW_MINOR_VERSION             0
 #define CLOCK_IP_PRIVATE_SW_PATCH_VERSION             0
 
@@ -323,7 +322,6 @@ typedef struct
     extOscResetCallback Reset;
     extOscSetCallback Set;
     extOscSetCallback Complete;
-    extOscDisableCallback Disable;
     extOscEnableCallback Enable;
 
 }Clock_Ip_ExtOscCallbackType;
@@ -392,17 +390,13 @@ typedef struct
 
 typedef void (*clockMonitorSetCallback)(Clock_Ip_CmuConfigType const * Config, uint32 Index);
 typedef void (*clockMonitorResetCallback)(Clock_Ip_CmuConfigType const * Config);
-typedef void (*clockMonitorClearStatusCallback)(Clock_Ip_NameType Name);
 typedef void (*clockMonitorDisableCallback)(Clock_Ip_NameType Name);
-typedef Clock_Ip_CmuStatusType (*clockMonitorGetMonitorStatusCallback)(Clock_Ip_NameType Name);
 typedef void (*clockMonitorEnableCallback)(Clock_Ip_CmuConfigType const * Config);
 typedef struct
 {
     clockMonitorResetCallback Reset;
     clockMonitorSetCallback Set;
     clockMonitorDisableCallback Disable;
-    clockMonitorClearStatusCallback Clear;
-    clockMonitorGetMonitorStatusCallback GetStatus;
     clockMonitorEnableCallback Enable;
 
 }Clock_Ip_ClockMonitorCallbackType;
@@ -498,7 +492,7 @@ extern const Clock_Ip_ClockNameSourceType Clock_Ip_aeSourceTypeClockName[CLOCK_I
 
 #include "Mcu_MemMap.h"
 
-#if (CLOCK_IP_CMU_INSTANCES_ARRAY_SIZE > 0U) || defined(CLOCK_IP_CGU_INTERRUPT)
+#if (CLOCK_IP_CMU_INFO_SIZE > 0U) || defined(CLOCK_IP_CGU_INTERRUPT)
 extern const Clock_Ip_ClockConfigType *Clock_Ip_pxConfig;
 #endif
 
@@ -506,18 +500,19 @@ extern const Clock_Ip_ClockConfigType *Clock_Ip_pxConfig;
 
 #include "Mcu_MemMap.h"
 
+#if CLOCK_IP_CONFIGURED_FREQUENCIES_COUNT > 0U
 
 /* Clock start initialized section data */
-#define MCU_START_SEC_VAR_INIT_8
+#define MCU_START_SEC_VAR_CLEARED_8
 #include "Mcu_MemMap.h"
 
 extern uint8 Clock_Ip_FreqIds[CLOCK_IP_FEATURE_NAMES_NO];
 
 /* Clock stop initialized section data */
-#define MCU_STOP_SEC_VAR_INIT_8
+#define MCU_STOP_SEC_VAR_CLEARED_8
 #include "Mcu_MemMap.h"
 
-
+#endif /* CLOCK_IP_CONFIGURED_FREQUENCIES_COUNT > 0U */
 /*==================================================================================================
 *                                       FUNCTION PROTOTYPES
 ==================================================================================================*/
@@ -526,15 +521,22 @@ extern uint8 Clock_Ip_FreqIds[CLOCK_IP_FEATURE_NAMES_NO];
 
 #include "Mcu_MemMap.h"
 
-void Clock_Ip_ClockPowerModeChangeNotification(Clock_Ip_PowerModesType PowerMode, Clock_Ip_PowerNotificationType Notification);
-void Clock_Ip_ReportClockErrors(Clock_Ip_NotificationType Error, Clock_Ip_NameType ClockName);
-void Clock_Ip_SetExternalSignalFrequency(Clock_Ip_NameType SignalName, uint32 Frequency);
-#if (defined(CLOCK_IP_GET_FREQUENCY_API) && (CLOCK_IP_GET_FREQUENCY_API == STD_ON))
-uint32 Clock_Ip_GetFreq(Clock_Ip_NameType ClockName);
-void Clock_Ip_SetExternalOscillatorFrequency(Clock_Ip_NameType ExtOscName, uint32 Frequency);
+#ifdef CLOCK_IP_POWER_NOTIFICATIONS
+#if (CLOCK_IP_POWER_NOTIFICATIONS == STD_ON)
+void Clock_Ip_ClockPowerNotifications(Clock_Ip_PowerModesType PowerMode,
+                                    Clock_Ip_PowerNotificationType Notification);
 #endif
-#if CLOCK_IP_CMU_INSTANCES_ARRAY_SIZE > 0U
-uint32 Clock_Ip_CMU_GetInterruptStatus(uint8 IndexCmu);
+#endif
+void Clock_Ip_ReportClockErrors(Clock_Ip_NotificationType Error,
+                                Clock_Ip_NameType ClockName);
+void Clock_Ip_SetExternalSignalFrequency(Clock_Ip_NameType SignalName,
+                                         uint64 Frequency);
+#if (defined(CLOCK_IP_GET_FREQUENCY_API) && (CLOCK_IP_GET_FREQUENCY_API == STD_ON))
+uint64 Clock_Ip_GetFreq(Clock_Ip_NameType ClockName);
+void Clock_Ip_SetExternalOscillatorFrequency(Clock_Ip_NameType ExtOscName,
+                                             uint64 Frequency);
+#endif
+#if CLOCK_IP_CMU_INFO_SIZE > 0U
 void Clock_Ip_CMU_ClockFailInt(void);
 #endif
 #if defined(CLOCK_IP_CGU_INTERRUPT)
@@ -549,7 +551,8 @@ void Clock_Ip_CGU_ClockDetectInt(void);
 #if (defined(CLOCK_IP_REGISTER_VALUES_OPTIMIZATION) && (CLOCK_IP_REGISTER_VALUES_OPTIMIZATION == STD_ON))
 void Clock_Ip_WriteRegisterValues(const Clock_Ip_RegisterIndexType *Indexes);
 #endif
-void Clock_Ip_Command(Clock_Ip_ClockConfigType const * Config, Clock_Ip_CommandType Command);
+void Clock_Ip_Command(Clock_Ip_ClockConfigType const * Config,
+                    Clock_Ip_CommandType Command);
 /*!
  * @brief Initializes a starting reference point for timeout
  *

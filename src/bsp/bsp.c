@@ -116,7 +116,7 @@ uint32 Bsp_Init(void){
 
 	/* Initialize all pins using the Port driver */
 	Siul2_Port_Ip_PortStatusType Status_Init_Port = SIUL2_PORT_ERROR;
-	retCode = Siul2_Port_Ip_Init(NUM_OF_CONFIGURED_PINS0, g_pin_mux_InitConfigArr0);
+	retCode = Siul2_Port_Ip_Init(NUM_OF_CONFIGURED_PINS_PortContainer_0_BOARD_InitPeripherals, g_pin_mux_InitConfigArr_PortContainer_0_BOARD_InitPeripherals);
 
 	if(retCode != SIUL2_PORT_SUCCESS)
 	{
@@ -136,13 +136,13 @@ uint32 Bsp_Init(void){
 	}
 
 	/* Initialize the FS26 to stop it from resetting */
-	Lpspi_Ip_Init(&Lpspi_Ip_PhyUnitConfig_SpiPhyUnit_3_Instance_3_BOARD_InitPeripherals);
+	Lpspi_Ip_Init(&Lpspi_Ip_PhyUnitConfig_SpiPhyUnit_3_Instance_3);
 	UART_init();
 	/*ERROR IN START UP*/
 	//fs26_initialize(&fs26SpiTransferFunction);
 
 	/* Intialize for SIUL ICU for external interrupts from the buttons */
-	Siul2_Icu_Ip_Init(0, &Siul2_Icu_Ip_0_Config_PB_BOARD_InitPeripherals);
+	Siul2_Icu_Ip_Init(0, &Siul2_Icu_Ip_0_Config_PB);
 	Siul2_Icu_Ip_EnableInterrupt(0, 5);  /* EIRQ5  PTA25 */
 	Siul2_Icu_Ip_EnableNotification(0, 5);
 	Siul2_Icu_Ip_EnableInterrupt(0, 31); /* EIRQ31 PTD15 */
@@ -171,7 +171,8 @@ uint32 Bsp_Init(void){
 	/*load the interrupt configuration*/
 	retCode |= IntCtrl_Ip_Init(&IntCtrlConfig_0);
 	/*route the handler to the interrupt*/
-	retCode |= IntCtrl_Ip_ConfigIrqRouting(&intRouteConfig);
+	/*embeded in previuos function*/
+	//retCode |= IntCtrl_Ip_ConfigIrqRouting(&intRouteConfig);
 
 	return retCode;
 }

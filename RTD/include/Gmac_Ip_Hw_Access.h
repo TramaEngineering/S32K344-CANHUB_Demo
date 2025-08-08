@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : GMAC
 *   Dependencies         : none
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -51,9 +50,9 @@ extern "C"{
 ==================================================================================================*/
 #define GMAC_IP_HW_ACCESS_VENDOR_ID                    43
 #define GMAC_IP_HW_ACCESS_AR_RELEASE_MAJOR_VERSION     4
-#define GMAC_IP_HW_ACCESS_AR_RELEASE_MINOR_VERSION     4
+#define GMAC_IP_HW_ACCESS_AR_RELEASE_MINOR_VERSION     7
 #define GMAC_IP_HW_ACCESS_AR_RELEASE_REVISION_VERSION  0
-#define GMAC_IP_HW_ACCESS_SW_MAJOR_VERSION             2
+#define GMAC_IP_HW_ACCESS_SW_MAJOR_VERSION             5
 #define GMAC_IP_HW_ACCESS_SW_MINOR_VERSION             0
 #define GMAC_IP_HW_ACCESS_SW_PATCH_VERSION             0
 
@@ -64,14 +63,16 @@ extern "C"{
 #if (GMAC_IP_HW_ACCESS_VENDOR_ID != GMAC_IP_VENDOR_ID)
     #error "Gmac_Ip_Hw_Access.h and Gmac_Ip.h have different vendor ids"
 #endif
-#if (( GMAC_IP_HW_ACCESS_AR_RELEASE_MAJOR_VERSION    != GMAC_IP_AR_RELEASE_MAJOR_VERSION) || \
-     ( GMAC_IP_HW_ACCESS_AR_RELEASE_MINOR_VERSION    != GMAC_IP_AR_RELEASE_MINOR_VERSION) || \
-     ( GMAC_IP_HW_ACCESS_AR_RELEASE_REVISION_VERSION != GMAC_IP_AR_RELEASE_REVISION_VERSION))
+#if ((GMAC_IP_HW_ACCESS_AR_RELEASE_MAJOR_VERSION    != GMAC_IP_AR_RELEASE_MAJOR_VERSION) || \
+     (GMAC_IP_HW_ACCESS_AR_RELEASE_MINOR_VERSION    != GMAC_IP_AR_RELEASE_MINOR_VERSION) || \
+     (GMAC_IP_HW_ACCESS_AR_RELEASE_REVISION_VERSION != GMAC_IP_AR_RELEASE_REVISION_VERSION) \
+    )
      #error "AUTOSAR Version Numbers of Gmac_Ip_Hw_Access.h and Gmac_Ip.h are different"
 #endif
 #if (( GMAC_IP_HW_ACCESS_SW_MAJOR_VERSION != GMAC_IP_SW_MAJOR_VERSION) || \
      ( GMAC_IP_HW_ACCESS_SW_MINOR_VERSION != GMAC_IP_SW_MINOR_VERSION) || \
-     ( GMAC_IP_HW_ACCESS_SW_PATCH_VERSION != GMAC_IP_SW_PATCH_VERSION))
+     ( GMAC_IP_HW_ACCESS_SW_PATCH_VERSION != GMAC_IP_SW_PATCH_VERSION)    \
+    )
     #error "Software Version Numbers of Gmac_Ip_Hw_Access.h and Gmac_Ip.h are different"
 #endif
 
@@ -81,12 +82,14 @@ extern "C"{
 #endif
 #if (( GMAC_IP_HW_ACCESS_AR_RELEASE_MAJOR_VERSION    != GMAC_IP_DEVICE_REGISTERS_AR_RELEASE_MAJOR_VERSION) || \
      ( GMAC_IP_HW_ACCESS_AR_RELEASE_MINOR_VERSION    != GMAC_IP_DEVICE_REGISTERS_AR_RELEASE_MINOR_VERSION) || \
-     ( GMAC_IP_HW_ACCESS_AR_RELEASE_REVISION_VERSION != GMAC_IP_DEVICE_REGISTERS_AR_RELEASE_REVISION_VERSION))
+     ( GMAC_IP_HW_ACCESS_AR_RELEASE_REVISION_VERSION != GMAC_IP_DEVICE_REGISTERS_AR_RELEASE_REVISION_VERSION) \
+    )
      #error "AUTOSAR Version Numbers of Gmac_Ip_Hw_Access.h and Gmac_Ip_Device_Registers.h are different"
 #endif
 #if (( GMAC_IP_HW_ACCESS_SW_MAJOR_VERSION != GMAC_IP_DEVICE_REGISTERS_SW_MAJOR_VERSION) || \
      ( GMAC_IP_HW_ACCESS_SW_MINOR_VERSION != GMAC_IP_DEVICE_REGISTERS_SW_MINOR_VERSION) || \
-     ( GMAC_IP_HW_ACCESS_SW_PATCH_VERSION != GMAC_IP_DEVICE_REGISTERS_SW_PATCH_VERSION))
+     ( GMAC_IP_HW_ACCESS_SW_PATCH_VERSION != GMAC_IP_DEVICE_REGISTERS_SW_PATCH_VERSION)    \
+    )
     #error "Software Version Numbers of Gmac_Ip_Hw_Access.h and Gmac_Ip_Device_Registers.h are different"
 #endif
 
@@ -119,8 +122,8 @@ typedef struct
 /*******************************************************************************
  * Variables
  ******************************************************************************/
-#define ETH_START_SEC_CONST_UNSPECIFIED
-#include "Eth_MemMap.h"
+#define ETH_43_GMAC_START_SEC_CONST_UNSPECIFIED
+#include "Eth_43_GMAC_MemMap.h"
 
 extern GMAC_Type * const Gmac_apxBases[FEATURE_GMAC_NUM_INSTANCES];
 
@@ -128,22 +131,22 @@ extern Gmac_Ip_ChannelType * const Gmac_apxChBases[FEATURE_GMAC_NUM_INSTANCES][F
 
 extern Gmac_Ip_QueueType * const Gmac_apxQueueBases[FEATURE_GMAC_NUM_INSTANCES][FEATURE_GMAC_NUM_QUEUES];
 
-#define ETH_STOP_SEC_CONST_UNSPECIFIED
-#include "Eth_MemMap.h"
+#define ETH_43_GMAC_STOP_SEC_CONST_UNSPECIFIED
+#include "Eth_43_GMAC_MemMap.h"
 
-#define ETH_START_SEC_VAR_CLEARED_UNSPECIFIED
-#include "Eth_MemMap.h"
+#define ETH_43_GMAC_START_SEC_VAR_CLEARED_UNSPECIFIED
+#include "Eth_43_GMAC_MemMap.h"
 
 extern Gmac_Ip_StateType *Gmac_apxState[FEATURE_GMAC_NUM_INSTANCES];
 
-#define ETH_STOP_SEC_VAR_CLEARED_UNSPECIFIED
-#include "Eth_MemMap.h"
+#define ETH_43_GMAC_STOP_SEC_VAR_CLEARED_UNSPECIFIED
+#include "Eth_43_GMAC_MemMap.h"
 
 /*******************************************************************************
  * API
  ******************************************************************************/
-#define ETH_START_SEC_CODE
-#include "Eth_MemMap.h"
+#define ETH_43_GMAC_START_SEC_CODE
+#include "Eth_43_GMAC_MemMap.h"
 
 /*!
  * @brief Initializes a starting reference point for timeout
@@ -244,7 +247,7 @@ static inline uint16 GMAC_ReadManagementFrameData(const GMAC_Type * Base)
  *
  * @param[in] Instance Instance number
  */
-void GMAC_SafetyIRQHandler(uint32 Instance);
+void GMAC_SafetyIRQHandler(uint8 Instance);
 #endif
 
 /*!
@@ -255,7 +258,7 @@ void GMAC_SafetyIRQHandler(uint32 Instance);
  *
  * @param[in] Instance Instance number
  */
-void GMAC_CommonIRQHandler(uint32 Instance);
+void GMAC_CommonIRQHandler(uint8 Instance);
 
 /*!
  * @brief Handler for GMAC receive interrupts.
@@ -266,8 +269,8 @@ void GMAC_CommonIRQHandler(uint32 Instance);
  * @param[in] Instance Instance number
  * @param[in] Channel  Channel number
  */
-void GMAC_RxIRQHandler(uint32 Instance,
-                       uint32 Channel);
+void GMAC_RxIRQHandler(uint8 Instance,
+                       uint8 Channel);
 
 /*!
  * @brief Handler for GMAC transmit interrupts.
@@ -278,8 +281,8 @@ void GMAC_RxIRQHandler(uint32 Instance,
  * @param[in] Instance Instance number
  * @param[in] Channel Channel number
  */
-void GMAC_TxIRQHandler(uint32 Instance,
-                       uint32 Channel);
+void GMAC_TxIRQHandler(uint8 Instance,
+                       uint8 Channel);
 
 /*!
  * @brief Gets the power state
@@ -297,6 +300,50 @@ Gmac_Ip_PowerStateType GMAC_GetPowerState(const GMAC_Type * Base);
  */
 void GMAC_SetPowerState(GMAC_Type * Base, Gmac_Ip_PowerStateType PowerState);
 
+#ifdef GMAC_IP_DMA_PRIORITY_CONFIGURATION_ENABLE
+    #if (GMAC_IP_DMA_PRIORITY_CONFIGURATION_ENABLE == STD_ON)
+/*!
+ * @brief Sets the arbitration scheme between the Transmit and Receive paths of all channels
+ *
+ * @param[in] base       The base address of the module
+ * @param[in] ArbitrationScheme The arbitration scheme
+ */
+void GMAC_SetArbitrationScheme(GMAC_Type * Base, uint8 ArbitrationScheme);
+
+/*!
+ * @brief Sets the priority over TX and Rx
+ *
+ * @param[in] base       The base address of the module
+ * @param[in] Enable     Sets if Tx is prior to Rx or otherwise.
+ */
+void GMAC_SetTransmitPriority(GMAC_Type * Base, boolean Enable);
+
+/*!
+ * @brief Sets the Transmit Arbitration Algorithm
+ *
+ * @param[in] base                   The base address of the module
+ * @param[in] ArbitrationScheme      Transmit Arbitration Algorithm
+ */
+void GMAC_SetTransmitArbitrationAlgorithm(GMAC_Type * Base, uint8 ArbitrationScheme);
+
+/*!
+ * @brief Sets the priority ratio for Weighted Round Robin arbitration algorithm in DMA
+ *
+ * @param[in] Base              The base address of the module
+ * @param[in] PriorityRatio     The ratio to be set
+ */
+void GMAC_SetPriorityRatio(GMAC_Type *Base, uint8 PriorityRatio);
+
+/*!
+ * @brief Sets the transmission weight of a channel
+ *
+ * @param[in] Controller        Controller Index
+ * @param[in] Channel           DMA Tx channel
+ * @param[in] Weight            Weight to be set
+ */
+void GMAC_SetTransmitChannelWeight(uint8 Controller, uint8 Channel, uint8 Weight);
+    #endif
+#endif
 /*!
  * @brief Sets the speed of the MII interface.
  *
@@ -390,6 +437,22 @@ void GMAC_SetRxQueueOperationMode(Gmac_Ip_QueueType * QueueBase,
 void GMAC_SetRxQueuesDmaChMap(GMAC_Type * Base,
                               uint8 QueuesNum);
 
+#if (FEATURE_GMAC_VLAN_RX_FILTERS_NUM > 0U)
+/*!
+ * @brief Read a VLAN Tag Rx filter.
+ *
+ * @param[in]  base               The base address of the module
+ * @param[in]  filterIdx          Index of the VLAN filter
+ * @param[in]  timeoutUs          Timeout value (in microseconds)
+ * @param[out] vlanTag            Vlan Tag configured for the selcted Rx filter
+ * @retval GMAC_STATUS_SUCCESS    The filter was successfully read.
+ * @retval GMAC_STATUS_TIMEOUT    The filter could not be read before expiration
+ *                                of timeout.
+ */
+Gmac_Ip_StatusType GMAC_ReadVlanTagRxFilter(GMAC_Type * Base,
+                                           uint8 FilterIdx,
+                                           uint16 * VlanTag);
+
 /*!
  * @brief Sets VLAN Tag inverse match.
  *
@@ -409,26 +472,10 @@ void GMAC_SetVlanTagDataRxMatch(GMAC_Type * Base,
                                 boolean EnSvlanMatch,
                                 boolean DisVlanTypeMatch,
                                 boolean En12bitMatch);
-                                
-#if (FEATURE_GMAC_VLAN_RX_FILTERS_NUM > 0U)
-/*!
- * @brief Read a VLAN Tag Rx filter.
- *
- * @param[in]  base               The base address of the module
- * @param[in]  filterIdx          Index of the VLAN filter
- * @param[in]  timeoutUs          Timeout value (in microseconds)
- * @param[out] vlanTag            Vlan Tag configured for the selcted Rx filter
- * @retval GMAC_STATUS_SUCCESS    The filter was successfully read.
- * @retval GMAC_STATUS_TIMEOUT    The filter could not be read before expiration
- *                                of timeout.
- */
-Gmac_Ip_StatusType GMAC_ReadVlanTagRxFilter(GMAC_Type * Base,
-                                           uint8 FilterIdx,
-                                           uint16 * VlanTag);
 #endif
 
-#define ETH_STOP_SEC_CODE
-#include "Eth_MemMap.h"
+#define ETH_43_GMAC_STOP_SEC_CODE
+#include "Eth_43_GMAC_MemMap.h"
 
 
 #ifdef __cplusplus

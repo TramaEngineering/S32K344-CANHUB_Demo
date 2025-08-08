@@ -1,19 +1,18 @@
 /*==================================================================================================
-* Project : RTD AUTOSAR 4.4
+* Project : RTD AUTOSAR 4.7
 * Platform : CORTEXM
 * Peripheral : Stm_Pit_Rtc_Emios
 * Dependencies : none
 *
-* Autosar Version : 4.4.0
-* Autosar Revision : ASR_REL_4_4_REV_0000
+* Autosar Version : 4.7.0
+* Autosar Revision : ASR_REL_4_7_REV_0000
 * Autosar Conf.Variant :
-* SW Version : 2.0.0
-* Build Version : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+* SW Version : 5.0.0
+* Build Version : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-* (c) Copyright 2020 - 2022 NXP Semiconductors
-* All Rights Reserved.
+* Copyright 2020 - 2024 NXP
 *
-* NXP Confidential. This software is owned or controlled by NXP and may only be
+* NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 * used strictly in accordance with the applicable license terms. By expressly
 * accepting such terms or by downloading, installing, activating and/or otherwise
 * using the software, you are agreeing that you have read, and that you agree to
@@ -29,13 +28,9 @@
  *   @{
  */
 
-/*==================================================================================================
- *                              GENERATION MACRO DEFINTION
- *================================================================================================*/
 
 
 
-/*==================================================================================================*/
 #ifdef __cplusplus
 extern "C"{
 #endif
@@ -46,37 +41,37 @@ extern "C"{
  * 2) needed interfaces from external units
  * 3) internal and external interfaces from this unit
  *================================================================================================*/
-#include "Pit_Ip_BOARD_InitPeripherals_PBcfg.h"
+#include "Pit_Ip_PBcfg.h"
 
 /*==================================================================================================
  *                              SOURCE FILE VERSION INFORMATION
  *================================================================================================*/
-#define PIT_IP_VENDOR_ID_BOARD_INITPERIPHERALS_PBCFG_C                    43
-#define PIT_IP_AR_RELEASE_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C     4
-#define PIT_IP_AR_RELEASE_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C     4
-#define PIT_IP_AR_RELEASE_REVISION_VERSION_BOARD_INITPERIPHERALS_PBCFG_C  0
-#define PIT_IP_SW_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C             2
-#define PIT_IP_SW_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C             0
-#define PIT_IP_SW_PATCH_VERSION_BOARD_INITPERIPHERALS_PBCFG_C             0
+#define PIT_IP_VENDOR_ID_PBCFG_C                    43
+#define PIT_IP_AR_RELEASE_MAJOR_VERSION_PBCFG_C     4
+#define PIT_IP_AR_RELEASE_MINOR_VERSION_PBCFG_C     7
+#define PIT_IP_AR_RELEASE_REVISION_VERSION_PBCFG_C  0
+#define PIT_IP_SW_MAJOR_VERSION_PBCFG_C             5
+#define PIT_IP_SW_MINOR_VERSION_PBCFG_C             0
+#define PIT_IP_SW_PATCH_VERSION_PBCFG_C             0
 /*==================================================================================================
  *                                      FILE VERSION CHECKS
  *================================================================================================*/
-#if (PIT_IP_VENDOR_ID_BOARD_INITPERIPHERALS_PBCFG_C != PIT_IP_VENDOR_ID_BOARD_INITPERIPHERALS_PBCFG_H)
-    #error "Pit_Ip_BOARD_InitPeripherals_PBcfg.c and Pit_Ip_Types.h have different vendor ids"
+#if (PIT_IP_VENDOR_ID_PBCFG_C != PIT_IP_VENDOR_ID_PBCFG_H)
+    #error "Pit_Ip_PBcfg.c and Pit_Ip_PBcfg.h have different vendor ids"
 #endif
 /* Check if this header file and header file are of the same Autosar version */
-#if ((PIT_IP_AR_RELEASE_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C != PIT_IP_AR_RELEASE_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H) || \
-     (PIT_IP_AR_RELEASE_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C != PIT_IP_AR_RELEASE_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H) || \
-     (PIT_IP_AR_RELEASE_REVISION_VERSION_BOARD_INITPERIPHERALS_PBCFG_C != PIT_IP_AR_RELEASE_REVISION_VERSION_BOARD_INITPERIPHERALS_PBCFG_H) \
+#if ((PIT_IP_AR_RELEASE_MAJOR_VERSION_PBCFG_C != PIT_IP_AR_RELEASE_MAJOR_VERSION_PBCFG_H) || \
+     (PIT_IP_AR_RELEASE_MINOR_VERSION_PBCFG_C != PIT_IP_AR_RELEASE_MINOR_VERSION_PBCFG_H) || \
+     (PIT_IP_AR_RELEASE_REVISION_VERSION_PBCFG_C != PIT_IP_AR_RELEASE_REVISION_VERSION_PBCFG_H) \
     )
-    #error "AutoSar Version Numbers of Pit_Ip_BOARD_InitPeripherals_PBcfg.c and Pit_Ip_Types.h are different"
+    #error "AutoSar Version Numbers of Pit_Ip_PBcfg.c and Pit_Ip_PBcfg.h are different"
 #endif
 /* Check if this header file and header file are of the same Software version */
-#if ((PIT_IP_SW_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C != PIT_IP_SW_MAJOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H) || \
-     (PIT_IP_SW_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_C != PIT_IP_SW_MINOR_VERSION_BOARD_INITPERIPHERALS_PBCFG_H) || \
-     (PIT_IP_SW_PATCH_VERSION_BOARD_INITPERIPHERALS_PBCFG_C != PIT_IP_SW_PATCH_VERSION_BOARD_INITPERIPHERALS_PBCFG_H) \
+#if ((PIT_IP_SW_MAJOR_VERSION_PBCFG_C != PIT_IP_SW_MAJOR_VERSION_PBCFG_H) || \
+     (PIT_IP_SW_MINOR_VERSION_PBCFG_C != PIT_IP_SW_MINOR_VERSION_PBCFG_H) || \
+     (PIT_IP_SW_PATCH_VERSION_PBCFG_C != PIT_IP_SW_PATCH_VERSION_PBCFG_H) \
     )
-    #error "Software Version Numbers of Pit_Ip_BOARD_InitPeripherals_PBcfg.c and Pit_Ip_Types.h are different"
+    #error "Software Version Numbers of Pit_Ip_PBcfg.c and Pit_Ip_PBcfg.h are different"
 #endif
 /*================================================================================================*/
 
@@ -92,10 +87,6 @@ extern void link_check(uint8 channel);
 /*==================================================================================================
  *                                       GLOBAL CONSTANTS
  *================================================================================================*/
-
-/*==================================================================================================
- *                                       GLOBAL FUNCTIONS
- *================================================================================================*/
 #define GPT_START_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Gpt_MemMap.h"
 
@@ -103,19 +94,18 @@ extern void link_check(uint8 channel);
 const Pit_Ip_InstanceConfigType PIT_0_InitConfig_PB =
 {
     /** @brief PIT Standard Timer */
-#if(defined (PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
-    (boolean)(TRUE), /* Enable standard timer */
+#if (defined(PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
+    ((boolean)TRUE), /* Enable standard timer */
 #endif
-#if(defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
-    (boolean)(FALSE), /* Disable real time interrupt timer */
+#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+    (boolean)(FALSE), /* Enable/Disable real time interrupt timer */
 #endif
     /** @brief PIT Debug Mode */
-    (boolean)(TRUE) /* Disable Freeze Bit */
-}; 
-
+    (boolean)(FALSE) /* Enable/Disable Freeze Bit */
+};
 const Pit_Ip_ChannelConfigType PIT_0_ChannelConfig_PB[1U] =
 {
-    /**@brief PitChannel_0 */ 
+    /** @brief PitChannel_0 */ 
     {
         /** @brief PIT Channel Id */
         0U,
@@ -123,14 +113,18 @@ const Pit_Ip_ChannelConfigType PIT_0_ChannelConfig_PB[1U] =
         (boolean)(TRUE),
         /** @brief PIT callback name */
         &link_check,
-        /** @brief PIT callbackparam  */
+        /** @brief PIT callbackparam */
         (uint8)0U,
-        /** @brief PIT channel mode  */
+        /** @brief PIT channel mode */
         PIT_IP_CH_MODE_CONTINUOUS
     }
 };
 #define GPT_STOP_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Gpt_MemMap.h"
+
+/*==================================================================================================
+ *                                       GLOBAL FUNCTIONS
+ *================================================================================================*/
 
 /*==================================================================================================
  *                                       LOCAL VARIABLES
@@ -161,4 +155,3 @@ const Pit_Ip_ChannelConfigType PIT_0_ChannelConfig_PB[1U] =
 #endif /* PIT_IP_PBCFG_C */
 
 /** @} */
-

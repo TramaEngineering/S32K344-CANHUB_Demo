@@ -15,7 +15,8 @@
 #ifndef MSG_CONVERTER_H
 #define MSG_CONVERTER_H
 
-#include "avtp_defs.h"
+//#include "avtp_defs.h"
+#include "ethernet_type.h"
 #include "Gmac_Ip.h"
 #include "FlexCAN_Ip.h"
 #include <stdint.h>

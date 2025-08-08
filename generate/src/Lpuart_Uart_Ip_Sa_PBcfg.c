@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : FLEXIO
 *   Dependencies         : 
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -30,8 +29,7 @@
 
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C"{
 #endif
 
 /*==================================================================================================
@@ -42,20 +40,20 @@ extern "C"
 ==================================================================================================*/
 #include "Lpuart_Uart_Ip_Types.h"
 #include "Lpuart_Uart_Ip_Cfg.h"
-#include "StandardTypes.h"
+#include "Std_Types.h"
 #if (LPUART_UART_IP_HAS_DMA_ENABLED == STD_ON)
 #include "Dma_Ip.h"
 #endif
 /*==================================================================================================
 *                              SOURCE FILE VERSION INFORMATION
 ==================================================================================================*/
-#define LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_VENDOR_ID_C                     43
-#define LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MAJOR_VERSION_C      4
-#define LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MINOR_VERSION_C      4
-#define LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_REVISION_VERSION_C   0
-#define LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_MAJOR_VERSION_C              2
-#define LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_MINOR_VERSION_C              0
-#define LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_PATCH_VERSION_C              0
+#define LPUART_UART_IP_SA_PBCFG_VENDOR_ID_C                     43
+#define LPUART_UART_IP_SA_PBCFG_AR_RELEASE_MAJOR_VERSION_C      4
+#define LPUART_UART_IP_SA_PBCFG_AR_RELEASE_MINOR_VERSION_C      7
+#define LPUART_UART_IP_SA_PBCFG_AR_RELEASE_REVISION_VERSION_C   0
+#define LPUART_UART_IP_SA_PBCFG_SW_MAJOR_VERSION_C              5
+#define LPUART_UART_IP_SA_PBCFG_SW_MINOR_VERSION_C              0
+#define LPUART_UART_IP_SA_PBCFG_SW_PATCH_VERSION_C              0
 
 
 /*==================================================================================================
@@ -63,46 +61,52 @@ extern "C"
 ==================================================================================================*/
 
 /* Checks against Lpuart_Uart_Ip_Types.h */
-#if (LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_VENDOR_ID_C != LPUART_UART_IP_TYPES_VENDOR_ID)
-    #error "Lpuart_Uart_Ip_Sa_BOARD_InitPeripherals_PBcfg.c and Lpuart_Uart_Ip_Types.h have different vendor ids"
+#if (LPUART_UART_IP_SA_PBCFG_VENDOR_ID_C != LPUART_UART_IP_TYPES_VENDOR_ID)
+    #error "Lpuart_Uart_Ip_Sa_PBcfg.c and Lpuart_Uart_Ip_Types.h have different vendor ids"
 #endif
-#if ((LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MAJOR_VERSION_C    != LPUART_UART_IP_TYPES_AR_RELEASE_MAJOR_VERSION)|| \
-     (LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MINOR_VERSION_C    != LPUART_UART_IP_TYPES_AR_RELEASE_MINOR_VERSION)|| \
-     (LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_REVISION_VERSION_C != LPUART_UART_IP_TYPES_AR_RELEASE_REVISION_VERSION))
-     #error "AUTOSAR Version Numbers of Lpuart_Uart_Ip_Sa_BOARD_InitPeripherals_PBcfg.c and Lpuart_Uart_Ip_Types.h are different"
+#if ((LPUART_UART_IP_SA_PBCFG_AR_RELEASE_MAJOR_VERSION_C    != LPUART_UART_IP_TYPES_AR_RELEASE_MAJOR_VERSION)|| \
+     (LPUART_UART_IP_SA_PBCFG_AR_RELEASE_MINOR_VERSION_C    != LPUART_UART_IP_TYPES_AR_RELEASE_MINOR_VERSION)|| \
+     (LPUART_UART_IP_SA_PBCFG_AR_RELEASE_REVISION_VERSION_C != LPUART_UART_IP_TYPES_AR_RELEASE_REVISION_VERSION) \
+    )
+     #error "AUTOSAR Version Numbers of Lpuart_Uart_Ip_Sa_PBcfg.c and Lpuart_Uart_Ip_Types.h are different"
 #endif
-#if ((LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_MAJOR_VERSION_C != LPUART_UART_IP_TYPES_SW_MAJOR_VERSION)|| \
-     (LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_MINOR_VERSION_C != LPUART_UART_IP_TYPES_SW_MINOR_VERSION)|| \
-     (LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_PATCH_VERSION_C != LPUART_UART_IP_TYPES_SW_PATCH_VERSION))
-    #error "Software Version Numbers of Lpuart_Uart_Ip_Sa_BOARD_InitPeripherals_PBcfg.c and Lpuart_Uart_Ip_Types.h are different"
+#if ((LPUART_UART_IP_SA_PBCFG_SW_MAJOR_VERSION_C != LPUART_UART_IP_TYPES_SW_MAJOR_VERSION)|| \
+     (LPUART_UART_IP_SA_PBCFG_SW_MINOR_VERSION_C != LPUART_UART_IP_TYPES_SW_MINOR_VERSION)|| \
+     (LPUART_UART_IP_SA_PBCFG_SW_PATCH_VERSION_C != LPUART_UART_IP_TYPES_SW_PATCH_VERSION) \
+    )
+    #error "Software Version Numbers of Lpuart_Uart_Ip_Sa_PBcfg.c and Lpuart_Uart_Ip_Types.h are different"
 #endif
 
 /* Checks against Lpuart_Uart_Ip_Cfg.h */
-#if (LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_VENDOR_ID_C != LPUART_UART_IP_CFG_VENDOR_ID)
-    #error "Lpuart_Uart_Ip_Sa_BOARD_InitPeripherals_PBcfg.c and Lpuart_Uart_Ip_Cfg.h have different vendor ids"
+#if (LPUART_UART_IP_SA_PBCFG_VENDOR_ID_C != LPUART_UART_IP_CFG_VENDOR_ID)
+    #error "Lpuart_Uart_Ip_Sa_PBcfg.c and Lpuart_Uart_Ip_Cfg.h have different vendor ids"
 #endif
-#if ((LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MAJOR_VERSION_C    != LPUART_UART_IP_CFG_AR_RELEASE_MAJOR_VERSION)|| \
-     (LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MINOR_VERSION_C    != LPUART_UART_IP_CFG_AR_RELEASE_MINOR_VERSION)|| \
-     (LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_REVISION_VERSION_C != LPUART_UART_IP_CFG_AR_RELEASE_REVISION_VERSION))
-     #error "AUTOSAR Version Numbers of Lpuart_Uart_Ip_Sa_BOARD_InitPeripherals_PBcfg.c and Lpuart_Uart_Ip_Cfg.h are different"
+#if ((LPUART_UART_IP_SA_PBCFG_AR_RELEASE_MAJOR_VERSION_C    != LPUART_UART_IP_CFG_AR_RELEASE_MAJOR_VERSION)|| \
+     (LPUART_UART_IP_SA_PBCFG_AR_RELEASE_MINOR_VERSION_C    != LPUART_UART_IP_CFG_AR_RELEASE_MINOR_VERSION)|| \
+     (LPUART_UART_IP_SA_PBCFG_AR_RELEASE_REVISION_VERSION_C != LPUART_UART_IP_CFG_AR_RELEASE_REVISION_VERSION) \
+    )
+     #error "AUTOSAR Version Numbers of Lpuart_Uart_Ip_Sa_PBcfg.c and Lpuart_Uart_Ip_Cfg.h are different"
 #endif
-#if ((LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_MAJOR_VERSION_C != LPUART_UART_IP_CFG_SW_MAJOR_VERSION)|| \
-     (LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_MINOR_VERSION_C != LPUART_UART_IP_CFG_SW_MINOR_VERSION)|| \
-     (LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_PATCH_VERSION_C != LPUART_UART_IP_CFG_SW_PATCH_VERSION))
-    #error "Software Version Numbers of Lpuart_Uart_Ip_Sa_BOARD_InitPeripherals_PBcfg.c and Lpuart_Uart_Ip_Cfg.h are different"
+#if ((LPUART_UART_IP_SA_PBCFG_SW_MAJOR_VERSION_C != LPUART_UART_IP_CFG_SW_MAJOR_VERSION)|| \
+     (LPUART_UART_IP_SA_PBCFG_SW_MINOR_VERSION_C != LPUART_UART_IP_CFG_SW_MINOR_VERSION)|| \
+     (LPUART_UART_IP_SA_PBCFG_SW_PATCH_VERSION_C != LPUART_UART_IP_CFG_SW_PATCH_VERSION) \
+    )
+    #error "Software Version Numbers of Lpuart_Uart_Ip_Sa_PBcfg.c and Lpuart_Uart_Ip_Cfg.h are different"
 #endif
 
 #ifndef DISABLE_MCAL_INTERMODULE_ASR_CHECK
-    /* Check if current file and StandardTypes.h header file are of the same Autosar version */
-    #if ((LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MAJOR_VERSION_C != STD_AR_RELEASE_MAJOR_VERSION) || \
-         (LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MINOR_VERSION_C != STD_AR_RELEASE_MINOR_VERSION))
-        #error "AutoSar Version Numbers of Lpuart_Uart_Ip_BOARD_InitPeripherals_PBcfg.c and StandardTypes.h are different"
+    /* Check if current file and Std_Types.h header file are of the same Autosar version */
+    #if ((LPUART_UART_IP_SA_PBCFG_AR_RELEASE_MAJOR_VERSION_C != STD_AR_RELEASE_MAJOR_VERSION) || \
+         (LPUART_UART_IP_SA_PBCFG_AR_RELEASE_MINOR_VERSION_C != STD_AR_RELEASE_MINOR_VERSION) \
+        )
+        #error "AutoSar Version Numbers of Lpuart_Uart_Ip_Sa_PBcfg.c and Std_Types.h are different"
     #endif
     /* Checks against Dma_Ip.h */
     #if (LPUART_UART_IP_HAS_DMA_ENABLED == STD_ON)
-        #if ((LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MAJOR_VERSION_C != DMA_IP_AR_RELEASE_MAJOR_VERSION) || \
-             (LPUART_UART_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MINOR_VERSION_C != DMA_IP_AR_RELEASE_MINOR_VERSION))
-            #error "AutoSar Version Numbers of Lpuart_Uart_Ip_BOARD_InitPeripherals_PBcfg.c and Dma_Ip.h are different"
+        #if ((LPUART_UART_IP_SA_PBCFG_AR_RELEASE_MAJOR_VERSION_C != DMA_IP_AR_RELEASE_MAJOR_VERSION) || \
+             (LPUART_UART_IP_SA_PBCFG_AR_RELEASE_MINOR_VERSION_C != DMA_IP_AR_RELEASE_MINOR_VERSION) \
+            )
+            #error "AutoSar Version Numbers of Lpuart_Uart_Ip_Sa_PBcfg.c and Dma_Ip.h are different"
         #endif
     #endif
 #endif
@@ -126,13 +130,6 @@ extern "C"
                                        GLOBAL CONSTANTS
 ==================================================================================================*/
 
-#define UART_START_SEC_VAR_CLEARED_UNSPECIFIED_NO_CACHEABLE
-#include "Uart_MemMap.h"
-extern Lpuart_Uart_Ip_StateStructureType Lpuart_Uart_Ip_apStateStructure[LPUART_UART_IP_NUMBER_OF_INSTANCES];
-
-#define UART_STOP_SEC_VAR_CLEARED_UNSPECIFIED_NO_CACHEABLE
-#include "Uart_MemMap.h"
-
 
 #define UART_START_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Uart_MemMap.h"
@@ -143,10 +140,10 @@ extern Lpuart_Uart_Ip_StateStructureType Lpuart_Uart_Ip_apStateStructure[LPUART_
 * @api
 */
 
-const Lpuart_Uart_Ip_UserConfigType Lpuart_Uart_Ip_xHwConfigPB_2_BOARD_INITPERIPHERALS =
+const Lpuart_Uart_Ip_UserConfigType Lpuart_Uart_Ip_xHwConfigPB_2 =
 {
     /* Actual baudrate */
-    115942,
+    115942U,
     /* Baudrate mantissa*/
     15U,
     /* Baudrate Divisor*/
@@ -170,7 +167,7 @@ const Lpuart_Uart_Ip_UserConfigType Lpuart_Uart_Ip_xHwConfigPB_2_BOARD_INITPERIP
     255,
 #endif
     /* Runtime state structure refference */
-    &Lpuart_Uart_Ip_apStateStructure[2U]
+    &Lpuart_Uart_Ip_apStateStructure[0U]
 };
 
 
@@ -196,8 +193,7 @@ const Lpuart_Uart_Ip_UserConfigType Lpuart_Uart_Ip_xHwConfigPB_2_BOARD_INITPERIP
 
 #ifdef __cplusplus
 }
+#endif
 
 /** @} */
-
-#endif
 

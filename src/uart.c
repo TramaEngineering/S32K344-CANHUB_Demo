@@ -12,7 +12,7 @@ void UART_init(){
     /*Lpuart_Uart_Ip_StatusType Status_Init_UART = LPUART_UART_IP_STATUS_ERROR;
 
     Status_Init_UART = */
-	Lpuart_Uart_Ip_Init(LPUART_UART_IP_INSTANCE_USING_2, &Lpuart_Uart_Ip_xHwConfigPB_2_BOARD_INITPERIPHERALS);
+	Lpuart_Uart_Ip_Init(LPUART_UART_IP_INSTANCE_USING_2, &Lpuart_Uart_Ip_xHwConfigPB_2);
 
     /*if(Status_Init_UART != LPUART_UART_IP_STATUS_SUCCESS){
         return Status_Init_UART;

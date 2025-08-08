@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : FLEXCAN
 *   Dependencies         : 
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -51,9 +50,9 @@ extern "C"{
 ==================================================================================================*/
 #define FLEXCAN_IP_TYPES_VENDOR_ID_H                      43
 #define FLEXCAN_IP_TYPES_AR_RELEASE_MAJOR_VERSION_H       4
-#define FLEXCAN_IP_TYPES_AR_RELEASE_MINOR_VERSION_H       4
+#define FLEXCAN_IP_TYPES_AR_RELEASE_MINOR_VERSION_H       7
 #define FLEXCAN_IP_TYPES_AR_RELEASE_REVISION_VERSION_H    0
-#define FLEXCAN_IP_TYPES_SW_MAJOR_VERSION_H               2
+#define FLEXCAN_IP_TYPES_SW_MAJOR_VERSION_H               5
 #define FLEXCAN_IP_TYPES_SW_MINOR_VERSION_H               0
 #define FLEXCAN_IP_TYPES_SW_PATCH_VERSION_H               0
 /*==================================================================================================
@@ -165,7 +164,8 @@ typedef enum
 {
     FLEXCAN_NORMAL_MODE,        /**< Normal mode or user mode @internal gui name="Normal" */
     FLEXCAN_LISTEN_ONLY_MODE,   /**< Listen-only mode @internal gui name="Listen-only" */
-    FLEXCAN_LOOPBACK_MODE       /**< Loop-back mode @internal gui name="Loop back" */
+    FLEXCAN_LOOPBACK_MODE,      /**< Loop-back mode @internal gui name="Loop back" */
+    FLEXCAN_FREEZE_MODE         /**< Freeze mode @internal gui name="Freeze" */
 } Flexcan_Ip_ModesType;
 
 
@@ -284,9 +284,14 @@ typedef enum
 #if (FLEXCAN_IP_FEATURE_HAS_FD == STD_ON)
     FLEXCAN_EVENT_ERROR_FAST,   /**< Errors detected in the data phase of CAN FD frames with the BRS bit set only (interrupt mode only) */
 #endif /* FLEXCAN_IP_FEATURE_HAS_FD */
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+    FLEXCAN_EVENT_MEM_ERROR_DETECT,       /*!< Memory error detection and correction event */
+#endif
+#endif /* FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET */
     FLEXCAN_EVENT_BUSOFF,       /**< FlexCAN module entered Bus Off state */
     FLEXCAN_EVENT_RX_WARNING,     /*!< The Rx error counter transitioned from less than 96 to greater than or equal to 96 (interrupt mode only) */
-    FLEXCAN_EVENT_TX_WARNING     /*!< The Tx error counter transitioned from less than 96 to greater than or equal to 96 (interrupt mode only) */
+    FLEXCAN_EVENT_TX_WARNING      /*!< The Tx error counter transitioned from less than 96 to greater than or equal to 96 (interrupt mode only) */
 } Flexcan_Ip_EventType;
 
 /** @brief FlexCAN error interrupt types
@@ -338,9 +343,46 @@ typedef enum
     FLEXCAN_STATUS_NO_TRANSFER_IN_PROGRESS,  /**< There is no transmission or reception in progress */
 } Flexcan_Ip_StatusType;
 
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+/** @brief FlexCAN memory error detection and correction type.
+ *  @details FlexCAN memory error detection and correction.
+ */
+/* implements  Flexcan_Ip_ErrorDetectionType_enum */
+typedef enum
+{
+    FLEXCAN_NON_ERROR,
+    FLEXCAN_HOST_ACCESS_ERROR,      /*!< Host Access with Non-Correctable Errors */
+    FLEXCAN_FLEXCAN_ACCESS_ERROR,   /*!< FlexCAN Access with Non-Correctable Errors */
+    FLEXCAN_CORRECTABLE_ERROR,      /*!< Correctable Errors */
+    FLEXCAN_ALL_ECC_ERROR
+} Flexcan_Ip_ErrorDetectionType;
+
+/** @brief FlexCAN memory error injection type.
+ *  @details FlexCAN memory error injection.
+ */
+/* implements  Flexcan_Ip_ErrorInjectionType_enum */
+typedef enum
+{
+    FLEXCAN_HOST_ACCESS_ERROR_INJECTION,              /*!< Host Access Error Injection */
+    FLEXCAN_FLEXCAN_ACCESS_ERROR_INJECTION,           /*!< FlexCAN Access Error Injection. Apply error injection only to the 32-bit word */
+    FLEXCAN_EXTENDED_FLEXCAN_ACCESS_ERROR_INJECTION   /*!< Extended Error Injection for FlexCAN Access. Apply error injection to the 64-bit word */
+} Flexcan_Ip_ErrorInjectionType;
+
+#endif /* (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON) */
+#endif /* (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON) */
+
 /*==================================================================================================
 *                                STRUCTURES AND OTHER TYPEDEFS
 ==================================================================================================*/
+#if (CPU_TYPE == CPU_TYPE_64)
+    typedef uint64 Flexcan_Ip_PtrSizeType;
+#elif (CPU_TYPE == CPU_TYPE_32)
+    typedef uint32 Flexcan_Ip_PtrSizeType;
+#else
+    #error "Unsupported CPU_TYPE"
+#endif
+
 /*! @brief FlexCAN bitrate related structures
  */
 /* implements  Flexcan_Ip_TimeSegmentType_structure */
@@ -400,6 +442,35 @@ typedef struct
     uint32  time_stamp;                     /**< TimeStamp of the Message */
 } Flexcan_Ip_MBhandleType;
 
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+/*! @brief FlexCAN memory error report structure
+ */
+/*  implements  Flexcan_Ip_MemErrorReportType_structure */
+typedef struct
+{
+    Flexcan_Ip_ErrorDetectionType errReportType;    /**< Type of memory access cause the error  */
+    uint8 u8ErrSrcIndication;                       /**< Indication of the Source of memory access */
+    uint8 u8ErrOvrIndication;                       /**< Indication of the overrun when the corresponding error flag is already set */
+    uint16 u16ReportAddr;                           /**< Error report address */
+    uint32 u32ReportData;                           /**< Error report data */
+    uint32 u32ReportSyndrome;                       /**< Error report syndrome */
+} Flexcan_Ip_MemErrorReportType;
+
+/*! @brief FlexCAN memory error injection structure
+ */
+/*  implements  Flexcan_Ip_MemErrorInjectionType_structure */
+typedef struct
+{
+    Flexcan_Ip_ErrorInjectionType eErrorInjection;  /**< Error injection type */
+    uint32 u32InjectionAddr;                        /**< Error injection address */
+    uint32 u32InjectionData;                        /**< Error injection data pattern */
+    uint32 u32InjectionParity;                      /**< Error injection parity pattern */
+} Flexcan_Ip_MemErrorInjectionType;
+
+#endif /* (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON) */
+#endif /* (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON) */
+
 /*!
  * @brief Internal driver state information.
  *
@@ -446,6 +517,13 @@ typedef struct FlexCANState
 #endif /* (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON) */
     uint32 u32MaxMbNum;                                        /**< The maximum number of Message Buffers. */
     boolean isIntActive;                                       /**< Save status of enabling/disabling interrupts in runtime. */
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+    Flexcan_Ip_ModesType flexcanModeErrResponse;               /**< Determines the response when a non-correctable error is detected in a memory read performed by FlexCAN internal processes. */
+    uint32 u32MemErrorStatus;                                  /**< Store the error status get from ERRSR register */
+    Flexcan_Ip_MemErrorReportType * pMemErrorReport;           /**< Pointer point to where the memory error report data is stored. */
+#endif
+#endif
 } Flexcan_Ip_StateType;
 
 /*! @brief FlexCAN Driver callback function type
@@ -494,6 +572,11 @@ typedef struct
 #endif /* FLEXCAN_IP_FEATURE_HAS_TS_ENABLE */
     Flexcan_Ip_ModesType flexcanMode;               /**< User configurable FlexCAN operation modes.
                                                          @internal gui name="Flexcan Operation Mode" id="flexcanMode" */
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+    Flexcan_Ip_ModesType flexcanModeErrResponse;        /**< Determines the response when a non-correctable error is detected in a memory read performed by FlexCAN internal processes. */
+#endif
+#endif
     uint32 ctrlOptions;                             /**< Use of different features support like ISO-FD, EDGE_FILTER, AUTO_BussOffRecovery, Protocol_Exception. */
     Flexcan_Ip_PayloadSizeType payload;               /**< The payload size of the mailboxes specified in bytes for every partition block */
     boolean fd_enable;                                 /**< Enable/Disable the Flexible Data Rate feature. */

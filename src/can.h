@@ -25,7 +25,8 @@ extern "C"{
 #include "Siul2_Port_Ip.h"
 #include "Siul2_Dio_Ip.h"
 #include "FlexCAN_Ip.h"
-#include "FlexCAN_Ip_Sa_BOARD_InitPeripherals_PBcfg.h"
+#include "FlexCAN_Ip_Sa_PBcfg.h"
+#include <stdbool.h>
 
 /*==================================================================================================
  *                                        INCLUDE FILES

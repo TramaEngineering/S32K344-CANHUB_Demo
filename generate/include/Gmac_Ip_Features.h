@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : GMAC
 *   Dependencies         : none
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -38,7 +37,7 @@ extern "C"{
 
 /*
 * @page misra_violations MISRA-C:2012 violations
-* 
+*
 *
 */
 
@@ -54,9 +53,9 @@ extern "C"{
 ==================================================================================================*/
 #define GMAC_IP_FEATURES_VENDOR_ID                    43
 #define GMAC_IP_FEATURES_AR_RELEASE_MAJOR_VERSION     4
-#define GMAC_IP_FEATURES_AR_RELEASE_MINOR_VERSION     4
+#define GMAC_IP_FEATURES_AR_RELEASE_MINOR_VERSION     7
 #define GMAC_IP_FEATURES_AR_RELEASE_REVISION_VERSION  0
-#define GMAC_IP_FEATURES_SW_MAJOR_VERSION             2
+#define GMAC_IP_FEATURES_SW_MAJOR_VERSION             5
 #define GMAC_IP_FEATURES_SW_MINOR_VERSION             0
 #define GMAC_IP_FEATURES_SW_PATCH_VERSION             0
 
@@ -72,6 +71,9 @@ extern "C"{
                                        DEFINES AND MACROS
 ==================================================================================================*/
 
+
+    #define GMAC_IP_FEATURE_ORIGIN              (0U)/* EMAC */
+    
     /*! @brief Number of instances */
     #define FEATURE_GMAC_NUM_INSTANCES              (1U)
     /*! @brief Number of DMA channels (Assumption: DmaChannels = TxQueues = Rx Queues) */
@@ -90,7 +92,7 @@ extern "C"{
 
 
     /*! @brief The common interrupt handler */
-    #define FEATURE_GMAC_COMMON_IRQ_HDLRS           { GMAC0_Common_IRQHandler }
+    #define FEATURE_GMAC_COMMON_IRQ_HDLRS           { {GMAC0_Common_IRQHandler} }
     /*! @brief The transmission interrupt handlers */
     #define FEATURE_GMAC_TX_IRQ_HDLRS               { {GMAC0_CH_TX_IRQHandler, GMAC0_CH_TX_IRQHandler} }
     /*! @brief The reception interrupts handlers */
@@ -109,6 +111,9 @@ extern "C"{
     #define FEATURE_GMAC_LOG2_DATA_BUS_WIDTH_BYTES  (2UL)
     /*! @brief Maximum number of beats in a a data-bus (AXI/AHB) burst */
     #define FEATURE_GMAC_MAX_DATA_BUS_BURST_LENGTH  (16UL)
+    /*! @brief Definitions used for setting descriptor skip length */
+    #define FEATURE_GMAC_HW_BUFFDESCR_SIZE_BYTES    (16UL)
+    #define FEATURE_GMAC_SW_BUFFDESCR_SIZE_BYTES    (sizeof(Gmac_Ip_BufferDescriptorType))
     /*! @brief Definition used for aligning the buffer descriptors */
     #define FEATURE_GMAC_BUFFDESCR_ALIGNMENT_BITS   (FEATURE_GMAC_DATA_BUS_WIDTH_BITS)
     #define FEATURE_GMAC_BUFFDESCR_ALIGNMENT_BYTES  (FEATURE_GMAC_DATA_BUS_WIDTH_BYTES)
@@ -144,10 +149,10 @@ extern "C"{
 
     /*! @brief Definitions used for the Low Power Management Parameters */
     #define FEATURE_GMAC_PMT_EN                     (0U)
-    
+
     /*! @brief Definitions used for the Overclock 50 MHz and 200 Mbps supported */
     #define FEATURE_OVERCLOCKED_EN                  (0U)
-    
+
     /*! @brief Definitions used for the TCPIP Offloading Parameters */
     #define FEATURE_GMAC_ARP_EN                     (0U)
 
@@ -162,7 +167,10 @@ extern "C"{
 
     /*! @brief Number of VLAN Rx filters */
     #define FEATURE_GMAC_VLAN_RX_FILTERS_NUM        (4U)
-        
+        /*! @brief Generate the type of cache IP on the platform used for the cacheable buffers feature */
+    #define FEATURE_GMAC_CACHABLE_BUFFERS_LMEM      (0U)
+    #define FEATURE_GMAC_CACHABLE_BUFFERS_CORE      (1U)
+    
 /*==================================================================================================
                                              ENUMS
 ==================================================================================================*/

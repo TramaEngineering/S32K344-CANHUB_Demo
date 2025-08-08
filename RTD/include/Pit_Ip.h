@@ -1,19 +1,18 @@
 /*==================================================================================================
-* Project : RTD AUTOSAR 4.4
+* Project : RTD AUTOSAR 4.7
 * Platform : CORTEXM
 * Peripheral : Stm_Pit_Rtc_Emios
 * Dependencies : none
 *
-* Autosar Version : 4.4.0
-* Autosar Revision : ASR_REL_4_4_REV_0000
+* Autosar Version : 4.7.0
+* Autosar Revision : ASR_REL_4_7_REV_0000
 * Autosar Conf.Variant :
-* SW Version : 2.0.0
-* Build Version : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+* SW Version : 5.0.0
+* Build Version : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-* (c) Copyright 2020 - 2022 NXP Semiconductors
-* All Rights Reserved.
+* Copyright 2020 - 2024 NXP
 *
-* NXP Confidential. This software is owned or controlled by NXP and may only be
+* NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 * used strictly in accordance with the applicable license terms. By expressly
 * accepting such terms or by downloading, installing, activating and/or otherwise
 * using the software, you are agreeing that you have read, and that you agree to
@@ -48,9 +47,7 @@ extern "C"{
 #if PIT_IP_DEV_ERROR_DETECT == STD_ON
 #include "Devassert.h"
 #endif
-#if (PIT_IP_ENABLE_USER_MODE_SUPPORT == STD_ON)
-#include "Reg_eSys.h"
-#endif
+
 /*==================================================================================================
 *                               SOURCE FILE VERSION INFORMATION
 ==================================================================================================*/
@@ -60,9 +57,9 @@ extern "C"{
 */
 #define PIT_IP_VENDOR_ID                       43
 #define PIT_IP_AR_RELEASE_MAJOR_VERSION        4
-#define PIT_IP_AR_RELEASE_MINOR_VERSION        4
+#define PIT_IP_AR_RELEASE_MINOR_VERSION        7
 #define PIT_IP_AR_RELEASE_REVISION_VERSION     0
-#define PIT_IP_SW_MAJOR_VERSION                2
+#define PIT_IP_SW_MAJOR_VERSION                5
 #define PIT_IP_SW_MINOR_VERSION                0
 #define PIT_IP_SW_PATCH_VERSION                0
 
@@ -104,16 +101,6 @@ extern "C"{
      (PIT_IP_SW_PATCH_VERSION != PIT_IP_SW_PATCH_VERSION_CFG) \
     )
     #error "Software Version Numbers of Pit_ip.h and Pit_ip_Cfg.h are different"
-#endif
-
-#if (PIT_IP_ENABLE_USER_MODE_SUPPORT == STD_ON)
-/* Check if header file and StandardTypes.h file are of the same Autosar version */
-#ifndef DISABLE_MCAL_INTERMODULE_ASR_CHECK
-    #if ((PIT_IP_AR_RELEASE_MAJOR_VERSION != REG_ESYS_AR_RELEASE_MAJOR_VERSION) || \
-         (PIT_IP_AR_RELEASE_MINOR_VERSION != REG_ESYS_AR_RELEASE_MINOR_VERSION))
-    #error "AutoSar Version Numbers of Pit_Ip.h and Reg_eSys.h are different"
-    #endif
-#endif
 #endif
 
 #ifndef DISABLE_MCAL_INTERMODULE_ASR_CHECK
@@ -167,12 +154,13 @@ extern "C"{
 /*==================================================================================================
 *                                 GLOBAL VARIABLE DECLARATIONS
 ==================================================================================================*/
+
 #if (PIT_IP_CHANGE_NEXT_TIMEOUT_VALUE == STD_ON)
 /**
 * @internal
 * @brief MemMap section
 */
-#define GPT_START_SEC_VAR_CLEARED_32
+#define GPT_START_SEC_VAR_CLEARED_32_NO_CACHEABLE
 #include "Gpt_MemMap.h"
 
 /**
@@ -186,7 +174,7 @@ extern uint32 Pit_Ip_u32OldTargetValue;
 * @internal
 * @brief MemMap section
 */
-#define GPT_STOP_SEC_VAR_CLEARED_32
+#define GPT_STOP_SEC_VAR_CLEARED_32_NO_CACHEABLE
 #include "Gpt_MemMap.h"
 #endif /* (PIT_IP_CHANGE_NEXT_TIMEOUT_VALUE == STD_ON) */
 /*==================================================================================================
@@ -199,13 +187,24 @@ extern uint32 Pit_Ip_u32OldTargetValue;
 #define GPT_START_SEC_CODE
 #include "Gpt_MemMap.h"
 
+/*!
+ * @brief   Get the Interrupt Status Flag of PIT peripheral timer channel.
+ * @details Support get of PIT interrupt status flag
+ *          This register is intended for Timer interrupt status flag
+ *
+ * @param[in] instance - Instance number of PIT module
+ * @param[in] channel - The channel in the PIT instance
+ *
+ * @return Channel Interrupt Status Flag
+ *         - True : Channel interrupt has occurred
+ *         - False: No channel interrupt has occurred
+ * @pre The driver needs to be initialized.
+ *
+ */
+boolean Pit_Ip_GetInterruptStatusFlag(uint8 instance, uint8 channel);
+
 uint32 Pit_Ip_GetLoadValue(uint8 instance, uint8 channel);
-uint32 Pit_Ip_GetInterruptFlags(uint8 instance, uint8 channel);
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-extern PIT_Type * const pitBase[PIT_INSTANCE_COUNT_ALT];
-#else
-extern PIT_Type * const pitBase[PIT_INSTANCE_COUNT];
-#endif
+
 /**
 * @brief         Function Name : Pit_Ip_Init
 * @details       Driver initialization function. This function is called for each PIT hw Instance and

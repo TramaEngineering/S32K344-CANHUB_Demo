@@ -1,19 +1,18 @@
 /*==================================================================================================
-* Project : RTD AUTOSAR 4.4
+* Project : RTD AUTOSAR 4.7
 * Platform : CORTEXM
 * Peripheral : Stm_Pit_Rtc_Emios
 * Dependencies : none
 *
-* Autosar Version : 4.4.0
-* Autosar Revision : ASR_REL_4_4_REV_0000
+* Autosar Version : 4.7.0
+* Autosar Revision : ASR_REL_4_7_REV_0000
 * Autosar Conf.Variant :
-* SW Version : 2.0.0
-* Build Version : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+* SW Version : 5.0.0
+* Build Version : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-* (c) Copyright 2020 - 2022 NXP Semiconductors
-* All Rights Reserved.
+* Copyright 2020 - 2024 NXP
 *
-* NXP Confidential. This software is owned or controlled by NXP and may only be
+* NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 * used strictly in accordance with the applicable license terms. By expressly
 * accepting such terms or by downloading, installing, activating and/or otherwise
 * using the software, you are agreeing that you have read, and that you agree to
@@ -52,9 +51,9 @@ extern "C"{
 */
 #define PIT_IP_TYPES_VENDOR_ID                       43
 #define PIT_IP_TYPES_AR_RELEASE_MAJOR_VERSION        4
-#define PIT_IP_TYPES_AR_RELEASE_MINOR_VERSION        4
+#define PIT_IP_TYPES_AR_RELEASE_MINOR_VERSION        7
 #define PIT_IP_TYPES_AR_RELEASE_REVISION_VERSION     0
-#define PIT_IP_TYPES_SW_MAJOR_VERSION                2
+#define PIT_IP_TYPES_SW_MAJOR_VERSION                5
 #define PIT_IP_TYPES_SW_MINOR_VERSION                0
 #define PIT_IP_TYPES_SW_PATCH_VERSION                0
 
@@ -139,10 +138,10 @@ typedef void (*Pit_Ip_CallbackType)(uint8 callbackParam);
 */
 typedef struct
 {
-#if ((defined PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
+#if (defined(PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
     boolean enableStandardTimers;  /**< @brief Enable standard timer */
 #endif
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
     boolean enableRTITimer;        /**< @brief Enable real time interrupt timer */
 #endif
     boolean stopRunInDebug;        /**< @brief Stop timer running in debug mode */

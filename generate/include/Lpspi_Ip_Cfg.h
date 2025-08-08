@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : LPSPI
 *   Dependencies         : 
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -27,7 +26,7 @@
 
 /**
 *   @file    Lpspi_Ip_Cfg.h
-*   @version 2.0.0
+*   @version 5.0.0
 *
 *   @brief   AUTOSAR Spi - Spi configuration header file.
 *   @details This file is the header containing all the necessary information for SPI
@@ -51,16 +50,16 @@ extern "C"
 ==================================================================================================*/
 #include "Mcal.h"
 #include "OsIf.h"
-#include "Lpspi_Ip_Sa_BOARD_InitPeripherals_PBcfg.h"
+#include "Lpspi_Ip_Sa_PBcfg.h"
 #include "S32K344_LPSPI.h"
 /*==================================================================================================
 *                              SOURCE FILE VERSION INFORMATION
 ==================================================================================================*/
 #define LPSPI_IP_VENDOR_ID_CFG                       43
 #define LPSPI_IP_AR_RELEASE_MAJOR_VERSION_CFG        4
-#define LPSPI_IP_AR_RELEASE_MINOR_VERSION_CFG        4
+#define LPSPI_IP_AR_RELEASE_MINOR_VERSION_CFG        7
 #define LPSPI_IP_AR_RELEASE_REVISION_VERSION_CFG     0
-#define LPSPI_IP_SW_MAJOR_VERSION_CFG                2
+#define LPSPI_IP_SW_MAJOR_VERSION_CFG                5
 #define LPSPI_IP_SW_MINOR_VERSION_CFG                0
 #define LPSPI_IP_SW_PATCH_VERSION_CFG                0
 
@@ -81,31 +80,31 @@ extern "C"
     #endif
 #endif
 
-/* Check if Lpspi_Ip_BOARD_INITPERIPHERALS_PBcfg header file and Spi configuration header file are of the same vendor */
-#if (LPSPI_IP_SA_BOARD_INITPERIPHERALS_VENDOR_ID_PBCFG != LPSPI_IP_VENDOR_ID_CFG)
-    #error "Lpspi_Ip_Sa_BOARD_INITPERIPHERALS_PBcfg.h and Lpspi_Ip_Cfg.h have different vendor IDs"
+/* Check if Lpspi_Ip_PBcfg header file and Spi configuration header file are of the same vendor */
+#if (LPSPI_IP_SA_VENDOR_ID_PBCFG != LPSPI_IP_VENDOR_ID_CFG)
+    #error "Lpspi_Ip_Sa_PBcfg.h and Lpspi_Ip_Cfg.h have different vendor IDs"
 #endif
-    /* Check if Lpspi_Ip_BOARD_INITPERIPHERALS_PBcfg header file and Spi  configuration header file are of the same Autosar version */
-#if ((LPSPI_IP_SA_BOARD_INITPERIPHERALS_AR_RELEASE_MAJOR_VERSION_PBCFG != LPSPI_IP_AR_RELEASE_MAJOR_VERSION_CFG) || \
-     (LPSPI_IP_SA_BOARD_INITPERIPHERALS_AR_RELEASE_MINOR_VERSION_PBCFG != LPSPI_IP_AR_RELEASE_MINOR_VERSION_CFG) || \
-     (LPSPI_IP_SA_BOARD_INITPERIPHERALS_AR_RELEASE_REVISION_VERSION_PBCFG != LPSPI_IP_AR_RELEASE_REVISION_VERSION_CFG))
-#error "AutoSar Version Numbers of Lpspi_Ip_Sa_BOARD_INITPERIPHERALS_PBcfg.h and Lpspi_Ip_Cfg.h are different"
+    /* Check if Lpspi_Ip_PBcfg header file and Spi  configuration header file are of the same Autosar version */
+#if ((LPSPI_IP_SA_AR_RELEASE_MAJOR_VERSION_PBCFG != LPSPI_IP_AR_RELEASE_MAJOR_VERSION_CFG) || \
+     (LPSPI_IP_SA_AR_RELEASE_MINOR_VERSION_PBCFG != LPSPI_IP_AR_RELEASE_MINOR_VERSION_CFG) || \
+     (LPSPI_IP_SA_AR_RELEASE_REVISION_VERSION_PBCFG != LPSPI_IP_AR_RELEASE_REVISION_VERSION_CFG))
+#error "AutoSar Version Numbers of Lpspi_Ip_Sa_PBcfg.h and Lpspi_Ip_Cfg.h are different"
 #endif
-/* Check if Lpspi_Ip_BOARD_INITPERIPHERALS_PBcfg header file and Spi configuration header file are of the same software version */
-#if ((LPSPI_IP_SA_BOARD_INITPERIPHERALS_SW_MAJOR_VERSION_PBCFG != LPSPI_IP_SW_MAJOR_VERSION_CFG) || \
-     (LPSPI_IP_SA_BOARD_INITPERIPHERALS_SW_MINOR_VERSION_PBCFG != LPSPI_IP_SW_MINOR_VERSION_CFG) || \
-     (LPSPI_IP_SA_BOARD_INITPERIPHERALS_SW_PATCH_VERSION_PBCFG != LPSPI_IP_SW_PATCH_VERSION_CFG))
-#error "Software Version Numbers of Lpspi_Ip_Sa_BOARD_INITPERIPHERALS_PBcfg.h and Lpspi_Ip_Cfg.h are different"
+/* Check if Lpspi_Ip_PBcfg header file and Spi configuration header file are of the same software version */
+#if ((LPSPI_IP_SA_SW_MAJOR_VERSION_PBCFG != LPSPI_IP_SW_MAJOR_VERSION_CFG) || \
+     (LPSPI_IP_SA_SW_MINOR_VERSION_PBCFG != LPSPI_IP_SW_MINOR_VERSION_CFG) || \
+     (LPSPI_IP_SA_SW_PATCH_VERSION_PBCFG != LPSPI_IP_SW_PATCH_VERSION_CFG))
+#error "Software Version Numbers of Lpspi_Ip_Sa_PBcfg.h and Lpspi_Ip_Cfg.h are different"
 #endif
 /*==================================================================================================
                                             CONSTANTS
 ==================================================================================================*/
 #define LPSPI_IP_CONFIG_EXT \
-    LPSPI_IP_SA_CONFIG_BOARD_InitPeripherals_PB \
+     LPSPI_IP_SA_CONFIG_PB 
 
 
 /** @brief Total number of SpiPhyUnit configured. */
-#define LPSPI_IP_NUMBER_OF_INSTANCES  1U
+#define LPSPI_IP_NUMBER_OF_INSTANCES  (1U)
 
 /** @brief Number of FIFO entries supported */
 #define LPSPI_IP_FIFO_SIZE_U8    ((uint8)4U)
@@ -134,9 +133,18 @@ extern "C"
 #define LPSPI_IP_ENABLE_DMAFASTTRANSFER_SUPPORT  (STD_OFF)
 
 /**
-* @brief          Half duplex supported.
+* @brief          Enable Dma Cont Mem Transfer support.
+* @details        When SpiAutosarExt/SpiEnableDmaContMemTransferSupport = TRUE,
+*                 the SPI driver can be supported to transfer multiple Jobs, Channels and CPU used only for processing end of Sequence transfer.
 */
-#define LPSPI_IP_HALF_DUPLEX_MODE_SUPPORT  (STD_OFF)
+#define LPSPI_IP_ENABLE_DMA_CONT_MEM_TRANSFER_SUPPORT  (STD_OFF)
+
+/**
+* @brief          Enable Dma Repeated Transfer support.
+* @details        When SpiAutosarExt/SpiDmaRepeatedTransferEnable = TRUE,
+*                 the SPI driver can be supported to transfer multiple time without re-calling transmit function.
+*/
+#define LPSPI_IP_ENABLE_DMA_REPEATED_TRANSFER_SUPPORT  (STD_OFF)
 
  /**
 * @brief          Enable User Mode Support.
@@ -145,13 +153,13 @@ extern "C"
 *
 * @api
 */
-#define LPSPI_IP_ENABLE_USER_MODE_SUPPORT           STD_OFF
+#define LPSPI_IP_ENABLE_USER_MODE_SUPPORT           (STD_OFF)
 
 #ifndef MCAL_ENABLE_USER_MODE_SUPPORT
  #ifdef LPSPI_IP_ENABLE_USER_MODE_SUPPORT
-  #if (STD_ON == LPSPI_IP_ENABLE_USER_MODE_SUPPORT)
+  #if (LPSPI_IP_ENABLE_USER_MODE_SUPPORT == STD_ON)
    #error MCAL_ENABLE_USER_MODE_SUPPORT is not enabled. For running  Spi in user mode the MCAL_ENABLE_USER_MODE_SUPPORT needs to be defined
-  #endif /* (STD_ON == LPSPI_IP_ENABLE_USER_MODE_SUPPORT) */
+  #endif /* (LPSPI_IP_ENABLE_USER_MODE_SUPPORT == STD_ON) */
  #endif /* ifdef MCAL_ENABLE_USER_MODE_SUPPORT */
 #endif /* ifndef MCAL_ENABLE_USER_MODE_SUPPORT*/
 
@@ -160,21 +168,21 @@ extern "C"
 */
 #define LPSPI_IP_REG_PROT_AVAILABLE   (STD_OFF)
 
-#if (STD_ON == LPSPI_IP_REG_PROT_AVAILABLE)
+#if (LPSPI_IP_REG_PROT_AVAILABLE == STD_ON)
 /**
 * @brief The protection size
 */
-    #define LPSPI_IP_PROT_MEM_U32                           ((uint32)4U)
+    #define LPSPI_IP_PROT_MEM_U32       ((uint32)4U)
 #endif
 /**
 * @brief Maximum of frame size supported.
 */
-#define LPSPI_IP_FRAMESIZE_MAX_U8                              ((uint8)32U)
+#define LPSPI_IP_FRAMESIZE_MAX_U16       ((uint16)64U)
 
 /**
 * @brief Minimum of frame size supported.
 */
-#define LPSPI_IP_FRAMESIZE_MIN_U8                              ((uint8)4U)
+#define LPSPI_IP_FRAMESIZE_MIN_U16       ((uint16)1U)
 
 /**
 * @brief Define Timeout Method.
@@ -186,7 +194,12 @@ extern "C"
 * @brief Switches ON or OFF for the detection and reporting of development errors(API parameter checking) at IP level.
 */
 /** @implements LPSPI_IP_DEV_ERROR_DETECT_define  */
-#define LPSPI_IP_DEV_ERROR_DETECT     (STD_OFF)
+#define LPSPI_IP_DEV_ERROR_DETECT     (STD_ON)
+
+/**
+* @brief          Half duplex supported.
+*/
+#define LPSPI_IP_HALF_DUPLEX_MODE_SUPPORT  (STD_OFF)
 
 /**
 * @brief Defines the "Number of Loops" timeout.

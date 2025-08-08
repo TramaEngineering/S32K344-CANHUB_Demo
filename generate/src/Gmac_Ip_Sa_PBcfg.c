@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : GMAC
 *   Dependencies         : none
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -21,10 +20,10 @@
 *   bound by the applicable license terms, then you may not retain, install,
 *   activate or otherwise use the software.
 ==================================================================================================*/
-/*   @implements Gmac_Ip_PBcfg.c_Artifact */
+
 /**
 *   @file
-*
+*   @implements Gmac_Ip_PBcfg.c_Artifact
 *   @addtogroup GMAC_DRIVER_CONFIGURATION GMAC Driver Configuration
 *   @{
 */
@@ -45,47 +44,49 @@ extern "C"{
 /*==================================================================================================
 *                              SOURCE FILE VERSION INFORMATION
 ==================================================================================================*/
-#define GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_VENDOR_ID_C                     43
-#define GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MAJOR_VERSION_C      4
-#define GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MINOR_VERSION_C      4
-#define GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_REVISION_VERSION_C   0
-#define GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_MAJOR_VERSION_C              2
-#define GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_MINOR_VERSION_C              0
-#define GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_PATCH_VERSION_C              0
+#define GMAC_IP_SA_PBCFG_VENDOR_ID_C                     43
+#define GMAC_IP_SA_PBCFG_AR_RELEASE_MAJOR_VERSION_C      4
+#define GMAC_IP_SA_PBCFG_AR_RELEASE_MINOR_VERSION_C      7
+#define GMAC_IP_SA_PBCFG_AR_RELEASE_REVISION_VERSION_C   0
+#define GMAC_IP_SA_PBCFG_SW_MAJOR_VERSION_C              5
+#define GMAC_IP_SA_PBCFG_SW_MINOR_VERSION_C              0
+#define GMAC_IP_SA_PBCFG_SW_PATCH_VERSION_C              0
 
 /*==================================================================================================
 *                                     FILE VERSION CHECKS
 ==================================================================================================*/
 /* Checks against Gmac_Ip_Types.h */
-#if (GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_VENDOR_ID_C != GMAC_IP_TYPES_VENDOR_ID)
-    #error "Gmac_Ip_Sa_BOARD_INITPERIPHERALS_PBcfg.c and Gmac_Ip_Types.h have different vendor ids"
+#if (GMAC_IP_SA_PBCFG_VENDOR_ID_C != GMAC_IP_TYPES_VENDOR_ID)
+    #error "Gmac_Ip_Sa_PBcfg.c and Gmac_Ip_Types.h have different vendor ids"
 #endif
-#if ((GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MAJOR_VERSION_C    != GMAC_IP_TYPES_AR_RELEASE_MAJOR_VERSION) || \
-     (GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MINOR_VERSION_C    != GMAC_IP_TYPES_AR_RELEASE_MINOR_VERSION) || \
-     (GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_REVISION_VERSION_C != GMAC_IP_TYPES_AR_RELEASE_REVISION_VERSION))
-     #error "AUTOSAR Version Numbers of Gmac_Ip_Sa_BOARD_INITPERIPHERALS_PBcfg.c and Gmac_Ip_Types.h are different"
-#endif
-#if ((GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_MAJOR_VERSION_C != GMAC_IP_TYPES_SW_MAJOR_VERSION) || \
-     (GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_MINOR_VERSION_C != GMAC_IP_TYPES_SW_MINOR_VERSION) || \
-     (GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_PATCH_VERSION_C != GMAC_IP_TYPES_SW_PATCH_VERSION) \
+#if ((GMAC_IP_SA_PBCFG_AR_RELEASE_MAJOR_VERSION_C    != GMAC_IP_TYPES_AR_RELEASE_MAJOR_VERSION) || \
+     (GMAC_IP_SA_PBCFG_AR_RELEASE_MINOR_VERSION_C    != GMAC_IP_TYPES_AR_RELEASE_MINOR_VERSION) || \
+     (GMAC_IP_SA_PBCFG_AR_RELEASE_REVISION_VERSION_C != GMAC_IP_TYPES_AR_RELEASE_REVISION_VERSION) \
     )
-    #error "Software Version Numbers of Gmac_Ip_Sa_BOARD_INITPERIPHERALS_PBcfg.c and Gmac_Ip_Types.h are different"
+     #error "AUTOSAR Version Numbers of Gmac_Ip_Sa_PBcfg.c and Gmac_Ip_Types.h are different"
+#endif
+#if ((GMAC_IP_SA_PBCFG_SW_MAJOR_VERSION_C != GMAC_IP_TYPES_SW_MAJOR_VERSION) || \
+     (GMAC_IP_SA_PBCFG_SW_MINOR_VERSION_C != GMAC_IP_TYPES_SW_MINOR_VERSION) || \
+     (GMAC_IP_SA_PBCFG_SW_PATCH_VERSION_C != GMAC_IP_TYPES_SW_PATCH_VERSION) \
+    )
+    #error "Software Version Numbers of Gmac_Ip_Sa_PBcfg.c and Gmac_Ip_Types.h are different"
 #endif
 
 /* Checks against Gmac_Ip_Cfg.h */
-#if (GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_VENDOR_ID_C != GMAC_IP_CFG_VENDOR_ID)
-    #error "Gmac_Ip_Sa_BOARD_INITPERIPHERALS_PBcfg.c and Gmac_Ip_Cfg.h have different vendor ids"
+#if (GMAC_IP_SA_PBCFG_VENDOR_ID_C != GMAC_IP_CFG_VENDOR_ID)
+    #error "Gmac_Ip_Sa_PBcfg.c and Gmac_Ip_Cfg.h have different vendor ids"
 #endif
-#if ((GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MAJOR_VERSION_C    != GMAC_IP_CFG_AR_RELEASE_MAJOR_VERSION) || \
-     (GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_MINOR_VERSION_C    != GMAC_IP_CFG_AR_RELEASE_MINOR_VERSION) || \
-     (GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_AR_RELEASE_REVISION_VERSION_C != GMAC_IP_CFG_AR_RELEASE_REVISION_VERSION))
-     #error "AUTOSAR Version Numbers of Gmac_Ip_Sa_BOARD_INITPERIPHERALS_PBcfg.c and Gmac_Ip_Cfg.h are different"
-#endif
-#if ((GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_MAJOR_VERSION_C != GMAC_IP_CFG_SW_MAJOR_VERSION) || \
-     (GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_MINOR_VERSION_C != GMAC_IP_CFG_SW_MINOR_VERSION) || \
-     (GMAC_IP_SA_PBCFG_BOARD_INITPERIPHERALS_SW_PATCH_VERSION_C != GMAC_IP_CFG_SW_PATCH_VERSION) \
+#if ((GMAC_IP_SA_PBCFG_AR_RELEASE_MAJOR_VERSION_C    != GMAC_IP_CFG_AR_RELEASE_MAJOR_VERSION) || \
+     (GMAC_IP_SA_PBCFG_AR_RELEASE_MINOR_VERSION_C    != GMAC_IP_CFG_AR_RELEASE_MINOR_VERSION) || \
+     (GMAC_IP_SA_PBCFG_AR_RELEASE_REVISION_VERSION_C != GMAC_IP_CFG_AR_RELEASE_REVISION_VERSION) \
     )
-    #error "Software Version Numbers of Gmac_Ip_Sa_BOARD_INITPERIPHERALS_PBcfg.c and Gmac_Ip_Cfg.h are different"
+     #error "AUTOSAR Version Numbers of Gmac_Ip_Sa_PBcfg.c and Gmac_Ip_Cfg.h are different"
+#endif
+#if ((GMAC_IP_SA_PBCFG_SW_MAJOR_VERSION_C != GMAC_IP_CFG_SW_MAJOR_VERSION) || \
+     (GMAC_IP_SA_PBCFG_SW_MINOR_VERSION_C != GMAC_IP_CFG_SW_MINOR_VERSION) || \
+     (GMAC_IP_SA_PBCFG_SW_PATCH_VERSION_C != GMAC_IP_CFG_SW_PATCH_VERSION) \
+    )
+    #error "Software Version Numbers of Gmac_Ip_Sa_PBcfg.c and Gmac_Ip_Cfg.h are different"
 #endif
 
 /*==================================================================================================
@@ -104,8 +105,8 @@ extern "C"{
 #include "Eth_MemMap.h"
 
 /*! @brief Channel callbacks external declarations */
-extern void enet_rx_interrupt(uint8 instance, uint8 channel);
-extern void enet_tx_interrupt(uint8 instance, uint8 channel);
+extern void enet_rx_interrupt(const uint8 CtrlIdx, const uint8 DMAChannel);
+extern void enet_tx_interrupt(const uint8 CtrlIdx, const uint8 DMAChannel);
 
 #define ETH_STOP_SEC_CODE
 #include "Eth_MemMap.h"
@@ -131,6 +132,13 @@ extern uint8 GMAC_0_TxRing_0_DataBuffer[];
 #include "Eth_MemMap.h"
 
 extern Gmac_Ip_StateType GMAC_0_StateStructure;
+static Gmac_Ip_TxGateControl GMAC_0_aGateControlListPB[1U]  =
+{
+    {
+        /*.timeInterval = */0U,
+        /*.gateControlFifo = */0U
+    }
+};
 
 #define ETH_STOP_SEC_VAR_CLEARED_UNSPECIFIED
 #include "Eth_MemMap.h"
@@ -143,26 +151,26 @@ extern Gmac_Ip_StateType GMAC_0_StateStructure;
 
 
 /*! @brief The MAC address(es) of the configured controller(s) */
-static const uint8 GMAC_0_au8MacAddrPB_BOARD_INITPERIPHERALS[GMAC_MAC_ADDR_LENGTH] = { 0x66U, 0x55U, 0x44U, 0x33U, 0x22U, 0x11U };
+static const uint8 GMAC_0_au8MacAddrPB[GMAC_MAC_ADDR_LENGTH] = { 0x66U, 0x55U, 0x44U, 0x33U, 0x22U, 0x11U };
 
 /*! @brief Reception ring configuration structures */
-static const Gmac_Ip_RxRingConfigType GMAC_0_aRxRingConfigPB_BOARD_INITPERIPHERALS[1U] =
+static const Gmac_Ip_RxRingConfigType GMAC_0_aRxRingConfigPB[1U] =
 {
     /* The configuration structure for Rx Ring 0 */
     {
         /*.ringDesc = */GMAC_0_RxRing_0_DescBuffer,
-        /*.callback = */enet_rx_interrupt,
+        /*.callback = */&enet_rx_interrupt,
         /*.buffer = */GMAC_0_RxRing_0_DataBuffer,
         /*.interrupts = */(uint32)GMAC_CH_INTERRUPT_RI,
         /*.bufferLen = */128U,
         /*.ringSize = */16U,
         /*.priorityMask = */0U,
-        /*.dmaBurstLength = */32U
+		/*.dmaBurstLength = */32U
     }
 };
 
 /*! @brief Transmission ring configuration structures */
-static const Gmac_Ip_TxRingConfigType GMAC_0_aTxRingConfigPB_BOARD_INITPERIPHERALS[1U] =
+static const Gmac_Ip_TxRingConfigType GMAC_0_aTxRingConfigPB[1U] =
 {
     /* The configuration structure for Tx Ring 0 */
     {
@@ -172,7 +180,7 @@ static const Gmac_Ip_TxRingConfigType GMAC_0_aTxRingConfigPB_BOARD_INITPERIPHERA
         /*.hiCredit = */0U,
         /*.loCredit = */0,
         /*.ringDesc = */GMAC_0_TxRing_0_DescBuffer,
-        /*.callback = */enet_tx_interrupt,
+        /*.callback = */&enet_tx_interrupt,
         /*.buffer = */GMAC_0_TxRing_0_DataBuffer,
         /*.interrupts = */(uint32)GMAC_CH_INTERRUPT_TI,
         /*.bufferLen = */128U,
@@ -180,14 +188,22 @@ static const Gmac_Ip_TxRingConfigType GMAC_0_aTxRingConfigPB_BOARD_INITPERIPHERA
         /*.priorityMask = */0U,
         /*.dmaBurstLength = */32U,
         /*.queueOpMode = */GMAC_OP_MODE_DCB_GEN
+#ifdef GMAC_IP_DMA_PRIORITY_CONFIGURATION_ENABLE
+    #if (GMAC_IP_DMA_PRIORITY_CONFIGURATION_ENABLE == STD_ON)
+        ,/*.TransmitChannelWeight = */0U
+    #endif
+#endif
     }
 };
 
 /*! @brief Module configuration structures */
-static const Gmac_Ip_ConfigType GMAC_0_InitConfigPB_BOARD_INITPERIPHERALS =
+static const Gmac_Ip_ConfigType GMAC_0_InitConfigPB =
 {
     /*.rxRingCount = */1U,
     /*.txRingCount = */1U,
+#if (STD_ON == GMAC_IP_PPS_OUTPUT_SUPPORT)
+    /*.PPSOutputsCount = */0U,
+#endif
 #if (FEATURE_GMAC_ASP_ALL || FEATURE_GMAC_ASP_ECC)
     /*.safetyInterrupts = */0U,
     /*.safetyCallback = */NULL_PTR,
@@ -198,19 +214,46 @@ static const Gmac_Ip_ConfigType GMAC_0_InitConfigPB_BOARD_INITPERIPHERALS =
     /*.txSchedAlgo = */GMAC_SCHED_ALGO_SP,
     /*.speed = */GMAC_SPEED_100M,
     /*.duplex = */GMAC_FULL_DUPLEX,
-    /*.macConfig = */0U,
+    /*.macConfig = */0U | ((uint32)0U << GMAC_MAC_CONFIGURATION_IPG_SHIFT),
+    /*.extendedMacConfig = */ (uint32)0U,
+#if (STD_ON == GMAC_IP_RX_HEADER_SPLIT)
+    /*.extendedMacConfig1 = */ (uint32)0U,
+#endif
     /*.macPktFilterConfig = */0U | (uint32)GMAC_PKT_FILTER_RECV_ALL | (uint32)GMAC_PKT_FILTER_PROMISCUOUS_MODE,
-    /*.enableCtrl = */TRUE
+    /*.enableCtrl = */(boolean)TRUE
+#if (GMAC_TX_SPORADIC_BIG_BUFFERS == STD_ON)
+    ,/*.TxBigBufferCount = */ GMAC_0_TX_SPORADIC_BIG_BUFFERS_COUNT
+    ,/*.TxBigBufferLength = */ GMAC_0_TX_SPORADIC_BIG_BUFFERS_LENGTH
+    ,/*.TxBigBuffer = */ NULL_PTR
+#endif
+#if (GMAC_RX_SPORADIC_BIG_BUFFERS == STD_ON)
+    ,/*.RxBigBufferCount = */ GMAC_0_RX_SPORADIC_BIG_BUFFERS_COUNT
+    ,/*.RxBigBufferLength = */ GMAC_0_RX_SPORADIC_BIG_BUFFERS_LENGTH
+    ,/*.RxBigBuffer = */ NULL_PTR
+#endif
+#ifdef GMAC_IP_DMA_PRIORITY_CONFIGURATION_ENABLE
+    #if (GMAC_IP_DMA_PRIORITY_CONFIGURATION_ENABLE == STD_ON)
+    ,/*.DMATransmitPriority = */ FALSE
+    ,/*.DMAArbitrationScheme = */  GMAC_DMA_FIXED_PRIORITY
+    ,/*.DMATransmitArbitrationAlgorithm = */ GMAC_DMA_TX_FIXED_PRIORITY
+    ,/*.DMAPriorityRatio = */ R_1_1
+    #endif
+#endif
+#ifdef GMAC_IP_LPI_ENABLE
+    #if (STD_ON == GMAC_IP_LPI_ENABLE)
+    ,/*.LPILSTimer = */ 0U
+    ,/*.LPITWTimer = */  0U
+    ,/*.LPITWTimer = */ 0U
+    ,/*.LPIConfig = */ 0U
+    ,/*.LPICallback = */ 
+    #endif
+#endif
+#if (STD_ON == GMAC_IP_HAS_RX_L3_L4_FILTERS)
+    ,/*.RxL3L4FilterCount = */0U
+#endif
 };
 
-static const Gmac_Ip_TxGateControl GMAC_0_GateControlListPB_BOARD_INITPERIPHERALS[1U]  =
-{
-    {
-        /*.timeInterval = */0U,
-        /*.gateControlFifo = */0U
-    }
-};
-static const Gmac_Ip_TxTimeAwareShaper GMAC_0_pTxTimeShaperPB_BOARD_INITPERIPHERALS =
+static const Gmac_Ip_TxTimeAwareShaper GMAC_0_pTxTimeShaperPB =
 {
     /*.baseTimeSecond = */0U,
     /*.baseTimenanoSecond = */0U,
@@ -221,8 +264,38 @@ static const Gmac_Ip_TxTimeAwareShaper GMAC_0_pTxTimeShaperPB_BOARD_INITPERIPHER
     /*.releaseAdvanceTime = */0U,
     /*.holdAdvanceTime = */0U,
     /*.preemptionClassification = */0U,
-    /*.GateControlList = */GMAC_0_GateControlListPB_BOARD_INITPERIPHERALS
+    /*.GateControlList = */GMAC_0_aGateControlListPB
 };
+
+#if (STD_ON == GMAC_IP_HAS_RX_L3_L4_FILTERS)
+static const Gmac_Ip_RxL3L4FilterConfigType GMAC_0_aRxL3L4FilterConfigPB[1U]  =
+{
+    {
+        /*.DMAChannel = */0U,
+        /*.Layer3IPv4DestBitsMatch = */0U,
+        /*.Layer3IPv4SourceBitsMatch = */0U,
+        /*.Layer3IPv6BitsMatch = */0U,
+        /*.Layer3IPv4SourceAddress = */{ 0U, 0U, 0U, 0U },
+        /*.Layer3IPv4DestinationAddress = */{ 0U, 0U, 0U, 0U },
+        /*.Layer3IPv6SourceAddress = */{ 0x0U, 0x0U, 0x0U, 0x0U, 0x0U, 0x0U, 0x0U, 0x0U },
+        /*.Layer3IPv6DestinationAddress = */{ 0x0U, 0x0U, 0x0U, 0x0U, 0x0U, 0x0U, 0x0U, 0x0U },
+        /*.Layer4SourcePortNumber = */0U,
+        /*.Layer4DestinationPortNumber = */0U,
+        /*.MacL3L4FilterEnable = */0U,
+    }
+};
+#endif
+
+#if (STD_ON == GMAC_IP_PPS_OUTPUT_SUPPORT)
+static const Gmac_Ip_FlexiblePPSOutput GMAC_0_paCtrlFlexiblePPSOutputPB[1U]  =
+{
+    {
+        /*.PPSDutyCycle = */0U,
+        /*.PPSFrequency = */0U,
+        /*.PPSModeSelect = */GMAC_GENERATE_ONLY_INTERRUPT,
+    }
+};
+#endif
 
 #define ETH_STOP_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Eth_MemMap.h"
@@ -236,14 +309,20 @@ static const Gmac_Ip_TxTimeAwareShaper GMAC_0_pTxTimeShaperPB_BOARD_INITPERIPHER
 #define ETH_START_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Eth_MemMap.h"
 
-const Gmac_CtrlConfigType Gmac_0_ConfigPB_BOARD_INITPERIPHERALS =
+const Gmac_CtrlConfigType Gmac_0_ConfigPB =
 {
     &GMAC_0_StateStructure,
-    &GMAC_0_InitConfigPB_BOARD_INITPERIPHERALS,
-    &GMAC_0_aRxRingConfigPB_BOARD_INITPERIPHERALS[0U],
-    &GMAC_0_aTxRingConfigPB_BOARD_INITPERIPHERALS[0U],
-    &GMAC_0_au8MacAddrPB_BOARD_INITPERIPHERALS[0U],
-    &GMAC_0_pTxTimeShaperPB_BOARD_INITPERIPHERALS
+    &GMAC_0_InitConfigPB,
+    &GMAC_0_aRxRingConfigPB[0U],
+    &GMAC_0_aTxRingConfigPB[0U],
+    &GMAC_0_au8MacAddrPB[0U],
+    &GMAC_0_pTxTimeShaperPB,
+#if (STD_ON == GMAC_IP_PPS_OUTPUT_SUPPORT)
+    &GMAC_0_paCtrlFlexiblePPSOutputPB[0U],
+#endif
+#if (STD_ON == GMAC_IP_HAS_RX_L3_L4_FILTERS)
+    &GMAC_0_aRxL3L4FilterConfigPB[0U]
+#endif
 };
 
 #define ETH_STOP_SEC_CONFIG_DATA_UNSPECIFIED

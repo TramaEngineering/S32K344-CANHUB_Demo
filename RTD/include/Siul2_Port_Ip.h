@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : SIUL2
 *   Dependencies         : none
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -43,7 +42,7 @@ extern "C" {
 * 3) internal and external interfaces from this unit
 ==================================================================================================*/
 
-#include "StandardTypes.h"
+#include "Std_Types.h"
 #include "Siul2_Port_Ip_Cfg.h"
 #include "Siul2_Port_Ip_Types.h"
 #include "Siul2_Port_Ip_Defines.h"
@@ -58,9 +57,9 @@ extern "C" {
  */
 #define SIUL2_PORT_IP_VENDOR_ID_H                     43
 #define SIUL2_PORT_IP_AR_RELEASE_MAJOR_VERSION_H      4
-#define SIUL2_PORT_IP_AR_RELEASE_MINOR_VERSION_H      4
+#define SIUL2_PORT_IP_AR_RELEASE_MINOR_VERSION_H      7
 #define SIUL2_PORT_IP_AR_RELEASE_REVISION_VERSION_H   0
-#define SIUL2_PORT_IP_SW_MAJOR_VERSION_H              2
+#define SIUL2_PORT_IP_SW_MAJOR_VERSION_H              5
 #define SIUL2_PORT_IP_SW_MINOR_VERSION_H              0
 #define SIUL2_PORT_IP_SW_PATCH_VERSION_H              0
 
@@ -68,11 +67,11 @@ extern "C" {
 *                                       FILE VERSION CHECKS
 ==================================================================================================*/
 #ifndef DISABLE_MCAL_INTERMODULE_ASR_CHECK
-    /* Check if the files Siul2_Port_Ip.h and StandardTypes.h are of the same version */
+    /* Check if the files Siul2_Port_Ip.h and Std_Types.h are of the same version */
     #if ((SIUL2_PORT_IP_AR_RELEASE_MAJOR_VERSION_H != STD_AR_RELEASE_MAJOR_VERSION) || \
          (SIUL2_PORT_IP_AR_RELEASE_MINOR_VERSION_H != STD_AR_RELEASE_MINOR_VERSION)    \
         )
-        #error "AutoSar Version Numbers of Siul2_Port_Ip.h and StandardTypes.h are different"
+        #error "AutoSar Version Numbers of Siul2_Port_Ip.h and Std_Types.h are different"
     #endif
     /* Check if the files Siul2_Port_Ip.h and Devassert.h are of the same version */
     #if ((SIUL2_PORT_IP_AR_RELEASE_MAJOR_VERSION_H != DEVASSERT_AR_RELEASE_MAJOR_VERSION) || \
@@ -179,7 +178,7 @@ extern const uint32 Port_au32Siul2BaseAddr[];
 #ifdef SIUL2_PORT_IP_HAS_ADC_INTERLEAVE
 #define  DCM_DCMRWF4_ADDR32                  (uint32)&(IP_DCM_GPR->DCMRWF4)
 #define  DCM_DCMRWF4_ADC_CLEAR_VALUE_FLAG    (uint32)0x8000UL
-#define  DCM_DCMRWF4_ADC_INTERLEAVE_MASK     (uint32)0x0000067EUL
+#define  DCM_DCMRWF4_ADC_INTERLEAVE_MASK     (uint32)0x0000067EUL   /* Mask all adc interleave bits */
 #endif /* SIUL2_PORT_IP_HAS_ADC_INTERLEAVE */
 #define  PORT_PIN_LEVEL_NOTCHANGED_U8        ((uint8)2)    /**< @brief Not changed port pin logic. */
 
@@ -252,9 +251,9 @@ void Siul2_Port_Ip_SetOutputBuffer(Siul2_Port_Ip_PortType * const base,
  * @param[in] inputMuxReg Pin muxing register slot selection
  * @param[in] inputMux Pin muxing slot selection
  *
- * @note: There are some pins controlled by both SIUL2_0 and SIUL2_1 instances
+ * @note: There are some pins controlled by both SIUL2_0, SIUL2_1, SIUL2_3, SIUL2_4 and SIUL2_5 instances
  * In order to configure correctly and be consistent with other platforms, the
- * inputMuxReg parameter of SIUL2_1 instance must be added 512 units.
+ * inputMuxReg parameter of SIUL2_3 instance must be added 512 units.
  * For example: The actual inputMuxReg is 10 then the value there must be (10 + 512)
  */
 void Siul2_Port_Ip_SetInputBuffer(Siul2_Port_Ip_PortType * const base,
@@ -315,6 +314,17 @@ uint32 Siul2_Port_Ip_RevertPinConfiguration(const Siul2_Port_Ip_PortType * const
 void Siul2_Port_Ip_GetPinConfiguration(const Siul2_Port_Ip_PortType * const base,
                                        Siul2_Port_Ip_PinSettingsConfig * config,
                                        uint16 pin);
+#if (defined(MCAL_ENABLE_USER_MODE_SUPPORT) && defined(PORT_ENABLE_USER_MODE_SUPPORT) && (STD_ON == PORT_ENABLE_USER_MODE_SUPPORT))
+#if (defined(MCAL_SIUL2_REG_PROT_AVAILABLE) && (STD_ON == MCAL_SIUL2_REG_PROT_AVAILABLE))
+#if (defined(PORT_SIUL2_REG_PROT_AVAILABLE) && (STD_ON == PORT_SIUL2_REG_PROT_AVAILABLE))
+/*!
+ * @brief Enables SIUL2 registers writing in User Mode by configuring REG_PROT
+ *
+  */
+void Siul2_Port_Ip_SetUserAccessAllowed(void);
+#endif /* (defined(PORT_SIUL2_REG_PROT_AVAILABLE) && (STD_ON == PORT_SIUL2_REG_PROT_AVAILABLE)) */
+#endif /* (defined(MCAL_SIUL2_REG_PROT_AVAILABLE) && (STD_ON == MCAL_SIUL2_REG_PROT_AVAILABLE)) */
+#endif /* (defined(MCAL_ENABLE_USER_MODE_SUPPORT) && defined(PORT_ENABLE_USER_MODE_SUPPORT) && (STD_ON == PORT_ENABLE_USER_MODE_SUPPORT)) */
 
 #define PORT_STOP_SEC_CODE
 #include "Port_MemMap.h"

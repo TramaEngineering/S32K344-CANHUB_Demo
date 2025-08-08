@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : FLEXCAN
 *   Dependencies         : 
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -51,7 +50,7 @@ extern "C"{
     #include "RegLockMacros.h"
 #endif /* (STD_ON == FLEXCAN_IP_SET_USER_ACCESS_ALLOWED_AVAILABLE) */
 
-#include "SchM_Can.h"
+#include "SchM_Can_43_FLEXCAN.h"
 
 #if ((defined (MCAL_ENABLE_FAULT_INJECTION)) || (defined (ERR_IPV_FLEXCAN_E050246)) || (defined (ERR_IPV_FLEXCAN_E050630)))
     #include "Mcal.h"
@@ -61,9 +60,9 @@ extern "C"{
 ==================================================================================================*/
 #define FLEXCAN_IP_VENDOR_ID_C                      43
 #define FLEXCAN_IP_AR_RELEASE_MAJOR_VERSION_C       4
-#define FLEXCAN_IP_AR_RELEASE_MINOR_VERSION_C       4
+#define FLEXCAN_IP_AR_RELEASE_MINOR_VERSION_C       7
 #define FLEXCAN_IP_AR_RELEASE_REVISION_VERSION_C    0
-#define FLEXCAN_IP_SW_MAJOR_VERSION_C               2
+#define FLEXCAN_IP_SW_MAJOR_VERSION_C               5
 #define FLEXCAN_IP_SW_MINOR_VERSION_C               0
 #define FLEXCAN_IP_SW_PATCH_VERSION_C               0
 /*==================================================================================================
@@ -128,17 +127,17 @@ extern "C"{
 
 #ifndef DISABLE_MCAL_INTERMODULE_ASR_CHECK
     /* Check if current file and SchM_Can header file are of the same version */
-    #if ((FLEXCAN_IP_AR_RELEASE_MAJOR_VERSION_C    != SCHM_CAN_AR_RELEASE_MAJOR_VERSION) || \
-         (FLEXCAN_IP_AR_RELEASE_MINOR_VERSION_C     != SCHM_CAN_AR_RELEASE_MINOR_VERSION) \
+    #if ((FLEXCAN_IP_AR_RELEASE_MAJOR_VERSION_C    != SCHM_CAN_43_FLEXCAN_AR_RELEASE_MAJOR_VERSION) || \
+         (FLEXCAN_IP_AR_RELEASE_MINOR_VERSION_C     != SCHM_CAN_43_FLEXCAN_AR_RELEASE_MINOR_VERSION) \
         )
-        #error "AUTOSAR Version Numbers of FlexCAN_Ip.c and SchM_Can.h are different"
+        #error "AutoSar Version Numbers of FlexCAN_Ip.c and SchM_Can_43_FLEXCAN.h are different"
     #endif
     /* Checks against current file and Dma_Ip.h */
     #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
         #if ((FLEXCAN_IP_AR_RELEASE_MAJOR_VERSION_C    != DMA_IP_AR_RELEASE_MAJOR_VERSION) || \
              (FLEXCAN_IP_AR_RELEASE_MINOR_VERSION_C     != DMA_IP_AR_RELEASE_MINOR_VERSION) \
             )
-            #error "AUTOSAR Version Numbers of FlexCAN_Ip.c and Dma_Ip.h are different"
+            #error "AutoSar Version Numbers of FlexCAN_Ip.c and Dma_Ip.h are different"
         #endif
     #endif
     /* Checks against current file and RegLockMacros.h */
@@ -146,7 +145,7 @@ extern "C"{
         #if ((FLEXCAN_IP_AR_RELEASE_MAJOR_VERSION_C    != REGLOCKMACROS_AR_RELEASE_MAJOR_VERSION) || \
              (FLEXCAN_IP_AR_RELEASE_MINOR_VERSION_C     != REGLOCKMACROS_AR_RELEASE_MINOR_VERSION) \
             )
-            #error "AUTOSAR Version Numbers of FlexCAN_Ip.c and RegLockMacros.h are different"
+            #error "AutoSar Version Numbers of FlexCAN_Ip.c and RegLockMacros.h are different"
         #endif
     #endif /* (STD_ON == FLEXCAN_IP_SET_USER_ACCESS_ALLOWED_AVAILABLE) */
     /* Check if current file and Mcal.h header file are of the same Software version */
@@ -154,7 +153,7 @@ extern "C"{
         #if ((FLEXCAN_IP_AR_RELEASE_MAJOR_VERSION_C    != MCAL_AR_RELEASE_MAJOR_VERSION) || \
              (FLEXCAN_IP_AR_RELEASE_MINOR_VERSION_C     != MCAL_AR_RELEASE_MINOR_VERSION) \
             )
-            #error "AUTOSAR Version Numbers of FlexCAN_Ip.c and Mcal.h are different"
+            #error "AutoSar Version Numbers of FlexCAN_Ip.c and Mcal.h are different"
         #endif
     #endif
 #endif
@@ -183,35 +182,35 @@ extern "C"{
 /*==================================================================================================
 *                                      GLOBAL VARIABLES
 ==================================================================================================*/
-#define CAN_START_SEC_CONST_UNSPECIFIED
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_START_SEC_CONST_UNSPECIFIED
+#include "Can_43_FLEXCAN_MemMap.h"
 
 /* Table of base addresses for CAN instances. */
-static FLEXCAN_Type * const Flexcan_Ip_apxBase[] = IP_FLEXCAN_BASE_PTRS;
+static FLEXCAN_Type * const Flexcan_Ip_apxBase[] = FLEXCAN_IP_BASE_PTRS;
 
-#define CAN_STOP_SEC_CONST_UNSPECIFIED
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_STOP_SEC_CONST_UNSPECIFIED
+#include "Can_43_FLEXCAN_MemMap.h"
 
 #if (FLEXCAN_IP_FEATURE_NO_CACHE_NEEDED == STD_ON)
-#define CAN_START_SEC_VAR_CLEARED_UNSPECIFIED_NO_CACHEABLE
+#define CAN_43_FLEXCAN_START_SEC_VAR_CLEARED_UNSPECIFIED_NO_CACHEABLE
 #else
-#define CAN_START_SEC_VAR_CLEARED_UNSPECIFIED
+#define CAN_43_FLEXCAN_START_SEC_VAR_CLEARED_UNSPECIFIED
 #endif /* (FLEXCAN_IP_FEATURE_NO_CACHE_NEEDED == STD_ON) */
-#include "Can_MemMap.h"
+#include "Can_43_FLEXCAN_MemMap.h"
 
 /* Pointer to runtime state structure.*/
-static Flexcan_Ip_StateType * Flexcan_Ip_apxState[FLEXCAN_INSTANCE_COUNT];
+static Flexcan_Ip_StateType * Flexcan_Ip_apxState[FLEXCAN_IP_INSTANCE_COUNT];
 
 #if (FLEXCAN_IP_FEATURE_NO_CACHE_NEEDED == STD_ON)
-#define CAN_STOP_SEC_VAR_CLEARED_UNSPECIFIED_NO_CACHEABLE
+#define CAN_43_FLEXCAN_STOP_SEC_VAR_CLEARED_UNSPECIFIED_NO_CACHEABLE
 #else
-#define CAN_STOP_SEC_VAR_CLEARED_UNSPECIFIED
+#define CAN_43_FLEXCAN_STOP_SEC_VAR_CLEARED_UNSPECIFIED
 #endif /* (FLEXCAN_IP_FEATURE_NO_CACHE_NEEDED == STD_ON) */
-#include "Can_MemMap.h"
+#include "Can_43_FLEXCAN_MemMap.h"
 
 
-#define CAN_START_SEC_CODE
-#include "Can_MemMap.h"
+#define CAN_43_FLEXCAN_START_SEC_CODE
+#include "Can_43_FLEXCAN_MemMap.h"
 /*==================================================================================================
 *                                   LOCAL FUNCTION PROTOTYPES
 ==================================================================================================*/
@@ -248,8 +247,6 @@ static void FlexCAN_IRQHandlerTxMB(uint8 u8Instance, uint32 u32MbIdx);
 
 static inline void FlexCAN_IRQHandlerRxFIFO(uint8 instance, uint32 mb_idx);
 
-static inline void FlexCAN_ProcessSpuriousInterruptMB(uint8 instance, uint32 startMbIdx, uint32 endMbIdx);
-
 #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
 static void DMA_Can_Callback(uint8 instance);
 #endif
@@ -266,11 +263,19 @@ static void FlexCAN_CompleteRxMessageFifoData(uint8 instance);
 
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
 static void FlexCAN_IRQHandlerEnhancedRxFIFO(uint8 instance, uint32 intType);
-static inline boolean FlexCAN_ProcessIRQHandlerEnhancedRxFIFO(uint8 u8Instance, boolean bIsSpuriousIntPrevious);
+
+static inline void FlexCAN_ProcessIRQHandlerEnhancedRxFIFO(uint8 u8Instance);
+
 static void FlexCAN_CompleteRxMessageEnhancedFifoData(uint8 instance);
-static Flexcan_Ip_StatusType FlexCAN_StartRxMessageEnhancedFifoData(uint8 instance, Flexcan_Ip_MsgBuffType * data);
-static Flexcan_Ip_StatusType FlexCAN_ProccessEnhancedRxFifo(uint8 u8Instance, uint32 u32TimeoutMs);
+
+#if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
+static void FlexCAN_CompleteRxMessageEnhancedFifoDataDma(uint8 instance);
 #endif
+
+static Flexcan_Ip_StatusType FlexCAN_StartRxMessageEnhancedFifoData(uint8 instance, Flexcan_Ip_MsgBuffType * data);
+
+static Flexcan_Ip_StatusType FlexCAN_ProccessEnhancedRxFifo(uint8 u8Instance, uint32 u32TimeoutMs);
+#endif /* FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON */
 /*==================================================================================================
 *                                       LOCAL FUNCTIONS
 ==================================================================================================*/
@@ -283,18 +288,31 @@ static Flexcan_Ip_StatusType FlexCAN_ProccessEnhancedRxFifo(uint8 u8Instance, ui
  *END**************************************************************************/
 static Flexcan_Ip_StatusType FlexCAN_InitRxFifo(FLEXCAN_Type * pBase, const Flexcan_Ip_ConfigType * Flexcan_Ip_pData)
 {
-    Flexcan_Ip_StatusType eResult = FLEXCAN_STATUS_SUCCESS;
+    Flexcan_Ip_StatusType eResult;
 
     /* Enable RxFIFO feature, if requested. This might fail if the FD mode is enabled. */
     if (Flexcan_Ip_pData->is_rx_fifo_needed)
     {
         eResult = FlexCAN_EnableRxFifo(pBase, (uint32)Flexcan_Ip_pData->num_id_filters);
+    #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
+        if (FLEXCAN_STATUS_SUCCESS == eResult)
+        {
+            /* Enable DMA support for Rx FIFO transfer */
+            if (FLEXCAN_RXFIFO_USING_DMA == Flexcan_Ip_pData->transfer_type)
+            {
+                FlexCAN_SetRxFifoDMA(pBase, TRUE);
+            }
+            else
+            {
+                FlexCAN_SetRxFifoDMA(pBase, FALSE);
+            }
+        }
+    #endif /* FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON */
     }
-
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
-/* Enable Enhanced RxFIFO feature, if requested.
- * This might fail if the current CAN instance does not support Enhaneced RxFIFO or the Rx FIFO is enabled. */
-    if ((FLEXCAN_STATUS_SUCCESS == eResult) && (Flexcan_Ip_pData->is_enhanced_rx_fifo_needed))
+    /* Enable Enhanced RxFIFO feature, if requested.
+    * This might fail if the current CAN instance does not support Enhaneced RxFIFO or the Rx FIFO is enabled. */
+    else if (Flexcan_Ip_pData->is_enhanced_rx_fifo_needed)
     {
     #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
         if (FLEXCAN_RXFIFO_USING_DMA == Flexcan_Ip_pData->transfer_type)
@@ -314,56 +332,35 @@ static Flexcan_Ip_StatusType FlexCAN_InitRxFifo(FLEXCAN_Type * pBase, const Flex
                                                    (uint32)Flexcan_Ip_pData->num_enhanced_watermark
                                                   );
         }
-    }
-#endif /* FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO */
-
-#if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
-    if (FLEXCAN_STATUS_SUCCESS == eResult)
-    {
-    /* Enable DMA support for RxFIFO transfer, if requested. */
-    if (FLEXCAN_RXFIFO_USING_DMA == Flexcan_Ip_pData->transfer_type)
-    {
-        if (((pBase->MCR & FLEXCAN_MCR_RFEN_MASK) >> FLEXCAN_MCR_RFEN_SHIFT) != 0U)
+    #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
+        if (FLEXCAN_STATUS_SUCCESS == eResult)
         {
-            FlexCAN_SetRxFifoDMA(pBase, TRUE);
-        }
-    #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
-        else if (FlexCAN_IsEnhancedRxFifoAvailable(pBase))
-        {
-            if (FlexCAN_IsEnhancedRxFifoEnabled(pBase))
+            /* Enable DMA support for Enhanced FIFO transfer */
+            if (FLEXCAN_RXFIFO_USING_DMA == Flexcan_Ip_pData->transfer_type)
             {
                 FlexCAN_SetRxFifoDMA(pBase, TRUE);
                 FlexCAN_ConfigEnhancedRxFifoDMA(pBase, 20U); /* always transfer 80 bytes (DMALW = 19)*/
             }
             else
             {
-                eResult = FLEXCAN_STATUS_ERROR;
+                /* Clear Enhanced Rx FIFO status.*/
+                FlexCAN_ClearEnhancedRxFifoIntStatusFlag(pBase, FLEXCAN_IP_ENHANCED_RXFIFO_FRAME_AVAILABLE);
+                FlexCAN_ClearEnhancedRxFifoIntStatusFlag(pBase, FLEXCAN_IP_ENHANCED_RXFIFO_WATERMARK);
+                FlexCAN_ClearEnhancedRxFifoIntStatusFlag(pBase, FLEXCAN_IP_ENHANCED_RXFIFO_OVERFLOW);
+                FlexCAN_ClearEnhancedRxFifoIntStatusFlag(pBase, FLEXCAN_IP_ENHANCED_RXFIFO_UNDERFLOW);
+                /* Clear the Enhanced RX FIFO engine */
+                FlexCAN_ClearEnhancedRxFifoEngine(pBase);
+                FlexCAN_SetRxFifoDMA(pBase, FALSE);
             }
         }
-    #endif /* FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO */
-        else
-        {
-            eResult = FLEXCAN_STATUS_ERROR;
-        }
+    #endif /* FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE */
     }
+#endif /* FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO */
     else
     {
-#if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
-        if (FlexCAN_IsEnhancedRxFifoAvailable(pBase))
-        {
-            /* Clear Enhanced Rx FIFO status.*/
-            FlexCAN_ClearEnhancedRxFifoIntStatusFlag(pBase, FLEXCAN_IP_ENHANCED_RXFIFO_FRAME_AVAILABLE);
-            FlexCAN_ClearEnhancedRxFifoIntStatusFlag(pBase, FLEXCAN_IP_ENHANCED_RXFIFO_WATERMARK);
-            FlexCAN_ClearEnhancedRxFifoIntStatusFlag(pBase, FLEXCAN_IP_ENHANCED_RXFIFO_OVERFLOW);
-            FlexCAN_ClearEnhancedRxFifoIntStatusFlag(pBase, FLEXCAN_IP_ENHANCED_RXFIFO_UNDERFLOW);
-            /* Clear the Enhanced RX FIFO engine */
-            FlexCAN_ClearEnhancedRxFifoEngine(pBase);
-        }
-#endif /* FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO */
-        FlexCAN_SetRxFifoDMA(pBase, FALSE);
+        /* when both Legacy FIFO and Enhanced FIFO aren't enabled, the default return of execution is success. */
+        eResult = FLEXCAN_STATUS_SUCCESS;
     }
-    }
-#endif /* FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE */
 
     return eResult;
 }
@@ -378,6 +375,7 @@ static Flexcan_Ip_StatusType FlexCAN_InitRxFifo(FLEXCAN_Type * pBase, const Flex
 static Flexcan_Ip_StatusType FlexCAN_InitCtroll(FLEXCAN_Type * pBase, const Flexcan_Ip_ConfigType * Flexcan_Ip_pData)
 {
     Flexcan_Ip_StatusType eResult = FLEXCAN_STATUS_SUCCESS;
+
     /* Disable the self reception feature if FlexCAN is not in loopback mode. */
     if (Flexcan_Ip_pData->flexcanMode != FLEXCAN_LOOPBACK_MODE)
     {
@@ -546,17 +544,9 @@ static void FlexCAN_CompleteRxMessageEnhancedFifoData(uint8 instance)
 {
     FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
     Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
-#if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
-    uint32 u32MbCnt = 0U;
-    uint8 j;
-    Flexcan_Ip_MsgBuffType * fifo_message = NULL_PTR;
-    uint32 * msgData_32 = NULL_PTR;
-    uint8 flexcan_mb_dlc_value = 0U;
-    uint8 can_dlc_payload = 0U;
-    uint8 can_real_payload = 0U;
-#endif /* FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE */
+
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert(FlexCAN_IsEnhancedRxFifoAvailable(base));
 #endif /* (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON) */
 
@@ -567,10 +557,48 @@ static void FlexCAN_CompleteRxMessageEnhancedFifoData(uint8 instance)
         /* Disable Enhanced RX FIFO interrupts*/
         FlexCAN_SetEnhancedRxFifoIntAll(base, FALSE);
     }
+    else
+    {
+        /* avoid misra */
+    }
+    /* Clear enhanced rx fifo message*/
+    state->enhancedFifoOutput.pMBmessage = NULL_PTR;
+
+    state->enhancedFifoOutput.state = FLEXCAN_MB_IDLE;
+}
+
 #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
-    else if (FLEXCAN_RXFIFO_USING_DMA == state->transferType)
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : FlexCAN_CompleteRxMessageEnhancedFifoDataDma
+ * Description   : Finish up a receive by completing the process of receiving
+ * data and clear the DMA request.
+ * This is not a public API as it is called from other driver functions.
+ *
+ *END**************************************************************************/
+static void FlexCAN_CompleteRxMessageEnhancedFifoDataDma(uint8 instance)
+{
+    FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
+    Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
+
+    uint32 u32MbCnt = 0U;
+    uint8 j;
+    Flexcan_Ip_MsgBuffType * fifo_message = NULL_PTR;
+    uint32 * msgData_32 = NULL_PTR;
+    uint8 flexcan_mb_dlc_value = 0U;
+    uint8 can_dlc_payload = 0U;
+    uint8 can_real_payload = 0U;
+
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
+    DevAssert(FlexCAN_IsEnhancedRxFifoAvailable(base));
+#endif /* (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON) */
+
+    if (FLEXCAN_RXFIFO_USING_DMA == state->transferType)
     {
         Dma_Ip_LogicChannelStatusType dmaStatus;
+        dmaStatus.ChStateValue = DMA_IP_CH_ERROR_STATE;
+
         (void)Dma_Ip_GetLogicChannelStatus(state->rxFifoDMAChannel, &dmaStatus);
 
         if (DMA_IP_CH_ERROR_STATE == dmaStatus.ChStateValue)
@@ -587,7 +615,7 @@ static void FlexCAN_CompleteRxMessageEnhancedFifoData(uint8 instance)
 
             for (u32MbCnt = 0U; u32MbCnt < state->u32NumOfMbTransferByDMA; u32MbCnt++)
             {
-                msgData_32 = &((uint32 *)((uint32)fifo_message))[2U];
+                msgData_32 = &((uint32 *)((Flexcan_Ip_PtrSizeType)fifo_message))[2U];
                 /* Adjust the ID if it is not extended */
                 if (0U == ((fifo_message->cs) & FLEXCAN_IP_CS_IDE_MASK))
                 {
@@ -645,12 +673,10 @@ static void FlexCAN_CompleteRxMessageEnhancedFifoData(uint8 instance)
     {
         /* avoid misra */
     }
-#endif /* if FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE */
 
     /* Clear enhanced rx fifo message*/
     state->enhancedFifoOutput.pMBmessage = NULL_PTR;
 
-#if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
     if (state->enhancedFifoOutput.state != FLEXCAN_MB_DMA_ERROR)
     {
         state->enhancedFifoOutput.state = FLEXCAN_MB_IDLE;
@@ -666,10 +692,9 @@ static void FlexCAN_CompleteRxMessageEnhancedFifoData(uint8 instance)
             state->callback((uint8)instance, FLEXCAN_EVENT_DMA_ERROR, FLEXCAN_IP_MB_ENHANCED_RXFIFO, state);
         }
     }
-#else  /* if FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE */
-    state->enhancedFifoOutput.state = FLEXCAN_MB_IDLE;
-#endif /* if FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE */
 }
+#endif /* FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE */
+
 /*FUNCTION**********************************************************************
  *
  * Function Name : FLEXCAN_StartRxMessageEnhancedFifoData
@@ -683,9 +708,13 @@ static Flexcan_Ip_StatusType FlexCAN_StartRxMessageEnhancedFifoData(uint8 instan
     FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
     Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
     Flexcan_Ip_StatusType eResult = FLEXCAN_STATUS_SUCCESS;
+#if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
+    Dma_Ip_ReturnType edmaStatus;
+    Dma_Ip_LogicChannelTransferListType axTransferList[FLEXCAN_IP_ENHANCE_TRASNFER_DIMENSION_LIST];
+#endif /* (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON) */
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif /* (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON) */
 
     /* Start receiving fifo */
@@ -695,107 +724,86 @@ static Flexcan_Ip_StatusType FlexCAN_StartRxMessageEnhancedFifoData(uint8 instan
     }
     else
     {
-    state->enhancedFifoOutput.state = FLEXCAN_MB_RX_BUSY;
-    /* This will get filled by the interrupt handler */
-    state->enhancedFifoOutput.pMBmessage = data;
-    if (FLEXCAN_RXFIFO_USING_INTERRUPTS == state->transferType)
-    {
-        state->enhancedFifoOutput.isPolling = FALSE;
-        if (TRUE == state->isIntActive)
+        state->enhancedFifoOutput.state = FLEXCAN_MB_RX_BUSY;
+        /* This will get filled by the interrupt handler */
+        state->enhancedFifoOutput.pMBmessage = data;
+        if (FLEXCAN_RXFIFO_USING_INTERRUPTS == state->transferType)
         {
-            /* Enable All Enhanced RX FIFO interrupts*/
-            FlexCAN_SetEnhancedRxFifoIntAll(base, TRUE);
-        }
-    }
-    if (FLEXCAN_RXFIFO_USING_POLLING == state->transferType)
-    {
-        state->enhancedFifoOutput.isPolling = TRUE;
-    }
-
-#if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
-    if (FLEXCAN_RXFIFO_USING_DMA == state->transferType)
-    {
-        /* reset to default to avoid enabling interrupt */
-        state->enhancedFifoOutput.isPolling = TRUE;
-        Dma_Ip_ReturnType edmaStatus;
-
-        const Dma_Ip_LogicChannelTransferListType trasfer[FLEXCAN_IP_ENHANCE_TRASNFER_DIMENSION_LIST] =
-        {
+            state->enhancedFifoOutput.isPolling = FALSE;
+            if (TRUE == state->isIntActive)
             {
-                .Param = DMA_IP_CH_SET_SOURCE_ADDRESS,
-                .Value = ((uint32)base + (uint32)FLEXCAN_IP_FEATURE_ENHANCED_FIFO_RAM_OFFSET),
-            },
-            {
-                .Param = DMA_IP_CH_SET_SOURCE_SIGNED_OFFSET ,
-                .Value = 4,
-            },
-            {
-                .Param = DMA_IP_CH_SET_SOURCE_TRANSFER_SIZE,
-                .Value = DMA_IP_TRANSFER_SIZE_4_BYTE,
-            },
-            {
-                .Param = DMA_IP_CH_SET_DESTINATION_ADDRESS,
-                .Value = (uint32)(state->enhancedFifoOutput.pMBmessage),
-            },
-            {
-                .Param = DMA_IP_CH_SET_DESTINATION_SIGNED_OFFSET,
-                .Value = 4,
-            },
-            {
-                .Param = DMA_IP_CH_SET_DESTINATION_TRANSFER_SIZE,
-                .Value = DMA_IP_TRANSFER_SIZE_4_BYTE,
-            },
-            {
-                .Param = DMA_IP_CH_SET_MINORLOOP_SIZE,
-                .Value = 80,
-            },
-            {
-                .Param = DMA_IP_CH_SET_MAJORLOOP_COUNT,
-                .Value = state->u32NumOfMbTransferByDMA,
-            },
-            {
-                .Param = DMA_IP_CH_SET_CONTROL_EN_MAJOR_INTERRUPT,
-                .Value = 1,
-            },
-            {
-                .Param = DMA_IP_CH_SET_CONTROL_DIS_AUTO_REQUEST,
-                .Value = 1,
-            },
-            {
-                .Param = DMA_IP_CH_SET_MINORLOOP_EN_SRC_OFFSET,
-                .Value = 1, /* enable for src address: after each minor loop, jump back to output of enhance fifo */
-            },
-            {
-                .Param = DMA_IP_CH_SET_MINORLOOP_EN_DST_OFFSET,
-                .Value = 0, /* disable for dst address: after each minor loop: standing on next element of pMBmessage array */
-            },
-            {
-                .Param = DMA_IP_CH_SET_MINORLOOP_SIGNED_OFFSET,
-                .Value = (uint32)((sint32)(-80)), /* enable for src address: after each minor loop, jump back to output of enhance fifo */
+                /* Enable All Enhanced RX FIFO interrupts*/
+                FlexCAN_SetEnhancedRxFifoIntAll(base, TRUE);
             }
-        };
-
-        edmaStatus = Dma_Ip_SetLogicChannelTransferList(state->rxFifoDMAChannel, &trasfer[0], FLEXCAN_IP_ENHANCE_TRASNFER_DIMENSION_LIST);
-
-        if (edmaStatus != DMA_IP_STATUS_SUCCESS)
-        {
-            state->enhancedFifoOutput.state = FLEXCAN_MB_IDLE;
-
-            eResult = FLEXCAN_STATUS_ERROR;
         }
-        else
+        if (FLEXCAN_RXFIFO_USING_POLLING == state->transferType)
         {
-        edmaStatus = Dma_Ip_SetLogicChannelCommand(state->rxFifoDMAChannel, DMA_IP_CH_SET_HARDWARE_REQUEST);
+            state->enhancedFifoOutput.isPolling = TRUE;
+        }
 
-        if (edmaStatus != DMA_IP_STATUS_SUCCESS)
+    #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
+        if (FLEXCAN_RXFIFO_USING_DMA == state->transferType)
         {
-            state->enhancedFifoOutput.state = FLEXCAN_MB_IDLE;
+            /* reset to default to avoid enabling interrupt */
+            state->enhancedFifoOutput.isPolling = TRUE;
+            /* initialize Dma logic channel transfer list */
+            axTransferList[0].Param = DMA_IP_CH_SET_SOURCE_ADDRESS;
+            axTransferList[0].Value = ((Flexcan_Ip_PtrSizeType)base + (uint32)FLEXCAN_IP_FEATURE_ENHANCED_FIFO_RAM_OFFSET);
 
-            eResult = FLEXCAN_STATUS_ERROR;
+            axTransferList[1].Param = DMA_IP_CH_SET_SOURCE_SIGNED_OFFSET ;
+            axTransferList[1].Value = 4;
+
+            axTransferList[2].Param = DMA_IP_CH_SET_SOURCE_TRANSFER_SIZE;
+            axTransferList[2].Value = DMA_IP_TRANSFER_SIZE_4_BYTE;
+
+            axTransferList[3].Param = DMA_IP_CH_SET_DESTINATION_ADDRESS;
+            axTransferList[3].Value = (Flexcan_Ip_PtrSizeType)(state->enhancedFifoOutput.pMBmessage);
+
+            axTransferList[4].Param = DMA_IP_CH_SET_DESTINATION_SIGNED_OFFSET;
+            axTransferList[4].Value = 4;
+
+            axTransferList[5].Param = DMA_IP_CH_SET_DESTINATION_TRANSFER_SIZE;
+            axTransferList[5].Value = DMA_IP_TRANSFER_SIZE_4_BYTE;
+
+            axTransferList[6].Param = DMA_IP_CH_SET_MINORLOOP_SIZE;
+            axTransferList[6].Value = 80;
+
+            axTransferList[7].Param = DMA_IP_CH_SET_MAJORLOOP_COUNT;
+            axTransferList[7].Value = state->u32NumOfMbTransferByDMA;
+
+            axTransferList[8].Param = DMA_IP_CH_SET_CONTROL_EN_MAJOR_INTERRUPT;
+            axTransferList[8].Value = 1;
+
+            axTransferList[9].Param = DMA_IP_CH_SET_CONTROL_DIS_AUTO_REQUEST;
+            axTransferList[9].Value = 1;
+
+            axTransferList[10].Param = DMA_IP_CH_SET_MINORLOOP_EN_SRC_OFFSET;
+            axTransferList[10].Value = 1; /* enable for src address: after each minor loop, jump back to output of enhance fifo */
+
+            axTransferList[11].Param = DMA_IP_CH_SET_MINORLOOP_EN_DST_OFFSET;
+            axTransferList[11].Value = 0; /* disable for dst address: after each minor loop: standing on next element of pMBmessage array */
+
+            axTransferList[12].Param = DMA_IP_CH_SET_MINORLOOP_SIGNED_OFFSET;
+            axTransferList[12].Value = (uint32)((sint32)(-80)); /* enable for src address: after each minor loop, jump back to output of enhance fifo */
+
+            edmaStatus = Dma_Ip_SetLogicChannelTransferList(state->rxFifoDMAChannel, &axTransferList[0], FLEXCAN_IP_ENHANCE_TRASNFER_DIMENSION_LIST);
+
+            if (edmaStatus != DMA_IP_STATUS_SUCCESS)
+            {
+                state->enhancedFifoOutput.state = FLEXCAN_MB_IDLE;
+                eResult = FLEXCAN_STATUS_ERROR;
+            }
+            else
+            {
+                edmaStatus = Dma_Ip_SetLogicChannelCommand(state->rxFifoDMAChannel, DMA_IP_CH_SET_HARDWARE_REQUEST);
+                if (edmaStatus != DMA_IP_STATUS_SUCCESS)
+                {
+                    state->enhancedFifoOutput.state = FLEXCAN_MB_IDLE;
+                    eResult = FLEXCAN_STATUS_ERROR;
+                }
+            }
         }
-        }
-    }
-#endif /* if FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE */
+    #endif /* if FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE */
     }
     return eResult;
 }
@@ -986,7 +994,7 @@ static Flexcan_Ip_StatusType FlexCAN_StartRxMessageBufferData(uint8 instance,
     Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 
     if (TRUE == FlexCAN_IsMbOutOfRange(base, mb_idx, state->bIsLegacyFifoEn, state->u32MaxMbNum))
     {
@@ -1033,9 +1041,8 @@ static Flexcan_Ip_StatusType FlexCAN_StartSendData(uint8 Flexcan_Ip_u8Instance,
     FLEXCAN_Type * base = Flexcan_Ip_apxBase[Flexcan_Ip_u8Instance];
     volatile uint32 * pMbAddr = NULL_PTR;
 
-    /* aici e ilogic ca nu are rost sa faci checkul dupa ce ai alocat aiurea */
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(Flexcan_Ip_u8Instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(Flexcan_Ip_u8Instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert(tx_info != NULL_PTR);
 #if (FLEXCAN_IP_FEATURE_HAS_FD == STD_ON)
     /* Check if the Payload Size is smaller than the payload configured */
@@ -1106,9 +1113,13 @@ static Flexcan_Ip_StatusType FlexCAN_StartRxMessageFifoData(uint8 instance, Flex
     FLEXCAN_Type * base = NULL_PTR;
     Flexcan_Ip_StateType * state = NULL_PTR;
     Flexcan_Ip_StatusType eResult = FLEXCAN_STATUS_SUCCESS;
+#if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
+    Dma_Ip_ReturnType edmaStatus;
+    Dma_Ip_LogicChannelTransferListType axTransferList[FLEXCAN_IP_TRASNFER_DIMENSION_LIST];
+#endif /* (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON) */
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
 
     base = Flexcan_Ip_apxBase[instance];
@@ -1136,8 +1147,6 @@ static Flexcan_Ip_StatusType FlexCAN_StartRxMessageFifoData(uint8 instance, Flex
         #else
             FlexCAN_ClearOutputLegacyFIFO(base);
         #endif
-            /* Change status of MB to be reconfigured with DMA transfer */
-            state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].state = FLEXCAN_MB_IDLE;
         }
     #ifdef MCAL_ENABLE_FAULT_INJECTION
         /* Fault injection point to test dma error event */
@@ -1147,98 +1156,82 @@ static Flexcan_Ip_StatusType FlexCAN_StartRxMessageFifoData(uint8 instance, Flex
 #endif /* FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE */
 
     /* Start receiving fifo */
-    if (state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].state != FLEXCAN_MB_IDLE)
+    if (state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].state == FLEXCAN_MB_RX_BUSY)
     {
         eResult = FLEXCAN_STATUS_BUSY;
     }
     else
     {
-    state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].state = FLEXCAN_MB_RX_BUSY;
-    if (FLEXCAN_RXFIFO_USING_POLLING == state->transferType)
-    {
-        state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].isPolling = TRUE;
-    }
-
-    /* This will get filled by the interrupt handler */
-    state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].pMBmessage = data;
-
-    if (FLEXCAN_RXFIFO_USING_INTERRUPTS == state->transferType)
-    {
-        state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].isPolling = FALSE;
-        /* Enable RX FIFO interrupts*/
-        (void)FlexCAN_SetMsgBuffIntCmd(base, instance, FLEXCAN_IP_LEGACY_RXFIFO_WARNING, TRUE, state->isIntActive);
-        (void)FlexCAN_SetMsgBuffIntCmd(base, instance, FLEXCAN_IP_LEGACY_RXFIFO_OVERFLOW, TRUE, state->isIntActive);
-        (void)FlexCAN_SetMsgBuffIntCmd(base, instance, FLEXCAN_IP_LEGACY_RXFIFO_FRAME_AVAILABLE, TRUE, state->isIntActive);
-    }
-#if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
-    if (FLEXCAN_RXFIFO_USING_DMA == state->transferType)
-    {
-        Dma_Ip_ReturnType edmaStatus;
-
-        const Dma_Ip_LogicChannelTransferListType trasfer[FLEXCAN_IP_TRASNFER_DIMENSION_LIST] =
+        state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].state = FLEXCAN_MB_RX_BUSY;
+        if (FLEXCAN_RXFIFO_USING_POLLING == state->transferType)
         {
-                {
-                    .Param = DMA_IP_CH_SET_SOURCE_ADDRESS,
-                    .Value = ((uint32)base + (uint32)FLEXCAN_IP_FEATURE_RAM_OFFSET)
-                },
-                {
-                    .Param = DMA_IP_CH_SET_SOURCE_SIGNED_OFFSET ,
-                    .Value = 4,
-                },
-                {
-                    .Param = DMA_IP_CH_SET_SOURCE_TRANSFER_SIZE,
-                    .Value = DMA_IP_TRANSFER_SIZE_4_BYTE,
-                },
-                {
-                    .Param = DMA_IP_CH_SET_DESTINATION_ADDRESS,
-                    .Value = (uint32)(state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].pMBmessage)
-                },
-                {
-                        .Param = DMA_IP_CH_SET_DESTINATION_SIGNED_OFFSET,
-                        .Value = 4,
-                },
-                {
-                        .Param = DMA_IP_CH_SET_DESTINATION_TRANSFER_SIZE,
-                        .Value = DMA_IP_TRANSFER_SIZE_4_BYTE,
-                },
-                {
-                        .Param = DMA_IP_CH_SET_MINORLOOP_SIZE,
-                        .Value = 16,
-                },
-                {
-                        .Param = DMA_IP_CH_SET_MAJORLOOP_COUNT,
-                        .Value = 1,
-                },
-                {
-                        .Param = DMA_IP_CH_SET_CONTROL_EN_MAJOR_INTERRUPT,
-                        .Value = 1,
-                },
-                {
-                        .Param = DMA_IP_CH_SET_CONTROL_DIS_AUTO_REQUEST,
-                        .Value = 1,
-                },
-        };
-        edmaStatus = Dma_Ip_SetLogicChannelTransferList(state->rxFifoDMAChannel, &trasfer[0], FLEXCAN_IP_TRASNFER_DIMENSION_LIST);
-
-        if (edmaStatus != DMA_IP_STATUS_SUCCESS)
-        {
-            state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].state = FLEXCAN_MB_IDLE;
-
-            eResult = FLEXCAN_STATUS_ERROR;
+            state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].isPolling = TRUE;
         }
-        else
-        {
-        edmaStatus = Dma_Ip_SetLogicChannelCommand(state->rxFifoDMAChannel, DMA_IP_CH_SET_HARDWARE_REQUEST);
-        if (edmaStatus != DMA_IP_STATUS_SUCCESS)
-        {
-            state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].state = FLEXCAN_MB_IDLE;
 
-            eResult = FLEXCAN_STATUS_ERROR;
-        }
-        }
-    }
+        /* This will get filled by the interrupt handler */
+        state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].pMBmessage = data;
 
-#endif /* if FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE */
+        if (FLEXCAN_RXFIFO_USING_INTERRUPTS == state->transferType)
+        {
+            state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].isPolling = FALSE;
+            /* Enable RX FIFO interrupts*/
+            (void)FlexCAN_SetMsgBuffIntCmd(base, instance, FLEXCAN_IP_LEGACY_RXFIFO_WARNING, TRUE, state->isIntActive);
+            (void)FlexCAN_SetMsgBuffIntCmd(base, instance, FLEXCAN_IP_LEGACY_RXFIFO_OVERFLOW, TRUE, state->isIntActive);
+            (void)FlexCAN_SetMsgBuffIntCmd(base, instance, FLEXCAN_IP_LEGACY_RXFIFO_FRAME_AVAILABLE, TRUE, state->isIntActive);
+        }
+    #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
+        if (FLEXCAN_RXFIFO_USING_DMA == state->transferType)
+        {
+            /* initialize Dma logic channel transfer list */
+            axTransferList[0].Param = DMA_IP_CH_SET_SOURCE_ADDRESS;
+            axTransferList[0].Value = ((Flexcan_Ip_PtrSizeType)base + (uint32)FLEXCAN_IP_FEATURE_RAM_OFFSET);
+
+            axTransferList[1].Param = DMA_IP_CH_SET_SOURCE_SIGNED_OFFSET ;
+            axTransferList[1].Value = 4;
+
+            axTransferList[2].Param = DMA_IP_CH_SET_SOURCE_TRANSFER_SIZE;
+            axTransferList[2].Value = DMA_IP_TRANSFER_SIZE_4_BYTE;
+
+            axTransferList[3].Param = DMA_IP_CH_SET_DESTINATION_ADDRESS;
+            axTransferList[3].Value = (Flexcan_Ip_PtrSizeType)(state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].pMBmessage);
+
+            axTransferList[4].Param = DMA_IP_CH_SET_DESTINATION_SIGNED_OFFSET;
+            axTransferList[4].Value = 4;
+
+            axTransferList[5].Param = DMA_IP_CH_SET_DESTINATION_TRANSFER_SIZE;
+            axTransferList[5].Value = DMA_IP_TRANSFER_SIZE_4_BYTE;
+
+            axTransferList[6].Param = DMA_IP_CH_SET_MINORLOOP_SIZE;
+            axTransferList[6].Value = 16;
+
+            axTransferList[7].Param = DMA_IP_CH_SET_MAJORLOOP_COUNT;
+            axTransferList[7].Value = 1;
+
+            axTransferList[8].Param = DMA_IP_CH_SET_CONTROL_EN_MAJOR_INTERRUPT;
+            axTransferList[8].Value = 1;
+
+            axTransferList[9].Param = DMA_IP_CH_SET_CONTROL_DIS_AUTO_REQUEST;
+            axTransferList[9].Value = 1;
+
+            edmaStatus = Dma_Ip_SetLogicChannelTransferList(state->rxFifoDMAChannel, &axTransferList[0], FLEXCAN_IP_TRASNFER_DIMENSION_LIST);
+
+            if (edmaStatus != DMA_IP_STATUS_SUCCESS)
+            {
+                state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].state = FLEXCAN_MB_IDLE;
+                eResult = FLEXCAN_STATUS_ERROR;
+            }
+            else
+            {
+                edmaStatus = Dma_Ip_SetLogicChannelCommand(state->rxFifoDMAChannel, DMA_IP_CH_SET_HARDWARE_REQUEST);
+                if (edmaStatus != DMA_IP_STATUS_SUCCESS)
+                {
+                    state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].state = FLEXCAN_MB_IDLE;
+
+                    eResult = FLEXCAN_STATUS_ERROR;
+                }
+            }
+        }
+    #endif /* if FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE */
     }
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
     }
@@ -1306,8 +1299,12 @@ static void FlexCAN_IRQHandlerRxMB(uint8 instance, uint32 mb_idx)
     FlexCAN_ClearMsgBuffIntStatusFlag(base, mb_idx);
 
 #if defined (ERR_IPV_FLEXCAN_E050246)
-    /* the CODE field is updated with an incorrect value when MBx is locked by software for more than 20 CAN bit times and FIFO enable */
-    if ((state->bIsLegacyFifoEn) && ((uint32)FLEXCAN_RX_INACTIVE == ((state->mbs[mb_idx].pMBmessage->cs & FLEXCAN_IP_CS_CODE_MASK) >> FLEXCAN_IP_CS_CODE_SHIFT)))
+    /* the CODE field is updated with an incorrect value when MBx is locked by software for more than 20 CAN bit times and FIFO enable.
+    When the CODE field is corrupted, it's probably updated with any value that is invalid. Except EMPTY, FULL and OVERRUN other values can not make MB unlocked and move-in process. */
+    if ((state->bIsLegacyFifoEn) && \
+    ((uint32)FLEXCAN_RX_FULL != ((state->mbs[mb_idx].pMBmessage->cs & FLEXCAN_IP_CS_CODE_MASK) >> FLEXCAN_IP_CS_CODE_SHIFT)) && \
+    ((uint32)FLEXCAN_RX_EMPTY != ((state->mbs[mb_idx].pMBmessage->cs & FLEXCAN_IP_CS_CODE_MASK) >> FLEXCAN_IP_CS_CODE_SHIFT)) && \
+    ((uint32)FLEXCAN_RX_OVERRUN != ((state->mbs[mb_idx].pMBmessage->cs & FLEXCAN_IP_CS_CODE_MASK) >> FLEXCAN_IP_CS_CODE_SHIFT)))
     {
         /* Update the cs code for next sequence move in MB.
         A CPU write into the C/S word also unlocks the MB */
@@ -1375,6 +1372,8 @@ static void FlexCAN_IRQHandlerTxMB(uint8 u8Instance, uint32 u32MbIdx)
     Flexcan_Ip_StateType * pState = Flexcan_Ip_apxState[u8Instance];
     Flexcan_Ip_MsgBuffType mb;
 
+    mb.cs = 0U;
+    mb.time_stamp = 0U;
     if (pState->mbs[u32MbIdx].isRemote)
     {
         FlexCAN_LockRxMsgBuff(pBase, u32MbIdx);
@@ -1493,43 +1492,6 @@ static inline void FlexCAN_IRQHandlerRxFIFO(uint8 instance, uint32 mb_idx)
             break;
     }
 }
-/*FUNCTION**********************************************************************
- *
- * Function Name : FlexCAN_ProcessSpuriousInterruptMB
- * Description   : clear Iflag when spurious interrupt occurred.
- * note: just use in FlexCAN_IRQHandler
- *END**************************************************************************/
-static inline void FlexCAN_ProcessSpuriousInterruptMB(uint8 instance, uint32 startMbIdx, uint32 endMbIdx)
-{
-    FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
-    Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
-    uint32 mb_idx = 0U;
-    uint32 u32MbHandle = 0U;
-
-    /* Process spurious interrupt */
-    for (mb_idx = startMbIdx; mb_idx <= endMbIdx; mb_idx++)
-    {
-        if (((uint8)0U != FlexCAN_GetBuffStatusFlag(base, mb_idx)) && ((uint8)0U == FlexCAN_GetBuffStatusImask(base, mb_idx)))
-        {
-                u32MbHandle = mb_idx;
-                if ((TRUE == state->bIsLegacyFifoEn) && (mb_idx <= FLEXCAN_IP_LEGACY_RXFIFO_OVERFLOW))
-                {
-                    u32MbHandle = (uint32)FLEXCAN_IP_MB_HANDLE_RXFIFO;
-                }
-                if ((FALSE == state->mbs[u32MbHandle].isPolling))
-                {
-                    /* clear the MB flag */
-                    FlexCAN_ClearMsgBuffIntStatusFlag(base, mb_idx);
-                    if (FLEXCAN_MB_TX_BUSY == state->mbs[u32MbHandle].state)
-                    {
-                        /* reset to default state */
-                        state->mbs[u32MbHandle].state = FLEXCAN_MB_IDLE;
-                        state->mbs[u32MbHandle].isPolling = TRUE;
-                    }
-                }
-        }
-    }
-}
 
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO_INT_SEPARATED == STD_ON)
@@ -1538,28 +1500,26 @@ void FlexCAN_EnhancedRxFIFODataIRQHandler(uint8 u8Instance)
     FLEXCAN_Type * base = Flexcan_Ip_apxBase[u8Instance];
     const Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[u8Instance];
     uint32 u32intType = 0U;
-    boolean bIsSpuriousInt = TRUE;
-    /* Get the interrupts that are enabled and ready */
-    for (u32intType = FLEXCAN_IP_ENHANCED_RXFIFO_WATERMARK; u32intType >= FLEXCAN_IP_ENHANCED_RXFIFO_FRAME_AVAILABLE; u32intType--)
+
+    if (NULL_PTR != state)
     {
-        if ((uint8)0U != FlexCAN_GetEnhancedRxFIFOStatusFlag(base, u32intType))
+        /* Get the interrupts that are enabled and ready */
+        for (u32intType = FLEXCAN_IP_ENHANCED_RXFIFO_WATERMARK; u32intType >= FLEXCAN_IP_ENHANCED_RXFIFO_FRAME_AVAILABLE; u32intType--)
         {
-            if ((uint8)0U != FlexCAN_GetEnhancedRxFIFOIntStatusFlag(base, u32intType))
+            if ((uint8)0U != FlexCAN_GetEnhancedRxFIFOStatusFlag(base, u32intType))
             {
-                FlexCAN_IRQHandlerEnhancedRxFIFO(u8Instance, u32intType);
-                bIsSpuriousInt = FALSE;
-            }
-            /* just process spurious interrupt when no real interrupt at all */
-            else if ((TRUE == bIsSpuriousInt) && (FALSE == state->enhancedFifoOutput.isPolling))
-            {
-                    /* Process spurious interrupt */
-                    FlexCAN_ClearEnhancedRxFifoIntStatusFlag(base, u32intType);
-            }
-            else
-            {
-                /* prevent misra */
+                if ((uint8)0U != FlexCAN_GetEnhancedRxFIFOIntStatusFlag(base, u32intType))
+                {
+                    FlexCAN_IRQHandlerEnhancedRxFIFO(u8Instance, u32intType);
+                }
             }
         }
+    }
+    else
+    {
+        /* Clear status interrupt flag */
+        FlexCAN_ClearEnhancedRxFifoIntStatusFlag(base, FLEXCAN_IP_ENHANCED_RXFIFO_WATERMARK);
+        FlexCAN_ClearEnhancedRxFifoIntStatusFlag(base, FLEXCAN_IP_ENHANCED_RXFIFO_FRAME_AVAILABLE);
     }
 }
 #endif /* (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO_INT_SEPARATED == STD_ON) */
@@ -1569,37 +1529,22 @@ void FlexCAN_EnhancedRxFIFODataIRQHandler(uint8 u8Instance)
  * Description   : Process IRQHandler in case of Enhanced RxFIFO mode selection for CAN interface.
  * note: just use in FlexCAN_IRQHandler
  *END**************************************************************************/
-static inline boolean FlexCAN_ProcessIRQHandlerEnhancedRxFIFO(uint8 u8Instance, boolean bIsSpuriousIntPrevious)
+static inline void FlexCAN_ProcessIRQHandlerEnhancedRxFIFO(uint8 u8Instance)
 {
-    FLEXCAN_Type * base = Flexcan_Ip_apxBase[u8Instance];
-    const Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[u8Instance];
+    const FLEXCAN_Type * base = Flexcan_Ip_apxBase[u8Instance];
     uint32 u32intType = 0U;
-    boolean bIsSpuriousInt = bIsSpuriousIntPrevious;
 
-            /* Get the interrupts that are enabled and ready */
-            for (u32intType = FLEXCAN_IP_ENHANCED_RXFIFO_UNDERFLOW; u32intType >= FLEXCAN_IP_ENHANCED_RXFIFO_FRAME_AVAILABLE; u32intType--)
+    /* Get the interrupts that are enabled and ready */
+    for (u32intType = FLEXCAN_IP_ENHANCED_RXFIFO_UNDERFLOW; u32intType >= FLEXCAN_IP_ENHANCED_RXFIFO_FRAME_AVAILABLE; u32intType--)
+    {
+        if ((uint8)0U != FlexCAN_GetEnhancedRxFIFOStatusFlag(base, u32intType))
+        {
+            if ((uint8)0U != FlexCAN_GetEnhancedRxFIFOIntStatusFlag(base, u32intType))
             {
-                if ((uint8)0U != FlexCAN_GetEnhancedRxFIFOStatusFlag(base, u32intType))
-                {
-                    if ((uint8)0U != FlexCAN_GetEnhancedRxFIFOIntStatusFlag(base, u32intType))
-                    {
-                        FlexCAN_IRQHandlerEnhancedRxFIFO(u8Instance, u32intType);
-                        bIsSpuriousInt = FALSE;
-                    }
-                    /* just process spurious interrupt when no real interrupt at all */
-                    else if ((TRUE == bIsSpuriousInt) && (FALSE == state->enhancedFifoOutput.isPolling))
-                    {
-                            /* Process spurious interrupt */
-                            FlexCAN_ClearEnhancedRxFifoIntStatusFlag(base, u32intType);
-                    }
-                    else
-                    {
-                        /* prevent misra */
-                    }
-                }
+                FlexCAN_IRQHandlerEnhancedRxFIFO(u8Instance, u32intType);
             }
-
-    return bIsSpuriousInt;
+        }
+    }
 }
 
 /*FUNCTION**********************************************************************
@@ -1620,14 +1565,14 @@ static void FlexCAN_IRQHandlerEnhancedRxFIFO(uint8 instance, uint32 intType)
         case FLEXCAN_IP_ENHANCED_RXFIFO_FRAME_AVAILABLE:
             if (FLEXCAN_MB_RX_BUSY == state->enhancedFifoOutput.state)
             {
-                /* If use pass NULL_PTR, they can get data in callback function by getting state->mbs[FLEXCAN_IP_MB_HANDLE_RXFIFO].pMBmessage  */
+                /* If user pass NULL_PTR, they can get data in callback function by getting state->enhancedFifoOutput.pMBmessage  */
                 if (NULL_PTR == state->enhancedFifoOutput.pMBmessage)
                 {
                     state->enhancedFifoOutput.pMBmessage = &data;
                 }
 
                 /* Get Enhanced RX FIFO field values */
-                FlexCAN_ReadEnhancedRxFifo(base, state->enhancedFifoOutput.pMBmessage);
+                FlexCAN_ReadEnhancedRxFifo(instance, state->enhancedFifoOutput.pMBmessage);
 
                 FlexCAN_ClearEnhancedRxFifoIntStatusFlag(base, intType);
                 FlexCAN_ClearEnhancedRxFifoIntStatusFlag(base, FLEXCAN_IP_ENHANCED_RXFIFO_WATERMARK);
@@ -1687,6 +1632,11 @@ static void FlexCAN_IRQHandlerEnhancedRxFIFO(uint8 instance, uint32 intType)
 #endif /* FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO */
 
 #if (FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE == STD_ON)
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback
+ * Description   : Callback function for DMA when using Rx Legacy FIFO and Enhanced FIFO.
+ *END**************************************************************************/
 static void DMA_Can_Callback(uint8 instance)
 {
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
@@ -1695,8 +1645,7 @@ static void DMA_Can_Callback(uint8 instance)
     {
         if (TRUE == FlexCAN_IsEnhancedRxFifoEnabled(base))
         {
-            /* Need to add handler for Enhaced RxFifoDataDMA */
-            FlexCAN_CompleteRxMessageEnhancedFifoData(instance);
+            FlexCAN_CompleteRxMessageEnhancedFifoDataDma(instance);
         }
         else
         {
@@ -1811,7 +1760,7 @@ static void FlexCAN_AbortRxTransfer(uint8 u8Instance, uint8 mb_idx)
 {
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[u8Instance];
     Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[u8Instance];
-    uint32 val1 = 0U;
+    uint8 val1 = 0U;
     uint32 val2 = 0U;
     uint32 flexcan_mb_config = 0;
     volatile uint32 * flexcan_mb = NULL_PTR;
@@ -1821,7 +1770,7 @@ static void FlexCAN_AbortRxTransfer(uint8 u8Instance, uint8 mb_idx)
     if (TRUE == state->bIsLegacyFifoEn)
     {
         /* Get the number of RX FIFO Filters*/
-        val1 = (((pBase->CTRL2) & FLEXCAN_CTRL2_RFFN_MASK) >> FLEXCAN_CTRL2_RFFN_SHIFT);
+        val1 = (uint8)(((pBase->CTRL2) & FLEXCAN_CTRL2_RFFN_MASK) >> FLEXCAN_CTRL2_RFFN_SHIFT);
         /* Get the number if MBs occupied by RX FIFO and ID filter table*/
         /* the Rx FIFO occupies the memory space originally reserved for MB0-5*/
         /* Every number of RFFN means 8 number of RX FIFO filters*/
@@ -1883,7 +1832,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_Init_Privileged(uint8 Flexcan_Ip_u8Instance,
     uint32 i;
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(Flexcan_Ip_u8Instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(Flexcan_Ip_u8Instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert(Flexcan_Ip_pData != NULL_PTR);
 #endif
 
@@ -1919,7 +1868,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_Init_Privileged(uint8 Flexcan_Ip_u8Instance,
 #endif
 
 #if (FLEXCAN_IP_FEATURE_HAS_TS_ENABLE == STD_ON)
-        FlexCAN_ConfigTimestamp(pBase, (const Flexcan_Ip_TimeStampConfigType *)(&Flexcan_Ip_pData->time_stamp));
+        FlexCAN_ConfigTimestamp(Flexcan_Ip_u8Instance, pBase, (const Flexcan_Ip_TimeStampConfigType *)(&Flexcan_Ip_pData->time_stamp));
 #endif   /* (FLEXCAN_IP_FEATURE_HAS_TS_ENABLE == STD_ON) */
 
         for (i = 0; i < (uint8)FLEXCAN_IP_FEATURE_MAX_MB_NUM; i++)
@@ -1956,6 +1905,11 @@ Flexcan_Ip_StatusType FlexCAN_Ip_Init_Privileged(uint8 Flexcan_Ip_u8Instance,
 #endif /* FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO */
         Flexcan_Ip_pState->u32MaxMbNum = Flexcan_Ip_pData->max_num_mb;
         Flexcan_Ip_pState->isIntActive = TRUE;
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+        Flexcan_Ip_pState->flexcanModeErrResponse = Flexcan_Ip_pData->flexcanModeErrResponse;
+#endif
+#endif
         /* Save runtime structure pointers so irq handler can point to the correct state structure */
         Flexcan_Ip_apxState[Flexcan_Ip_u8Instance] = Flexcan_Ip_pState;
     }
@@ -1987,7 +1941,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_Send(uint8 instance,
 #endif
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert(tx_info != NULL_PTR);
 #endif
     if (!FlexCAN_IsListenOnlyModeEnabled(base))
@@ -2027,9 +1981,10 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ConfigRxMb(uint8 instance,
     Flexcan_Ip_StatusType eResult = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_MsbuffCodeStatusType cs;
     FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
+
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
     const Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert(rx_info != NULL_PTR);
 
     if (TRUE == FlexCAN_IsMbOutOfRange(base, mb_idx, state->bIsLegacyFifoEn, state->u32MaxMbNum))
@@ -2086,8 +2041,9 @@ Flexcan_Ip_StatusType FlexCAN_Ip_Receive(uint8 instance,
     FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
     const Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
 #endif
+
     #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
     #endif
 
     result = FlexCAN_StartRxMessageBufferData(instance, mb_idx, data, isPolling);
@@ -2122,7 +2078,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ReceiveBlocking(uint8 instance,
     uint32 timeElapsed = 0U;
     uint32 mS2Ticks = OsIf_MicrosToTicks((u32TimeoutMs * 1000U), FLEXCAN_IP_SERVICE_TIMEOUT_TYPE);
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
 #if (FLEXCAN_IP_MB_INTERRUPT_SUPPORT == STD_ON)
@@ -2130,6 +2086,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ReceiveBlocking(uint8 instance,
 #else
     const FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
 #endif
+
     result = FlexCAN_StartRxMessageBufferData(instance, mb_idx, data, isPolling);
 #if (FLEXCAN_IP_MB_INTERRUPT_SUPPORT == STD_ON)
     if ((FLEXCAN_STATUS_SUCCESS == result) && (FALSE == isPolling))
@@ -2192,7 +2149,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ReceiveBlocking(uint8 instance,
 void DMA_Can_Callback0(void)
 { DMA_Can_Callback(0U); }
 
-#if FLEXCAN_INSTANCE_COUNT > 1U
+#if FLEXCAN_IP_INSTANCE_COUNT > 1U
 /*FUNCTION**********************************************************************
  *
  * Function Name : DMA_Can_Callback1
@@ -2202,7 +2159,7 @@ void DMA_Can_Callback0(void)
 void DMA_Can_Callback1(void)
 { DMA_Can_Callback(1U); }
 #endif
-#if FLEXCAN_INSTANCE_COUNT > 2U
+#if FLEXCAN_IP_INSTANCE_COUNT > 2U
 /*FUNCTION**********************************************************************
  *
  * Function Name : DMA_Can_Callback2
@@ -2212,7 +2169,7 @@ void DMA_Can_Callback1(void)
 void DMA_Can_Callback2(void)
 { DMA_Can_Callback(2U); }
 #endif
-#if FLEXCAN_INSTANCE_COUNT > 3U
+#if FLEXCAN_IP_INSTANCE_COUNT > 3U
 /*FUNCTION**********************************************************************
  *
  * Function Name : DMA_Can_Callback3
@@ -2222,7 +2179,7 @@ void DMA_Can_Callback2(void)
 void DMA_Can_Callback3(void)
 { DMA_Can_Callback(3U); }
 #endif
-#if FLEXCAN_INSTANCE_COUNT > 4U
+#if FLEXCAN_IP_INSTANCE_COUNT > 4U
 /*FUNCTION**********************************************************************
  *
  * Function Name : DMA_Can_Callback4
@@ -2232,7 +2189,7 @@ void DMA_Can_Callback3(void)
 void DMA_Can_Callback4(void)
 { DMA_Can_Callback(4U); }
 #endif
-#if FLEXCAN_INSTANCE_COUNT > 5U
+#if FLEXCAN_IP_INSTANCE_COUNT > 5U
 /*FUNCTION**********************************************************************
  *
  * Function Name : DMA_Can_Callback5
@@ -2242,7 +2199,7 @@ void DMA_Can_Callback4(void)
 void DMA_Can_Callback5(void)
 { DMA_Can_Callback(5U); }
 #endif
-#if FLEXCAN_INSTANCE_COUNT > 6U
+#if FLEXCAN_IP_INSTANCE_COUNT > 6U
 /*FUNCTION**********************************************************************
  *
  * Function Name : DMA_Can_Callback6
@@ -2252,7 +2209,7 @@ void DMA_Can_Callback5(void)
 void DMA_Can_Callback6(void)
 { DMA_Can_Callback(6U); }
 #endif
-#if FLEXCAN_INSTANCE_COUNT > 7U
+#if FLEXCAN_IP_INSTANCE_COUNT > 7U
 /*FUNCTION**********************************************************************
  *
  * Function Name : DMA_Can_Callback7
@@ -2262,7 +2219,192 @@ void DMA_Can_Callback6(void)
 void DMA_Can_Callback7(void)
 { DMA_Can_Callback(7U); }
 #endif
+#if FLEXCAN_IP_INSTANCE_COUNT > 8U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback8
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback8(void)
+{ DMA_Can_Callback(8U); }
+#endif
 
+#if FLEXCAN_IP_INSTANCE_COUNT > 9U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback9
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback9(void)
+{ DMA_Can_Callback(9U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 10U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback10
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback10(void)
+{ DMA_Can_Callback(10U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 11U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback11
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback11(void)
+{ DMA_Can_Callback(11U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 12U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback12
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback12(void)
+{ DMA_Can_Callback(12U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 13U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback13
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback13(void)
+{ DMA_Can_Callback(13U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 14U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback14
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback14(void)
+{ DMA_Can_Callback(14U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 15U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback15
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback15(void)
+{ DMA_Can_Callback(15U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 16U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback16
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback16(void)
+{ DMA_Can_Callback(16U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 17U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback17
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback17(void)
+{ DMA_Can_Callback(17U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 18U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback18
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback18(void)
+{ DMA_Can_Callback(18U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 19U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback19
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback19(void)
+{ DMA_Can_Callback(19U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 20U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback20
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback20(void)
+{ DMA_Can_Callback(20U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 21U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback21
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback21(void)
+{ DMA_Can_Callback(21U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 22U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback22
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback22(void)
+{ DMA_Can_Callback(22U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 23U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback23
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback23(void)
+{ DMA_Can_Callback(23U); }
+#endif
+
+#if FLEXCAN_IP_INSTANCE_COUNT > 24U
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : DMA_Can_Callback24
+ * Description   : Finish up a DMA major transfer.
+ *
+ *END**************************************************************************/
+void DMA_Can_Callback24(void)
+{ DMA_Can_Callback(24U); }
+#endif
 #endif /* FLEXCAN_IP_FEATURE_HAS_DMA_ENABLE */
 
 
@@ -2283,7 +2425,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_RxFifo(uint8 instance, Flexcan_Ip_MsgBuffType *
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
 
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
@@ -2325,7 +2467,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_RxFifoBlocking(uint8 instance, Flexcan_Ip_MsgBu
     const FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
 #endif
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
 
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
@@ -2376,11 +2518,14 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ConfigRxFifo_Privileged(uint8 instance,
                                                         )
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    boolean freeze = FALSE;
+#endif
     boolean disabled = !FlexCAN_IsEnabled(pBase);
 
     if (TRUE == disabled)
@@ -2389,7 +2534,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ConfigRxFifo_Privileged(uint8 instance,
     }
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    boolean freeze = FlexCAN_IsFreezeMode(pBase);
+    freeze = FlexCAN_IsFreezeMode(pBase);
     if ((FALSE == freeze) && (FLEXCAN_STATUS_SUCCESS == result))
     {
         result = FLEXCAN_STATUS_ERROR;
@@ -2428,10 +2573,12 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ConfigEnhancedRxFifo_Privileged(uint8 instance,
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    boolean freeze = FALSE;
+#endif
     boolean disabled = !FlexCAN_IsEnabled(pBase);
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
     DevAssert(FlexCAN_IsEnhancedRxFifoAvailable(pBase));
     DevAssert(id_filter_table != NULL_PTR);
 #endif
@@ -2442,7 +2589,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ConfigEnhancedRxFifo_Privileged(uint8 instance,
     }
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    boolean freeze = FlexCAN_IsFreezeMode(pBase);
+    freeze = FlexCAN_IsFreezeMode(pBase);
     if ((FALSE == freeze) && (FLEXCAN_STATUS_SUCCESS == result))
     {
         result = FLEXCAN_STATUS_ERROR;
@@ -2452,7 +2599,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ConfigEnhancedRxFifo_Privileged(uint8 instance,
     if (FLEXCAN_STATUS_SUCCESS == result)
     {
         /* Initialize rx fifo*/
-        FlexCAN_SetEnhancedRxFifoFilter(pBase, id_filter_table);
+        FlexCAN_SetEnhancedRxFifoFilter(instance, id_filter_table);
     }
 
     if (TRUE == disabled)
@@ -2494,7 +2641,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ConfigRemoteResponseMb(uint8 instance,
     volatile uint32 * pMbAddr = NULL_PTR;
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert(tx_info != NULL_PTR);
     /* Remote Request Store can't operate same time with automatic remote response */
     DevAssert(0U == (pBase->CTRL2 & FLEXCAN_CTRL2_RRS_MASK));
@@ -2547,11 +2694,11 @@ Flexcan_Ip_StatusType FlexCAN_Ip_GetTransferStatus(uint8 instance, uint8 mb_idx)
 {
 
     const Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
-    Flexcan_Ip_StatusType status = FLEXCAN_STATUS_ERROR;
+    Flexcan_Ip_StatusType status;
 
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert((mb_idx < (uint8)FLEXCAN_IP_FEATURE_MAX_MB_NUM) || (255u == mb_idx));
 #endif
 
@@ -2575,7 +2722,8 @@ Flexcan_Ip_StatusType FlexCAN_Ip_GetTransferStatus(uint8 instance, uint8 mb_idx)
     }
 
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
-    else
+    /* check in case of enhanced Rx fifo, mb_idx should be 255 */
+    else if (255U == mb_idx)
     {
         if (FLEXCAN_MB_IDLE == state->enhancedFifoOutput.state)
         {
@@ -2595,8 +2743,46 @@ Flexcan_Ip_StatusType FlexCAN_Ip_GetTransferStatus(uint8 instance, uint8 mb_idx)
     }
 #endif /* FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO */
 
+    else
+    {
+        status = FLEXCAN_STATUS_ERROR;
+    }
+
     return status;
 }
+
+#if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
+#if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO_INT_SEPARATED == STD_ON)
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : FlexCAN_HandleEnhanceRxFIFO
+ * Description   : Checking the interrupts that are enabled and ready
+ * for executing FlexCAN_IRQHandlerEnhancedRxFIFO function
+ * This is not a public API as it is called from other driver functions.
+ *
+ *END**************************************************************************/
+static void FlexCAN_HandleEnhanceRxFIFO(uint8 instance)
+{
+    const FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
+    uint32 u32intType;
+
+    if (TRUE == FlexCAN_IsEnhancedRxFifoAvailable(pBase))
+    {
+        /* Get the interrupts that are enabled and ready */
+        for (u32intType = (uint32)FLEXCAN_IP_ENHANCED_RXFIFO_UNDERFLOW; u32intType >= (uint32)FLEXCAN_EVENT_ENHANCED_RXFIFO_OVERFLOW; u32intType--)
+        {
+            if ((uint8)0U != FlexCAN_GetEnhancedRxFIFOStatusFlag(pBase, u32intType))
+            {
+                if ((uint8)0U != FlexCAN_GetEnhancedRxFIFOIntStatusFlag(pBase, u32intType))
+                {
+                    FlexCAN_IRQHandlerEnhancedRxFIFO(instance, u32intType);
+                }
+            }
+        }
+    }
+}
+#endif /* (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO_INT_SEPARATED == STD_ON) */
+#endif /* (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON) */
 
 /*FUNCTION**********************************************************************
  *
@@ -2613,7 +2799,7 @@ static void FlexCAN_CompleteRxMessageFifoData(uint8 instance)
     Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
 
     if (FLEXCAN_RXFIFO_USING_INTERRUPTS == state->transferType)
@@ -2628,6 +2814,8 @@ static void FlexCAN_CompleteRxMessageFifoData(uint8 instance)
     else if (FLEXCAN_RXFIFO_USING_DMA == state->transferType)
     {
         Dma_Ip_LogicChannelStatusType dmaStatus;
+        dmaStatus.ChStateValue = DMA_IP_CH_ERROR_STATE;
+
         (void)Dma_Ip_GetLogicChannelStatus(state->rxFifoDMAChannel, &dmaStatus);
 
         if (DMA_IP_CH_ERROR_STATE == dmaStatus.ChStateValue)
@@ -2721,12 +2909,12 @@ void FlexCAN_IRQHandler
     uint32 flag_reg = 0;
     FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
     const Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
-    boolean bIsSpuriousInt = TRUE;
+
     /* Get the interrupts that are enabled and ready */
     uint32 mb_idx = endMbIdx;
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert(endMbIdx < (uint8)FLEXCAN_IP_FEATURE_MAX_MB_NUM);
 #endif
     /* Check if instance initialized */
@@ -2743,9 +2931,6 @@ void FlexCAN_IRQHandler
         /* Check Tx/Rx interrupt flag and clear the interrupt */
         if (flag_reg != 0U)
         {
-            /* At least one real interrupt -> no process spurious interurpt */
-            bIsSpuriousInt = FALSE;
-
             /* For legacy fifo, mb handler is FLEXCAN_IP_MB_HANDLE_RXFIFO(0) */
             u32MbHandle = mb_idx;
 
@@ -2786,17 +2971,10 @@ void FlexCAN_IRQHandler
         {
             if ((TRUE == FlexCAN_IsEnhancedRxFifoEnabled(base)) && (FLEXCAN_RXFIFO_USING_INTERRUPTS == state->transferType))
             {
-                bIsSpuriousInt = FlexCAN_ProcessIRQHandlerEnhancedRxFIFO(instance, bIsSpuriousInt);
+                FlexCAN_ProcessIRQHandlerEnhancedRxFIFO(instance);
             }
         }
 #endif /* End of (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON) */
-
-        /* continue processing spurious interrupt for normal Mb only if enhance fifo interrupt is not existed on ISR or no enhance fifo interrupts occurred */
-        /* Expectation is that ISR just process one Object (Tx, Rx normal, Rx legacy fifo, Rx enhance fifo) when ISR triggered */
-        if (TRUE == bIsSpuriousInt)
-        {
-            FlexCAN_ProcessSpuriousInterruptMB(instance, startMbIdx, endMbIdx);
-        }
     }
     else
     {
@@ -2833,7 +3011,7 @@ void FlexCAN_Ip_ClearErrorStatus(uint8 instance, uint32 error)
     FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
 
     base->ESR1 = error;
@@ -2851,8 +3029,9 @@ uint32 FlexCAN_Ip_GetErrorStatus(uint8 instance)
 {
 
     const FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
+
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     return (uint32)(base->ESR1);
 }
@@ -2869,8 +3048,9 @@ uint8 FlexCAN_Ip_GetControllerTxErrorCounter(uint8 instance)
 {
 
     const FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
+
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     return (uint8)((base->ECR & FLEXCAN_ECR_TXERRCNT_MASK) >> FLEXCAN_ECR_TXERRCNT_SHIFT);
 }
@@ -2887,8 +3067,9 @@ uint8 FlexCAN_Ip_GetControllerRxErrorCounter(uint8 instance)
 {
 
     const FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
+
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     return (uint8)((base->ECR & FLEXCAN_ECR_RXERRCNT_MASK) >> FLEXCAN_ECR_RXERRCNT_SHIFT);
 }
@@ -2908,10 +3089,9 @@ void FlexCAN_Busoff_Error_IRQHandler(uint8 instance)
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
     const Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
     uint32 u32ErrStatus = 0U;
-    boolean isSpuriousInt = TRUE;
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
 
     /* Check if the instance initialized */
@@ -2931,7 +3111,6 @@ void FlexCAN_Busoff_Error_IRQHandler(uint8 instance)
                 /* Get error status to get value updated due to user may handle ESR1 register */
                 u32ErrStatus = pBase->ESR1;
             }
-            isSpuriousInt = FALSE;
         }
 
     #if (FLEXCAN_IP_FEATURE_HAS_FD == STD_ON)
@@ -2946,7 +3125,6 @@ void FlexCAN_Busoff_Error_IRQHandler(uint8 instance)
                 /* Get error status to get value updated due to user may handle ESR1 register */
                 u32ErrStatus = pBase->ESR1;
             }
-            isSpuriousInt = FALSE;
         }
     #endif /* FLEXCAN_IP_FEATURE_HAS_FD */
 
@@ -2961,7 +3139,6 @@ void FlexCAN_Busoff_Error_IRQHandler(uint8 instance)
                 /* Get error status to get value updated due to user may handle ESR1 register */
                 u32ErrStatus = pBase->ESR1;
             }
-            isSpuriousInt = FALSE;
         }
 
         /* Check spurious interrupt */
@@ -2975,7 +3152,6 @@ void FlexCAN_Busoff_Error_IRQHandler(uint8 instance)
                 /* Get error status to get value updated due to user may handle ESR1 register */
                 u32ErrStatus = pBase->ESR1;
             }
-            isSpuriousInt = FALSE;
         }
 
         /* Check spurious interrupt */
@@ -2987,43 +3163,23 @@ void FlexCAN_Busoff_Error_IRQHandler(uint8 instance)
             {
                 state->error_callback(instance, FLEXCAN_EVENT_BUSOFF, u32ErrStatus, state);
             }
-            isSpuriousInt = FALSE;
         }
 #if (defined(S32K116) || defined (S32K118))
 #if (FLEXCAN_IP_FEATURE_HAS_PRETENDED_NETWORKING == STD_ON)
         if (FLEXCAN_MCR_PNET_EN_MASK == (pBase->MCR & FLEXCAN_MCR_PNET_EN_MASK))
         {
-            if (TRUE == FlexCAN_WakeUp_IRQHandler(instance))
-            {
-                isSpuriousInt = FALSE;
-            }
+            FlexCAN_WakeUp_IRQHandler(instance);
         }
 #endif /* FLEXCAN_IP_FEATURE_HAS_PRETENDED_NETWORKING */
 #endif /* (defined(S32K116) || defined(S32K118)) */
 
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO_INT_SEPARATED == STD_ON)
-        uint32 u32intType;
-        if (TRUE == FlexCAN_IsEnhancedRxFifoAvailable(pBase))
-        {
-            /* Get the interrupts that are enabled and ready */
-            for (u32intType = FLEXCAN_IP_ENHANCED_RXFIFO_UNDERFLOW; u32intType >= FLEXCAN_EVENT_ENHANCED_RXFIFO_OVERFLOW; u32intType--)
-            {
-                if ((uint8)0U != FlexCAN_GetEnhancedRxFIFOStatusFlag(pBase, u32intType))
-                {
-                    if ((uint8)0U != FlexCAN_GetEnhancedRxFIFOIntStatusFlag(pBase, u32intType))
-                    {
-                        FlexCAN_IRQHandlerEnhancedRxFIFO(instance, u32intType);
-                        isSpuriousInt = FALSE;
-                    }
-                }
-            }
-        }
+    FlexCAN_HandleEnhanceRxFIFO(instance);
 #endif /* (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO_INT_SEPARATED == STD_ON) */
 #endif /* (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON) */
     }
-
-    if (TRUE == isSpuriousInt)
+    else
     {
         pBase->ESR1 = FLEXCAN_IP_ALL_INT;
 #if (defined(S32K116) || defined (S32K118))
@@ -3039,7 +3195,7 @@ void FlexCAN_Busoff_Error_IRQHandler(uint8 instance)
         if (TRUE == FlexCAN_IsEnhancedRxFifoAvailable(pBase))
         {
             FlexCAN_ClearEnhancedRxFifoIntStatusFlag(pBase, FLEXCAN_IP_ENHANCED_RXFIFO_UNDERFLOW);
-            FlexCAN_ClearEnhancedRxFifoIntStatusFlag(pBase, FLEXCAN_EVENT_ENHANCED_RXFIFO_OVERFLOW);
+            FlexCAN_ClearEnhancedRxFifoIntStatusFlag(pBase, (uint32)FLEXCAN_EVENT_ENHANCED_RXFIFO_OVERFLOW);
         }
 #endif /* (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO_INT_SEPARATED == STD_ON) */
 #endif /* (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON) */
@@ -3059,10 +3215,9 @@ void FlexCAN_Error_IRQHandler(uint8 instance)
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
     const Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
     uint32 u32ErrStatus = 0U;
-    boolean isSpuriousInt = TRUE;
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
 
     /* Check if the instance initialized */
@@ -3084,7 +3239,6 @@ void FlexCAN_Error_IRQHandler(uint8 instance)
                 u32ErrStatus = pBase->ESR1;
             #endif /* FLEXCAN_IP_FEATURE_HAS_FD */
             }
-            isSpuriousInt = FALSE;
         }
 
     #if (FLEXCAN_IP_FEATURE_HAS_FD == STD_ON)
@@ -3097,12 +3251,10 @@ void FlexCAN_Error_IRQHandler(uint8 instance)
             {
                 state->error_callback(instance, FLEXCAN_EVENT_ERROR_FAST, u32ErrStatus, state);
             }
-            isSpuriousInt = FALSE;
         }
     #endif /* FLEXCAN_IP_FEATURE_HAS_FD */
     }
-
-    if (TRUE == isSpuriousInt)
+    else
     {
         (pBase->ESR1) = FLEXCAN_IP_ERROR_INT;
     }
@@ -3124,10 +3276,9 @@ void FlexCAN_BusOff_IRQHandler(uint8 instance)
     FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
     const Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
     uint32 u32ErrStatus = 0U;
-    boolean isSpuriousInt = TRUE;
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
 
     /* Check If Driver initialized */
@@ -3147,7 +3298,6 @@ void FlexCAN_BusOff_IRQHandler(uint8 instance)
                 /* Get error status to get value updated due to user may handle ESR1 register */
                 u32ErrStatus = base->ESR1;
             }
-            isSpuriousInt = FALSE;
         }
 
         /* Check spurious interrupt */
@@ -3161,7 +3311,6 @@ void FlexCAN_BusOff_IRQHandler(uint8 instance)
                 /* Get error status to get value updated due to user may handle ESR1 register */
                 u32ErrStatus = base->ESR1;
             }
-            isSpuriousInt = FALSE;
         }
 
         /* Check spurious interrupt */
@@ -3173,11 +3322,9 @@ void FlexCAN_BusOff_IRQHandler(uint8 instance)
             {
                 state->error_callback(instance, FLEXCAN_EVENT_BUSOFF, u32ErrStatus, state);
             }
-            isSpuriousInt = FALSE;
         }
     }
-
-    if (TRUE == isSpuriousInt)
+    else
     {
         base->ESR1 = FLEXCAN_IP_BUS_OFF_INT;
     }
@@ -3211,8 +3358,9 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SendBlocking(uint8 instance,
     uint32 flexcan_mb_config = 0;
 
     volatile uint32 * flexcan_mb = NULL_PTR;
+
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert(tx_info != NULL_PTR);
 #endif
 
@@ -3297,7 +3445,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetRxMbGlobalMask_Privileged(uint8 instance, ui
 #endif
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     boolean disabled = !FlexCAN_IsEnabled(pBase);
 
@@ -3339,6 +3487,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetRxMbGlobalMask_Privileged(uint8 instance, ui
 Flexcan_Ip_StatusType FlexCAN_Ip_EnterFreezeMode_Privileged(uint8 instance)
 {
         FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
+
         return FlexCAN_EnterFreezeMode(base);
 }
 
@@ -3352,6 +3501,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_EnterFreezeMode_Privileged(uint8 instance)
 Flexcan_Ip_StatusType FlexCAN_Ip_ExitFreezeMode_Privileged(uint8 instance)
 {
         FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
+
         return FlexCAN_ExitFreezeMode(base);
 }
 
@@ -3372,7 +3522,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetRxIndividualMask_Privileged(uint8 instance, 
 #endif
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
     if ((mb_idx > (((pBase->MCR) & FLEXCAN_MCR_MAXMB_MASK) >> FLEXCAN_MCR_MAXMB_SHIFT)) || (mb_idx >= FLEXCAN_RXIMR_COUNT))
     {
         result = FLEXCAN_STATUS_BUFF_OUT_OF_RANGE;
@@ -3424,11 +3574,14 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetRxIndividualMask_Privileged(uint8 instance, 
 Flexcan_Ip_StatusType FlexCAN_Ip_SetRxFifoGlobalMask_Privileged(uint8 instance, uint32 mask)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    boolean freeze = FALSE;
+#endif
     boolean disabled = !FlexCAN_IsEnabled(pBase);
 
     if (TRUE == disabled)
@@ -3437,7 +3590,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetRxFifoGlobalMask_Privileged(uint8 instance, 
     }
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    boolean freeze = FlexCAN_IsFreezeMode(pBase);
+    freeze = FlexCAN_IsFreezeMode(pBase);
     if ((FALSE == freeze) && (FLEXCAN_STATUS_SUCCESS == result))
     {
         result = FLEXCAN_STATUS_ERROR;
@@ -3472,10 +3625,10 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetRxFifoGlobalMask_Privileged(uint8 instance, 
 Flexcan_Ip_StatusType FlexCAN_Ip_Deinit_Privileged(uint8 instance)
 {
     FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
-    Flexcan_Ip_StatusType result = FLEXCAN_STATUS_ERROR;
+    Flexcan_Ip_StatusType result;
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
 
     /* Enter Freeze Mode Required before to enter Disabled Mode */
@@ -3516,7 +3669,7 @@ void FlexCAN_Ip_MainFunctionRead(uint8 instance, uint8 mb_idx)
     const Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
     #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
     DevAssert((mb_idx < (uint8)FLEXCAN_IP_FEATURE_MAX_MB_NUM) || (FLEXCAN_IP_MB_ENHANCED_RXFIFO == mb_idx));
     #else
@@ -3584,7 +3737,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_MainFunctionBusOff_Privileged(uint8 instance)
     uint32 u32ErrStatus = 0U;
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
 
     /* Get error status */
@@ -3618,7 +3771,7 @@ void FlexCAN_Ip_MainFunctionWrite(uint8 instance, uint8 mb_idx)
     Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[instance];
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
 
     if (FlexCAN_GetBuffStatusFlag(base, mb_idx) != 0U)
@@ -3628,6 +3781,8 @@ void FlexCAN_Ip_MainFunctionWrite(uint8 instance, uint8 mb_idx)
             if (state->mbs[mb_idx].isRemote)
             {
                 Flexcan_Ip_MsgBuffType mb;
+                mb.cs = 0U;
+                mb.time_stamp = 0U;
                 FlexCAN_LockRxMsgBuff(base, mb_idx);
                 FlexCAN_GetMsgBuff(base, mb_idx, &mb);
                 FlexCAN_UnlockRxMsgBuff(base);
@@ -3647,7 +3802,7 @@ void FlexCAN_Ip_MainFunctionWrite(uint8 instance, uint8 mb_idx)
                 /* Clear message buffer flag */
                 FlexCAN_ClearMsgBuffIntStatusFlag(base, mb_idx);
             }
-            
+
             state->mbs[mb_idx].state = FLEXCAN_MB_IDLE;
 
             /* Invoke callback */
@@ -3669,6 +3824,7 @@ void FlexCAN_Ip_MainFunctionWrite(uint8 instance, uint8 mb_idx)
 boolean FlexCAN_Ip_GetStopMode_Privileged(uint8 instance)
 {
     const FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
+
     return ((FLEXCAN_MCR_LPMACK_MASK == (base->MCR & FLEXCAN_MCR_LPMACK_MASK)) ? TRUE : FALSE);
 }
 
@@ -3682,6 +3838,7 @@ boolean FlexCAN_Ip_GetStopMode_Privileged(uint8 instance)
 boolean FlexCAN_Ip_GetStartMode_Privileged(uint8 instance)
 {
     const FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
+
     return ((0U == (base->MCR & (FLEXCAN_MCR_LPMACK_MASK | FLEXCAN_MCR_FRZACK_MASK))) ? TRUE : FALSE);
 }
 
@@ -3695,18 +3852,20 @@ boolean FlexCAN_Ip_GetStartMode_Privileged(uint8 instance)
 Flexcan_Ip_StatusType FlexCAN_Ip_SetStartMode_Privileged(uint8 instance)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
+
     /* Start critical section: implementation depends on integrator */
-    SchM_Enter_Can_CAN_EXCLUSIVE_AREA_07();
+    SchM_Enter_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_07();
     /* Enable Flexcan Module */
     pBase->MCR &= ~FLEXCAN_MCR_MDIS_MASK;
     /* End critical section: implementation depends on integrator */
-    SchM_Exit_Can_CAN_EXCLUSIVE_AREA_07();
+    SchM_Exit_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_07();
 
     return (FlexCAN_ExitFreezeMode(pBase));
 }
+
 
 /*FUNCTION**********************************************************************
  *
@@ -3718,10 +3877,11 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetStartMode_Privileged(uint8 instance)
 Flexcan_Ip_StatusType FlexCAN_Ip_SetStopMode_Privileged(uint8 instance)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
     Flexcan_Ip_StatusType status;
+
     status = FlexCAN_EnterFreezeMode(pBase);
     if (FLEXCAN_STATUS_SUCCESS == status)
     {
@@ -3738,6 +3898,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetStopMode_Privileged(uint8 instance)
     return status;
 }
 
+
 /*FUNCTION**********************************************************************
  *
  * Function Name : FlexCAN_Ip_SetRxMaskType
@@ -3750,11 +3911,14 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetStopMode_Privileged(uint8 instance)
 Flexcan_Ip_StatusType FlexCAN_Ip_SetRxMaskType_Privileged(uint8 instance, Flexcan_Ip_RxMaskType type)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    boolean freeze = FALSE;
+#endif
     boolean disabled = !FlexCAN_IsEnabled(pBase);
 
     if (TRUE == disabled)
@@ -3763,7 +3927,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetRxMaskType_Privileged(uint8 instance, Flexca
     }
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    boolean freeze = FlexCAN_IsFreezeMode(pBase);
+    freeze = FlexCAN_IsFreezeMode(pBase);
 
     if ((FALSE == freeze) && (FLEXCAN_STATUS_SUCCESS == result))
     {
@@ -3774,10 +3938,10 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetRxMaskType_Privileged(uint8 instance, Flexca
     if (FLEXCAN_STATUS_SUCCESS == result)
     {
         /* Start critical section: implementation depends on integrator */
-        SchM_Enter_Can_CAN_EXCLUSIVE_AREA_08();
+        SchM_Enter_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_08();
         FlexCAN_SetRxMaskType(pBase, type);
         /* End critical section: implementation depends on integrator */
-        SchM_Exit_Can_CAN_EXCLUSIVE_AREA_08();
+        SchM_Exit_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_08();
     }
 
     if (TRUE == disabled)
@@ -3806,14 +3970,18 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetRxMaskType_Privileged(uint8 instance, Flexca
 Flexcan_Ip_StatusType FlexCAN_Ip_SetBitrate_Privileged(uint8 instance, const Flexcan_Ip_TimeSegmentType * bitrate, boolean enhExt)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert(bitrate != NULL_PTR);
 #endif
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    boolean freeze = FALSE;
+#endif
     /* Check if the FlexCAN is enabled or not */
     boolean disabled = ((pBase->MCR & FLEXCAN_MCR_MDIS_MASK) != 0U) ? TRUE : FALSE;
+
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCE_CBT == STD_OFF)
     (void)enhExt;
 #endif
@@ -3823,7 +3991,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetBitrate_Privileged(uint8 instance, const Fle
     }
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
     /* Check if controller is in freeze mode or not */
-    boolean freeze = ((pBase->MCR & (FLEXCAN_MCR_FRZACK_MASK)) != 0U)? TRUE : FALSE;
+    freeze = ((pBase->MCR & (FLEXCAN_MCR_FRZACK_MASK)) != 0U)? TRUE : FALSE;
 
     if ((FALSE == freeze) && (FLEXCAN_STATUS_SUCCESS == result))
     {
@@ -3834,7 +4002,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetBitrate_Privileged(uint8 instance, const Fle
     if (FLEXCAN_STATUS_SUCCESS == result)
     {
         /* Start critical section: implementation depends on integrator */
-        SchM_Enter_Can_CAN_EXCLUSIVE_AREA_14();
+        SchM_Enter_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_14();
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCE_CBT == STD_ON)
         /* Enable the use of extended bit time definitions */
         FlexCAN_EnhCbtEnable(pBase, enhExt);
@@ -3857,7 +4025,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetBitrate_Privileged(uint8 instance, const Fle
             }
         }
         /* End critical section: implementation depends on integrator */
-        SchM_Exit_Can_CAN_EXCLUSIVE_AREA_14();
+        SchM_Exit_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_14();
     }
 
     if (TRUE == disabled)
@@ -3884,11 +4052,12 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetBitrate_Privileged(uint8 instance, const Fle
 boolean FlexCAN_Ip_GetBitrate(uint8 instance, Flexcan_Ip_TimeSegmentType * bitrate)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert(bitrate != NULL_PTR);
 #endif
     const FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
     boolean enhCbt = FALSE;
+
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCE_CBT == STD_ON)
     enhCbt = FlexCAN_IsEnhCbtEnabled(pBase);
     if (TRUE == enhCbt)
@@ -3923,11 +4092,12 @@ boolean FlexCAN_Ip_GetBitrate(uint8 instance, Flexcan_Ip_TimeSegmentType * bitra
 void FlexCAN_Ip_ClearTDCFail(uint8 u8Instance)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(u8Instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(u8Instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
-    FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[u8Instance];   
+    FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[u8Instance];
+
     /* Start critical section: implementation depends on integrator */
-    SchM_Enter_Can_CAN_EXCLUSIVE_AREA_09();
+    SchM_Enter_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_09();
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCE_CBT == STD_ON)
     /* Check if enhaced CBT is Enabled */
     if (TRUE == FlexCAN_IsEnhCbtEnabled(pBase))
@@ -3940,7 +4110,7 @@ void FlexCAN_Ip_ClearTDCFail(uint8 u8Instance)
         pBase->FDCTRL |= FLEXCAN_FDCTRL_TDCFAIL_MASK;
     }
     /* End critical section: implementation depends on integrator */
-    SchM_Exit_Can_CAN_EXCLUSIVE_AREA_09();
+    SchM_Exit_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_09();
 }
 
 /*FUNCTION**********************************************************************
@@ -3955,9 +4125,10 @@ boolean FlexCAN_Ip_GetTDCFail(uint8 u8Instance)
 {
     boolean value=FALSE;
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(u8Instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(u8Instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
-    const FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[u8Instance]; 
+    const FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[u8Instance];
+
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCE_CBT == STD_ON)
     /* Check if enhaced CBT is Enabled */
     if (TRUE == FlexCAN_IsEnhCbtEnabled(pBase))
@@ -3984,9 +4155,10 @@ uint8 FlexCAN_Ip_GetTDCValue(uint8 u8Instance)
 {
     uint8 value = 0;
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(u8Instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(u8Instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     const FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[u8Instance];
+
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCE_CBT == STD_ON)
     /* Check if enhaced CBT is Enabled */
     if (TRUE == FlexCAN_IsEnhCbtEnabled(pBase))
@@ -4015,12 +4187,15 @@ uint8 FlexCAN_Ip_GetTDCValue(uint8 u8Instance)
 Flexcan_Ip_StatusType FlexCAN_Ip_SetBitrateCbt_Privileged(uint8 instance, const Flexcan_Ip_TimeSegmentType * bitrate, boolean bitRateSwitch)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert(bitrate != NULL_PTR);
 #endif
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    boolean freeze = FALSE;
+#endif
     boolean fd_enable = FlexCAN_IsFDEnabled(pBase);
     /* Check if the FlexCAN is enabled or not */
     boolean disabled = ((pBase->MCR & FLEXCAN_MCR_MDIS_MASK) != 0U) ? TRUE : FALSE;
@@ -4033,7 +4208,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetBitrateCbt_Privileged(uint8 instance, const 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
 
     /* Check if controller is in freeze mode or not */
-    boolean freeze = ((pBase->MCR & (FLEXCAN_MCR_FRZACK_MASK)) != 0U)? TRUE : FALSE;
+    freeze = ((pBase->MCR & (FLEXCAN_MCR_FRZACK_MASK)) != 0U)? TRUE : FALSE;
 
     if ((FALSE == fd_enable) || ((FALSE == freeze) && (FLEXCAN_STATUS_SUCCESS == result)))
     {
@@ -4047,7 +4222,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetBitrateCbt_Privileged(uint8 instance, const 
         boolean enhCbt = FlexCAN_IsEnhCbtEnabled(pBase);
 #endif
         /* Start critical section: implementation depends on integrator */
-        SchM_Enter_Can_CAN_EXCLUSIVE_AREA_15();
+        SchM_Enter_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_15();
         FlexCAN_SetFDEnabled(pBase, fd_enable, bitRateSwitch);
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCE_CBT == STD_ON)
         if (TRUE == enhCbt)
@@ -4061,7 +4236,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetBitrateCbt_Privileged(uint8 instance, const 
             FlexCAN_SetFDTimeSegments(pBase, bitrate);
         }
         /* End critical section: implementation depends on integrator */
-        SchM_Exit_Can_CAN_EXCLUSIVE_AREA_15();
+        SchM_Exit_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_15();
     }
 
     if (TRUE == disabled)
@@ -4088,11 +4263,12 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetBitrateCbt_Privileged(uint8 instance, const 
 boolean FlexCAN_Ip_GetBitrateFD(uint8 instance, Flexcan_Ip_TimeSegmentType * bitrate)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert(bitrate != NULL_PTR);
 #endif
     const FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
     boolean enhCbt = FALSE;
+
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCE_CBT == STD_ON)
     enhCbt = FlexCAN_IsEnhCbtEnabled(pBase);
 
@@ -4120,11 +4296,14 @@ boolean FlexCAN_Ip_GetBitrateFD(uint8 instance, Flexcan_Ip_TimeSegmentType * bit
 Flexcan_Ip_StatusType FlexCAN_Ip_SetTDCOffset_Privileged(uint8 instance, boolean enable, uint8 offset)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    boolean freeze = FALSE;
+#endif
     boolean disabled = !FlexCAN_IsEnabled(pBase);
 
     if (TRUE == disabled)
@@ -4137,7 +4316,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetTDCOffset_Privileged(uint8 instance, boolean
     /* Check if the instance support FD capability */
     DevAssert(TRUE == FlexCAN_IsFDAvailable(pBase));
 #endif
-    boolean freeze = FlexCAN_IsFreezeMode(pBase);
+    freeze = FlexCAN_IsFreezeMode(pBase);
 
     if ((FALSE == freeze) && (FLEXCAN_STATUS_SUCCESS == result))
     {
@@ -4148,7 +4327,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetTDCOffset_Privileged(uint8 instance, boolean
     if (FLEXCAN_STATUS_SUCCESS == result)
     {
         /* Check if enhaced CBT is Enabled */
-        SchM_Enter_Can_CAN_EXCLUSIVE_AREA_16();
+        SchM_Enter_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_16();
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCE_CBT == STD_ON)
         /* End critical section: implementation depends on integrator */
         if (FLEXCAN_CTRL2_BTE_MASK == (pBase->CTRL2 & FLEXCAN_CTRL2_BTE_MASK))
@@ -4161,7 +4340,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetTDCOffset_Privileged(uint8 instance, boolean
             /* Enable/Disable TDC and set the TDC Offset */
             FlexCAN_SetTDCOffset(pBase, enable, offset);
         }
-        SchM_Exit_Can_CAN_EXCLUSIVE_AREA_16();
+        SchM_Exit_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_16();
         /* Check if enhaced CBT is Enabled */
     }
 
@@ -4188,11 +4367,14 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetTDCOffset_Privileged(uint8 instance, boolean
 Flexcan_Ip_StatusType FlexCAN_Ip_SetTxArbitrationStartDelay_Privileged(uint8 instance,  uint8 value)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    boolean freeze = FALSE;
+#endif
     boolean disabled = !FlexCAN_IsEnabled(pBase);
 
     if (TRUE == disabled)
@@ -4201,7 +4383,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetTxArbitrationStartDelay_Privileged(uint8 ins
     }
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    boolean freeze = FlexCAN_IsFreezeMode(pBase);
+    freeze = FlexCAN_IsFreezeMode(pBase);
 
     if ((FALSE == freeze) && (FLEXCAN_STATUS_SUCCESS == result))
     {
@@ -4212,10 +4394,10 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetTxArbitrationStartDelay_Privileged(uint8 ins
     if (FLEXCAN_STATUS_SUCCESS == result)
     {
         /* Start critical section: implementation depends on integrator */
-        SchM_Enter_Can_CAN_EXCLUSIVE_AREA_17();
+        SchM_Enter_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_17();
         FlexCAN_SetTxArbitrationStartDelay(pBase, value);
         /* End critical section: implementation depends on integrator */
-        SchM_Exit_Can_CAN_EXCLUSIVE_AREA_17();
+        SchM_Exit_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_17();
     }
 
     if (TRUE == disabled)
@@ -4240,11 +4422,12 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetTxArbitrationStartDelay_Privileged(uint8 ins
 /* implements FlexCAN_Ip_GetBuffStatusFlag_Activity */
 boolean FlexCAN_Ip_GetBuffStatusFlag(uint8 instance, uint8 msgBuffIdx)
 {
-    boolean returnResult = TRUE;
+    boolean returnResult;
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     const FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
+
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
     if (FLEXCAN_IP_MB_ENHANCED_RXFIFO == msgBuffIdx)
     {
@@ -4268,9 +4451,10 @@ boolean FlexCAN_Ip_GetBuffStatusFlag(uint8 instance, uint8 msgBuffIdx)
 void FlexCAN_Ip_ClearBuffStatusFlag(uint8 instance, uint8 msgBuffIdx)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
+
 #if (FLEXCAN_IP_FEATURE_HAS_ENHANCED_RX_FIFO == STD_ON)
     if (FLEXCAN_IP_MB_ENHANCED_RXFIFO == msgBuffIdx)
     {
@@ -4299,7 +4483,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_EnableInterrupts_Privileged(uint8 u8Instance)
     Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[u8Instance];
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(u8Instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(u8Instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
 
     if (TRUE == FlexCAN_IsEnabled(pBase))
@@ -4335,7 +4519,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_DisableInterrupts_Privileged(uint8 u8Instance)
     Flexcan_Ip_StateType * state = Flexcan_Ip_apxState[u8Instance];
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(u8Instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(u8Instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
 
     if (TRUE == FlexCAN_IsEnabled(pBase))
@@ -4367,7 +4551,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_DisableInterrupts_Privileged(uint8 u8Instance)
 Flexcan_Ip_StatusType FlexCAN_Ip_SetErrorInt_Privileged(uint8 u8Instance, Flexcan_Ip_ErrorIntType type, boolean enable)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(u8Instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(u8Instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
@@ -4460,7 +4644,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetErrorInt_Privileged(uint8 u8Instance, Flexca
 Flexcan_Ip_StatusType FlexCAN_Ip_AbortTransfer(uint8 u8Instance, uint8 mb_idx)
 {
     #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-        DevAssert(u8Instance < FLEXCAN_INSTANCE_COUNT);
+        DevAssert(u8Instance < FLEXCAN_IP_INSTANCE_COUNT);
         DevAssert((mb_idx < (uint8)FLEXCAN_IP_FEATURE_MAX_MB_NUM) || (255u == mb_idx));
     #endif
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[u8Instance];
@@ -4525,7 +4709,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_AbortTransfer(uint8 u8Instance, uint8 mb_idx)
 Flexcan_Ip_StatusType FlexCAN_Ip_SetRxMb14Mask_Privileged(uint8 instance, uint32 mask)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
@@ -4567,7 +4751,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetRxMb14Mask_Privileged(uint8 instance, uint32
 Flexcan_Ip_StatusType FlexCAN_Ip_SetRxMb15Mask_Privileged(uint8 instance, uint32 mask)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
@@ -4617,11 +4801,14 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetRxMb15Mask_Privileged(uint8 instance, uint32
 Flexcan_Ip_StatusType FlexCAN_Ip_SetListenOnlyMode_Privileged(uint8 instance, const boolean enable)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    boolean freeze = FALSE;
+#endif
     boolean disabled = !FlexCAN_IsEnabled(pBase);
 
     if (TRUE == disabled)
@@ -4630,7 +4817,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetListenOnlyMode_Privileged(uint8 instance, co
     }
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    boolean freeze = FlexCAN_IsFreezeMode(pBase);
+    freeze = FlexCAN_IsFreezeMode(pBase);
 
     if ((FALSE == freeze) && (FLEXCAN_STATUS_SUCCESS == result))
     {
@@ -4641,10 +4828,10 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetListenOnlyMode_Privileged(uint8 instance, co
     if (FLEXCAN_STATUS_SUCCESS == result)
     {
         /* Start critical section: implementation depends on integrator */
-        SchM_Enter_Can_CAN_EXCLUSIVE_AREA_10();
+        SchM_Enter_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_10();
         FlexCAN_SetListenOnlyMode(pBase, enable);
         /* End critical section: implementation depends on integrator */
-        SchM_Exit_Can_CAN_EXCLUSIVE_AREA_10();
+        SchM_Exit_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_10();
     }
 
     if (TRUE == disabled)
@@ -4669,6 +4856,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_SetListenOnlyMode_Privileged(uint8 instance, co
 boolean FlexCAN_Ip_GetListenOnlyMode(uint8 instance)
 {
     const FLEXCAN_Type * base = Flexcan_Ip_apxBase[instance];
+
     return FlexCAN_IsListenOnlyModeEnabled(base);
 }
 
@@ -4683,11 +4871,14 @@ boolean FlexCAN_Ip_GetListenOnlyMode(uint8 instance)
 Flexcan_Ip_StatusType FlexCAN_Ip_ConfigTimeStamp_Privileged(uint8 instance, const Flexcan_Ip_TimeStampConfigType * time_stamp)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[instance];
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    boolean freeze = FALSE;
+#endif
     boolean disabled = !FlexCAN_IsEnabled(pBase);
 
     if (TRUE == disabled)
@@ -4696,7 +4887,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ConfigTimeStamp_Privileged(uint8 instance, cons
     }
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    boolean freeze = FlexCAN_IsFreezeMode(pBase);
+    freeze = FlexCAN_IsFreezeMode(pBase);
 
     if ((FALSE == freeze) && (FLEXCAN_STATUS_SUCCESS == result))
     {
@@ -4706,7 +4897,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ConfigTimeStamp_Privileged(uint8 instance, cons
 
     if (FLEXCAN_STATUS_SUCCESS == result)
     {
-        FlexCAN_ConfigTimestamp(pBase, time_stamp);
+        FlexCAN_ConfigTimestamp(instance, pBase, time_stamp);
     }
 
     if (TRUE == disabled)
@@ -4737,10 +4928,13 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ConfigPN_Privileged(uint8 u8Instance,
     Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
     Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[u8Instance];
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    boolean freeze = FALSE;
+#endif
     boolean disabled = !FlexCAN_IsEnabled(pBase);
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(u8Instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(u8Instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert((FALSE == bEnable) || (pPnConfig != NULL_PTR));
 #endif
 
@@ -4752,7 +4946,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ConfigPN_Privileged(uint8 u8Instance,
         }
 
     #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-        boolean freeze = FlexCAN_IsFreezeMode(pBase);
+        freeze = FlexCAN_IsFreezeMode(pBase);
 
         if ((FALSE == freeze) && (FLEXCAN_STATUS_SUCCESS == result))
         {
@@ -4766,9 +4960,9 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ConfigPN_Privileged(uint8 u8Instance,
             {
                 FlexCAN_ConfigPN(pBase, pPnConfig);
             }
-            SchM_Enter_Can_CAN_EXCLUSIVE_AREA_12();
+            SchM_Enter_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_12();
             FlexCAN_SetPN(pBase, bEnable);
-            SchM_Exit_Can_CAN_EXCLUSIVE_AREA_12();
+            SchM_Exit_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_12();
         }
 
         if (TRUE == disabled)
@@ -4800,7 +4994,7 @@ void FlexCAN_Ip_GetWMB(uint8 u8Instance,
                         Flexcan_Ip_MsgBuffType * pWmb)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(u8Instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(u8Instance < FLEXCAN_IP_INSTANCE_COUNT);
     DevAssert(pWmb != NULL_PTR);
     DevAssert(0U == u8Instance);
 #endif
@@ -4839,27 +5033,24 @@ void FlexCAN_Ip_GetWMB(uint8 u8Instance,
  * If no any events processed, this function will return FALSE
  *
  *END**************************************************************************/
-boolean FlexCAN_WakeUp_IRQHandler(uint8 u8Instance)
+void FlexCAN_WakeUp_IRQHandler(uint8 u8Instance)
 {
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(u8Instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(u8Instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
     FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[u8Instance];
     const Flexcan_Ip_StateType * pState = Flexcan_Ip_apxState[u8Instance];
-    
-    boolean IsSpuriousInt = TRUE;
-    
+
     if (NULL_PTR != pState)
     {
         if (FlexCAN_GetWTOF(pBase) != 0U)
-        {   
+        {
             FlexCAN_ClearWTOF(pBase);
             /* Invoke callback */
             if ((0U != FlexCAN_GetWTOIE(pBase)) && (pState->callback != NULL_PTR))
             {
                 pState->callback(u8Instance, FLEXCAN_EVENT_WAKEUP_TIMEOUT, 0U, pState);
             }
-            IsSpuriousInt = FALSE;
         }
 
         if (FlexCAN_GetWUMF(pBase) != 0U)
@@ -4870,7 +5061,6 @@ boolean FlexCAN_WakeUp_IRQHandler(uint8 u8Instance)
             {
                 pState->callback(u8Instance, FLEXCAN_EVENT_WAKEUP_MATCH, 0U, pState);
             }
-            IsSpuriousInt = FALSE;
         }
     }
     else
@@ -4878,8 +5068,6 @@ boolean FlexCAN_WakeUp_IRQHandler(uint8 u8Instance)
         FlexCAN_ClearWTOF(pBase);
         FlexCAN_ClearWUMF(pBase);
     }
-    
-    return !IsSpuriousInt;
 }
 
 #endif /* FLEXCAN_IP_FEATURE_HAS_PRETENDED_NETWORKING */
@@ -4900,7 +5088,7 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ManualBusOffRecovery(uint8 Instance)
     Flexcan_Ip_StatusType RetVal = FLEXCAN_STATUS_ERROR;
 
 #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
-    DevAssert(Instance < FLEXCAN_INSTANCE_COUNT);
+    DevAssert(Instance < FLEXCAN_IP_INSTANCE_COUNT);
 #endif
 
     /* Recover from bus-off when Automatic recovering from Bus Off state disabled. */
@@ -4910,12 +5098,12 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ManualBusOffRecovery(uint8 Instance)
         /* return success if the controller is not in bus-off */
         if ((Base->ESR1 & FLEXCAN_IP_ESR1_FLTCONF_BUS_OFF) != 0U)
         {
-            SchM_Enter_Can_CAN_EXCLUSIVE_AREA_20();
+            SchM_Enter_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_20();
             /* negate to recover from bus-off */
             Base->CTRL1 &= ~FLEXCAN_CTRL1_BOFFREC_MASK;
             /* re-assert to disable bus-off auto reocvery */
             Base->CTRL1 |= FLEXCAN_CTRL1_BOFFREC_MASK;
-            SchM_Exit_Can_CAN_EXCLUSIVE_AREA_20();
+            SchM_Exit_Can_43_FLEXCAN_CAN_EXCLUSIVE_AREA_20();
             /* Wait till exit bus-off */
             timeStart = OsIf_GetCounter(FLEXCAN_IP_SERVICE_TIMEOUT_TYPE);
 
@@ -4934,8 +5122,410 @@ Flexcan_Ip_StatusType FlexCAN_Ip_ManualBusOffRecovery(uint8 Instance)
     return RetVal;
 }
 
-#define CAN_STOP_SEC_CODE
-#include "Can_MemMap.h"
+#if (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON)
+#if (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON)
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : FlexCAN_MemError_IRQHandler
+ * Description   : Memory error detection and correction interrupt handler for FLEXCAN.
+ * This handler only provides a error status report and invokes the user callback,
+ * and then clears the interrupt flags.
+ * This is not a public API as it is called whenever an interrupt occurs.
+ *
+ *END**************************************************************************/
+/* implements  CAN_X_MEMERROR_ISR_Activity */
+void FlexCAN_MemError_IRQHandler(uint8 Instance)
+{
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    DevAssert(Instance < FLEXCAN_IP_INSTANCE_COUNT);
+#endif
+    FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[Instance];
+    Flexcan_Ip_StateType * pState = Flexcan_Ip_apxState[Instance];
+    uint32 u32ErrStatus;
+
+    /* Check if FlexCAN instance is already initialized */
+    if (NULL_PTR != pState)
+    {
+        /* Get all error status value */
+        u32ErrStatus = pBase->ERRSR;
+        /* Check spurious interrupt */
+        if (((uint32)0U != (u32ErrStatus & ((uint32)FLEXCAN_ERRSR_ERROR_FLAG_MASK))) && (0U != (pBase->MECR & ((uint32)FLEXCAN_MECR_ERROR_INT_MASK))))
+        {
+            /* store error status */
+            pState->u32MemErrorStatus = u32ErrStatus;
+            /* clear all error interrupt and error overrun flags */
+            pBase->ERRSR = (FLEXCAN_ERRSR_ERROR_FLAG_MASK | FLEXCAN_ERRSR_OVERRUN_FLAG_MASK);
+            /* Invoke callback */
+            if (pState->error_callback != NULL_PTR)
+            {
+                pState->error_callback(Instance, FLEXCAN_EVENT_MEM_ERROR_DETECT, u32ErrStatus, pState);
+            }
+        }
+    }
+    else
+    {
+        /* clear all error interrupt and error overrun flags */
+        pBase->ERRSR = (FLEXCAN_ERRSR_ERROR_FLAG_MASK | FLEXCAN_ERRSR_OVERRUN_FLAG_MASK);
+    }
+}
+
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : FlexCAN_Ip_SetMemErrorDetection
+ * Description   : Set Memory Error Detection and Correction in FlexCAN memory.
+ * Note: All FlexCAN memory must be initialized first by calling FlexCAN_Ip_Init.
+ *
+ *END**************************************************************************/
+/* implements  FlexCAN_Ip_SetMemErrorDetection_Activity */
+Flexcan_Ip_StatusType FlexCAN_Ip_SetMemErrorDetection(uint8 Instance, boolean IsEnable)
+{
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    DevAssert(Instance < FLEXCAN_IP_INSTANCE_COUNT);
+#endif
+    FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[Instance];
+    const Flexcan_Ip_StateType * pState = Flexcan_Ip_apxState[Instance];
+    Flexcan_Ip_StatusType RetVal = FLEXCAN_STATUS_ERROR;
+    boolean isFreezeMode;
+
+    /* Check if FlexCAN instance is already initialized.
+    This guarantees the FlexCAN memory is ready to update the parity bits in memory properly
+    and memory error detection and correction is reliable */
+    if (NULL_PTR != pState)
+    {
+
+        if (TRUE == IsEnable)
+        {
+            /* check the response when non-correctable error detected */
+            if (FLEXCAN_FREEZE_MODE == pState->flexcanModeErrResponse)
+            {
+                isFreezeMode = TRUE;
+            }
+            else
+            {
+                isFreezeMode = FALSE;
+            }
+            FlexCAN_EnableMemErrorDetection(pBase, isFreezeMode);
+        }
+        else
+        {
+            FlexCAN_DisableMemErrorDetection(pBase);
+        }
+        RetVal = FLEXCAN_STATUS_SUCCESS;
+    }
+
+    return RetVal;
+}
+
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : FlexCAN_Ip_SetMemErrorDetectionInt
+ * Description   : Set Memory Error Detection and Correction interrupt for corresponding error source.
+ *
+ *END**************************************************************************/
+/* implements  FlexCAN_Ip_SetMemErrorDetectionInt_Activity */
+Flexcan_Ip_StatusType FlexCAN_Ip_SetMemErrorDetectionInt_Privileged(uint8 Instance,
+                                                                    Flexcan_Ip_ErrorDetectionType ErrorType,
+                                                                    boolean IsEnable)
+{
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    DevAssert(Instance < FLEXCAN_IP_INSTANCE_COUNT);
+#endif
+    FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[Instance];
+    Flexcan_Ip_StatusType result = FLEXCAN_STATUS_SUCCESS;
+    Flexcan_Ip_StatusType status = FLEXCAN_STATUS_SUCCESS;
+    boolean disabled = !FlexCAN_IsEnabled(pBase);
+    boolean bErrCfgEnabled, bErrDetEnabled;
+
+    if (TRUE == disabled)
+    {
+        result = FlexCAN_Enable(pBase);
+    }
+
+    if (FLEXCAN_STATUS_SUCCESS == result)
+    {
+        /* check if error correction configuration register write and error configuration register write enable */
+        bErrCfgEnabled = FlexCAN_HasMemErrorConfigureEnable(pBase);
+        /* check if error detection and correction mechanism is enabled */
+        bErrDetEnabled = FlexCAN_IsMemErrorDetectionEnabled(pBase);
+        if (bErrCfgEnabled && bErrDetEnabled)
+        {
+            switch (ErrorType)
+            {
+                case FLEXCAN_HOST_ACCESS_ERROR:
+                    FlexCAN_SetMemErrorDetectionIntCmd(pBase, FLEXCAN_INT_HOST_ACCESS_ERROR, IsEnable);
+                    break;
+                case FLEXCAN_FLEXCAN_ACCESS_ERROR:
+                    FlexCAN_SetMemErrorDetectionIntCmd(pBase, FLEXCAN_INT_FLEXCAN_ACCESS_ERROR, IsEnable);
+                    break;
+                case FLEXCAN_CORRECTABLE_ERROR:
+                    FlexCAN_SetMemErrorDetectionIntCmd(pBase, FLEXCAN_INT_CORRECTABLE_ERROR, IsEnable);
+                    break;
+                case FLEXCAN_ALL_ECC_ERROR:
+                    FlexCAN_SetMemErrorDetectionIntCmd(pBase, FLEXCAN_INT_ALL_ECC_ERROR, IsEnable);
+                    break;
+                default:
+                    /* nothing */
+                    #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+                        DevAssert(FALSE);
+                    #endif
+                    break;
+            }
+        }
+        else
+        {
+            result = FLEXCAN_STATUS_ERROR;
+        }
+    }
+
+    if (TRUE == disabled)
+    {
+        status = FlexCAN_Disable(pBase);
+        if (FLEXCAN_STATUS_SUCCESS != status)
+        {
+            result = status;
+        }
+    }
+
+    return result;
+}
+
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : FlexCAN_Ip_SetMemErrorInjection
+ * Description   : Set Memory Error Injection for corresponding error source.
+ *
+ *END**************************************************************************/
+/* implements  FlexCAN_Ip_SetMemErrorInjection_Activity */
+Flexcan_Ip_StatusType FlexCAN_Ip_SetMemErrorInjection(uint8 Instance,
+                                                      Flexcan_Ip_MemErrorInjectionType * MemErrorInjection,
+                                                      boolean IsEnable)
+{
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    DevAssert(Instance < FLEXCAN_IP_INSTANCE_COUNT);
+    DevAssert(MemErrorInjection != NULL_PTR);
+#endif
+    FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[Instance];
+    Flexcan_Ip_StatusType RetVal = FLEXCAN_STATUS_SUCCESS;
+    boolean bErrCfgEnabled, bErrDetEnabled;
+
+    /* check if error correction configuration register write and error configuration register write enable */
+    bErrCfgEnabled = FlexCAN_HasMemErrorConfigureEnable(pBase);
+    /* check if error detection and correction mechanism is enabled */
+    bErrDetEnabled = FlexCAN_IsMemErrorDetectionEnabled(pBase);
+    if (bErrCfgEnabled && bErrDetEnabled)
+    {
+        if(TRUE == IsEnable)
+        {
+            /* disable all error injection is required before setting error information */
+            FlexCAN_SetMemErrorInjectionCmd(pBase, FLEXCAN_INJECT_HOST_ACCESS_ERROR, FALSE);
+            FlexCAN_SetMemErrorInjectionCmd(pBase, FLEXCAN_INJECT_FLEXCAN_ACCESS_ERROR, FALSE);
+            FlexCAN_SetMemErrorInjectionCmd(pBase, FLEXCAN_INJECT_EXTENDED_FLEXCAN_ACCESS_ERROR, FALSE);
+            /* set error injection information */
+            FlexCAN_SetMemErrorInjectionInfo(pBase,
+                                            MemErrorInjection->u32InjectionAddr,
+                                            MemErrorInjection->u32InjectionData,
+                                            MemErrorInjection->u32InjectionParity);
+            /* enable specific error injection */
+            switch (MemErrorInjection->eErrorInjection)
+            {
+                case FLEXCAN_HOST_ACCESS_ERROR_INJECTION:
+                    FlexCAN_SetMemErrorInjectionCmd(pBase, FLEXCAN_INJECT_HOST_ACCESS_ERROR, TRUE);
+                    break;
+                case FLEXCAN_FLEXCAN_ACCESS_ERROR_INJECTION:
+                    FlexCAN_SetMemErrorInjectionCmd(pBase, FLEXCAN_INJECT_FLEXCAN_ACCESS_ERROR, TRUE);
+                    break;
+                case FLEXCAN_EXTENDED_FLEXCAN_ACCESS_ERROR_INJECTION:
+                    FlexCAN_SetMemErrorInjectionCmd(pBase, FLEXCAN_INJECT_EXTENDED_FLEXCAN_ACCESS_ERROR, TRUE);
+                    break;
+                default:
+                    /* nothing */
+                    #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+                        DevAssert(FALSE);
+                    #endif
+                    break;
+            }
+        }
+        else
+        {
+            (void)MemErrorInjection->u32InjectionAddr;
+            (void)MemErrorInjection->u32InjectionData;
+            (void)MemErrorInjection->u32InjectionParity;
+
+            switch (MemErrorInjection->eErrorInjection)
+            {
+                case FLEXCAN_HOST_ACCESS_ERROR_INJECTION:
+                    FlexCAN_SetMemErrorInjectionCmd(pBase, FLEXCAN_INJECT_HOST_ACCESS_ERROR, FALSE);
+                    break;
+                case FLEXCAN_FLEXCAN_ACCESS_ERROR_INJECTION:
+                    FlexCAN_SetMemErrorInjectionCmd(pBase, FLEXCAN_INJECT_FLEXCAN_ACCESS_ERROR, FALSE);
+                    break;
+                case FLEXCAN_EXTENDED_FLEXCAN_ACCESS_ERROR_INJECTION:
+                    FlexCAN_SetMemErrorInjectionCmd(pBase, FLEXCAN_INJECT_EXTENDED_FLEXCAN_ACCESS_ERROR, FALSE);
+                    break;
+                default:
+                    /* nothing */
+                    #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+                        DevAssert(FALSE);
+                    #endif
+                    break;
+            }
+        }
+    }
+    else
+    {
+        RetVal = FLEXCAN_STATUS_ERROR;
+    }
+
+    return RetVal;
+}
+
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : FlexCAN_Ip_MainFunctionMemErrorDetection
+ * Description   : Check the memory error occurred and detected by FlexCAN hardware.
+ *
+ *END**************************************************************************/
+/* implements  FlexCAN_Ip_MainFunctionMemErrorDetection_Activity */
+Flexcan_Ip_StatusType FlexCAN_Ip_MainFunctionMemErrorDetection(uint8 Instance)
+{
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    DevAssert(Instance < FLEXCAN_IP_INSTANCE_COUNT);
+#endif
+    FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[Instance];
+    Flexcan_Ip_StateType * pState = Flexcan_Ip_apxState[Instance];
+    Flexcan_Ip_StatusType RetVal = FLEXCAN_STATUS_ERROR;
+    uint32 u32ErrStatus;
+    boolean bErrDetEnabled;
+
+    /* check if error detection and correction mechanism is enabled */
+    bErrDetEnabled = FlexCAN_IsMemErrorDetectionEnabled(pBase);
+    if (TRUE == bErrDetEnabled)
+    {
+        /* Get all error status value */
+        u32ErrStatus = pBase->ERRSR;
+        /* Check if memory error occurred and detected */
+        if ((uint32)0U != u32ErrStatus)
+        {
+        #if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+            if (NULL_PTR != pState)
+        #endif
+            {
+                /* store error status */
+                pState->u32MemErrorStatus = u32ErrStatus;
+                /* clear all error interrupt and error overrun flags */
+                pBase->ERRSR = (FLEXCAN_ERRSR_ERROR_FLAG_MASK | FLEXCAN_ERRSR_OVERRUN_FLAG_MASK);
+                /* Invoke callback */
+                if (pState->error_callback != NULL_PTR)
+                {
+                    pState->error_callback(Instance, FLEXCAN_EVENT_MEM_ERROR_DETECT, u32ErrStatus, pState);
+                }
+
+                RetVal = FLEXCAN_STATUS_SUCCESS;
+            }
+        }
+    }
+
+    return RetVal;
+}
+
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : FlexCAN_Ip_ReadMemErrorReport
+ * Description   : Read Memory Error Report.
+ *
+ *END**************************************************************************/
+/* implements  FlexCAN_Ip_ReadMemErrorReport_Activity */
+Flexcan_Ip_StatusType FlexCAN_Ip_ReadMemErrorReport(uint8 Instance, Flexcan_Ip_MemErrorReportType * ErrorReport)
+{
+#if (FLEXCAN_IP_DEV_ERROR_DETECT == STD_ON)
+    DevAssert(Instance < FLEXCAN_IP_INSTANCE_COUNT);
+    DevAssert(ErrorReport != NULL_PTR);
+#endif
+    FLEXCAN_Type * pBase = Flexcan_Ip_apxBase[Instance];
+    Flexcan_Ip_StateType * pState = Flexcan_Ip_apxState[Instance];
+    Flexcan_Ip_StatusType RetVal = FLEXCAN_STATUS_ERROR;
+    uint32 u32ErrStatus;
+    uint32 reportAddr, reportData, reportSyndrome;
+
+    if (NULL_PTR != pState)
+    {
+        /* check if error was detected */
+        u32ErrStatus = pState->u32MemErrorStatus;
+        if ((uint32)0U != u32ErrStatus)
+        {
+            /* Disable error report to assure coherence on the consecutive register reads */
+            /* todo: analyze if need to disable ECC instead of only disable error report */
+            pBase->MECR |= FLEXCAN_MECR_RERRDIS(1);
+            /* read reported error data */
+            FlexCAN_ReadReportError(pBase, &reportAddr, &reportData, &reportSyndrome);
+            /* Re-enable error report */
+            /* todo: in case disable ECC above then enable it again */
+            pBase->MECR &= ~FLEXCAN_MECR_RERRDIS_MASK;
+
+            /* starting extract error information. */
+            /* the user pointer that point to where the error infor will be stored is passed to driver state infor.
+               the application can get error infor from user pointer or via state.pMemErrorReport */
+            pState->pMemErrorReport = ErrorReport;
+
+            /* get error overrun flags */
+            pState->pMemErrorReport->u8ErrOvrIndication = (uint8)(u32ErrStatus & FLEXCAN_ERRSR_OVERRUN_FLAG_MASK);
+            /* extract non-correctable error type */
+            if ((uint32)0U != (reportAddr & FLEXCAN_RERRAR_NCE_MASK))
+            {
+                if (((uint32)4U == ((reportAddr & FLEXCAN_RERRAR_SAID_MASK) >> FLEXCAN_RERRAR_SAID_SHIFT)) && ((uint32)0U != (u32ErrStatus & FLEXCAN_ERRSR_HANCEIF_MASK)))
+                {
+                    pState->pMemErrorReport->errReportType = FLEXCAN_HOST_ACCESS_ERROR;
+                    /* extract Source of memory access */
+                    /* SAID = 4 Move-out host access */
+                    pState->pMemErrorReport->u8ErrSrcIndication = (uint8)4U;
+                }
+                else if (((uint32)4U > ((reportAddr & FLEXCAN_RERRAR_SAID_MASK) >> FLEXCAN_RERRAR_SAID_SHIFT)) && ((uint32)0U != (u32ErrStatus & FLEXCAN_ERRSR_FANCEIF_MASK)))
+                {
+                    pState->pMemErrorReport->errReportType = FLEXCAN_FLEXCAN_ACCESS_ERROR;
+                    /* extract Source of memory access */
+                    /* SAID = 0 Move-out FlexCAN access
+                              1 Move-in
+                              2 TX arbitration
+                              3 RX matching */
+                    pState->pMemErrorReport->u8ErrSrcIndication = (uint8)((reportAddr & FLEXCAN_RERRAR_SAID_MASK) >> FLEXCAN_RERRAR_SAID_SHIFT);
+                }
+                else
+                {
+                    /* nothing */
+                }
+            }
+            else
+            {
+                /* extract correctable error type */
+                if ((uint32)0U != (u32ErrStatus & FLEXCAN_ERRSR_CEIF_MASK))
+                {
+                    pState->pMemErrorReport->errReportType = FLEXCAN_CORRECTABLE_ERROR;
+                    /* extract Source of memory access */
+                    pState->pMemErrorReport->u8ErrSrcIndication = (uint8)((reportAddr & FLEXCAN_RERRAR_SAID_MASK) >> FLEXCAN_RERRAR_SAID_SHIFT);
+                }
+            }
+            /* extract error address */
+            pState->pMemErrorReport->u16ReportAddr = (uint16)(reportAddr & FLEXCAN_RERRAR_ERRADDR_MASK);
+            /* get error data */
+            pState->pMemErrorReport->u32ReportData = reportData;
+            /* get error syndrome */
+            pState->pMemErrorReport->u32ReportSyndrome = reportSyndrome;
+
+            /* clear error status storage to prepare for the next handling */
+            pState->u32MemErrorStatus = 0U;
+
+            RetVal = FLEXCAN_STATUS_SUCCESS;
+        }
+    }
+
+    return RetVal;
+}
+
+#endif /* (FLEXCAN_IP_FEATURE_MEM_ERR_DET_ENABLED == STD_ON) */
+#endif /* (FLEXCAN_IP_FEATURE_HAS_MEM_ERR_DET == STD_ON) */
+
+#define CAN_43_FLEXCAN_STOP_SEC_CODE
+#include "Can_43_FLEXCAN_MemMap.h"
 
 #ifdef __cplusplus
 }

@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : GMAC
 *   Dependencies         : none
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -50,9 +49,9 @@ extern "C" {
 ==================================================================================================*/
 #define GMAC_IP_VENDOR_ID                      43
 #define GMAC_IP_AR_RELEASE_MAJOR_VERSION       4
-#define GMAC_IP_AR_RELEASE_MINOR_VERSION       4
+#define GMAC_IP_AR_RELEASE_MINOR_VERSION       7
 #define GMAC_IP_AR_RELEASE_REVISION_VERSION    0
-#define GMAC_IP_SW_MAJOR_VERSION               2
+#define GMAC_IP_SW_MAJOR_VERSION               5
 #define GMAC_IP_SW_MINOR_VERSION               0
 #define GMAC_IP_SW_PATCH_VERSION               0
 
@@ -65,12 +64,14 @@ extern "C" {
 #endif
 #if (( GMAC_IP_AR_RELEASE_MAJOR_VERSION    != GMAC_IP_TYPES_AR_RELEASE_MAJOR_VERSION) || \
      ( GMAC_IP_AR_RELEASE_MINOR_VERSION    != GMAC_IP_TYPES_AR_RELEASE_MINOR_VERSION) || \
-     ( GMAC_IP_AR_RELEASE_REVISION_VERSION != GMAC_IP_TYPES_AR_RELEASE_REVISION_VERSION))
+     ( GMAC_IP_AR_RELEASE_REVISION_VERSION != GMAC_IP_TYPES_AR_RELEASE_REVISION_VERSION) \
+    )
      #error "AUTOSAR Version Numbers of Gmac_Ip.h and Gmac_Ip_Types.h are different"
 #endif
 #if (( GMAC_IP_SW_MAJOR_VERSION != GMAC_IP_TYPES_SW_MAJOR_VERSION) || \
      ( GMAC_IP_SW_MINOR_VERSION != GMAC_IP_TYPES_SW_MINOR_VERSION) || \
-     ( GMAC_IP_SW_PATCH_VERSION != GMAC_IP_TYPES_SW_PATCH_VERSION))
+     ( GMAC_IP_SW_PATCH_VERSION != GMAC_IP_TYPES_SW_PATCH_VERSION)    \
+    )
     #error "Software Version Numbers of Gmac_Ip.h and Gmac_Ip_Types.h are different"
 #endif
 
@@ -80,12 +81,14 @@ extern "C" {
 #endif
 #if (( GMAC_IP_AR_RELEASE_MAJOR_VERSION    != GMAC_IP_CFG_AR_RELEASE_MAJOR_VERSION) || \
      ( GMAC_IP_AR_RELEASE_MINOR_VERSION    != GMAC_IP_CFG_AR_RELEASE_MINOR_VERSION) || \
-     ( GMAC_IP_AR_RELEASE_REVISION_VERSION != GMAC_IP_CFG_AR_RELEASE_REVISION_VERSION))
+     ( GMAC_IP_AR_RELEASE_REVISION_VERSION != GMAC_IP_CFG_AR_RELEASE_REVISION_VERSION) \
+    )
      #error "AUTOSAR Version Numbers of Gmac_Ip.h and Gmac_Ip_Cfg.h are different"
 #endif
 #if (( GMAC_IP_SW_MAJOR_VERSION != GMAC_IP_CFG_SW_MAJOR_VERSION) || \
      ( GMAC_IP_SW_MINOR_VERSION != GMAC_IP_CFG_SW_MINOR_VERSION) || \
-     ( GMAC_IP_SW_PATCH_VERSION != GMAC_IP_CFG_SW_PATCH_VERSION))
+     ( GMAC_IP_SW_PATCH_VERSION != GMAC_IP_CFG_SW_PATCH_VERSION)    \
+    )
     #error "Software Version Numbers of Gmac_Ip.h and Gmac_Ip_Cfg.h are different"
 #endif
 
@@ -93,19 +96,19 @@ extern "C" {
 /*******************************************************************************
  * GLOBAL VARIABLE DECLARATIONS
  ******************************************************************************/
-#define ETH_START_SEC_CONFIG_DATA_UNSPECIFIED
-#include "Eth_MemMap.h"
+#define ETH_43_GMAC_START_SEC_CONFIG_DATA_UNSPECIFIED
+#include "Eth_43_GMAC_MemMap.h"
 
 GMAC_CONFIG_EXT
 
-#define ETH_STOP_SEC_CONFIG_DATA_UNSPECIFIED
-#include "Eth_MemMap.h"
+#define ETH_43_GMAC_STOP_SEC_CONFIG_DATA_UNSPECIFIED
+#include "Eth_43_GMAC_MemMap.h"
 
 /*******************************************************************************
  * API
  ******************************************************************************/
-#define ETH_START_SEC_CODE
-#include "Eth_MemMap.h"
+#define ETH_43_GMAC_START_SEC_CODE
+#include "Eth_43_GMAC_MemMap.h"
 
 /*!
  * @name Initialization and De-initialization
@@ -141,6 +144,17 @@ Gmac_Ip_StatusType Gmac_Ip_Init(uint8 Instance,
 void Gmac_Ip_Deinit(uint8 Instance);
 
 /*!
+ * @brief Enables/Disables time gate scheduling feature.
+ *
+ * @param[in]  CtrlIndex Instance number
+ * @param[in]  Enable  TRUE -> time gate scheduling will be enabled;
+ *                     FALSE-> time gate scheduling will be disabled;
+ * @return Gmac_Ip_StatusType GMAC_STATUS_SUCCESS - successfully operation
+ *                            GMAC_STATUS_ERROR - fail to enable time gating because Operational gate control list is active
+ */
+Gmac_Ip_StatusType Gmac_Ip_EnableTimeGateScheduling(uint8 Instance, const boolean Enable);
+
+/*!
  * @brief Gets the current power state of the GMAC module
  *
  * @param[in] instance Instance number
@@ -170,8 +184,8 @@ void Gmac_Ip_EnableController(uint8 Instance);
  *
  * @param[in] instance   Instance number
  *
- * @retval GMAC_STATUS_SUCCESS Tthe controller was successfully disabled.
- * @retval GMAC_STATUS_TIMEOUT Tthe underlying MTL queues could not be flushed.
+ * @retval GMAC_STATUS_SUCCESS The controller was successfully disabled.
+ * @retval GMAC_STATUS_TIMEOUT The underlying MTL queues could not be flushed.
  */
 Gmac_Ip_StatusType Gmac_Ip_DisableController(uint8 Instance);
 
@@ -188,7 +202,7 @@ void Gmac_Ip_SetSpeed(uint8 Instance, Gmac_Ip_SpeedType Speed);
  *
  * This function provides an internal buffer which can further be used by the application
  * to store the transmit data.
- * 
+ *
  * Note: The buffer will be marked as locked and won't be released until after a call to
  * Gmac_Ip_GetTransmitStatus for the same buffer returns GMAC_STATUS_SUCCESS.
  *
@@ -202,7 +216,7 @@ void Gmac_Ip_SetSpeed(uint8 Instance, Gmac_Ip_SpeedType Speed);
  *                       Out: Buffer containing the granted length or available length in case of overflow.
  * @param[out]    buffId Index of the buffer (descriptor) within the ring.
  *                       If this information is not needed, this parameter should be NULL_PTR.
- * @retval GMAC_STATUS_SUCCESS The buffer has been succesfully locked.
+ * @retval GMAC_STATUS_SUCCESS The buffer has been successfully locked.
  * @retval GMAC_STATUS_TX_BUFF_BUSY All buffers are currently in use.
  * @retval GMAC_STATUS_TX_BUFF_OVERFLOW The requested buffer length cannot be granted.
  */
@@ -264,6 +278,35 @@ Gmac_Ip_StatusType Gmac_Ip_SendMultiBufferFrame(uint8 Instance,
                                                 const Gmac_Ip_BufferType Buffers[],
                                                 const Gmac_Ip_TxOptionsType *Options,
                                                 uint32 NumBuffers);
+
+/*!
+ * @brief Provides a transmit buffer to be used by the application for transmission.
+ *
+ * This function will verify if there are enough descriptors free and that each of
+ * the descriptors can hold the parts of the frame to be send using Gmac_Ip_SendMultiBufferFrame.
+ *
+ * Note: This function will only return the first buffer descriptor index starting with which the
+ * multi buffer frame can be sent.
+ *
+ * Important: This function is meant for internal use only and will be called from an upper layer to get
+ * the first buffer descriptor index from a sequence of buffers that will be used for sending a
+ * multi buffer frame.
+ *
+ * @param[in]     Instance     Instance number
+ * @param[in]     ring          Ring number
+ * @param[in]     NumBuffers    Number of buffers
+ * @param[in]     BufferLength  List with the length of each chunk of the frame
+ * @param[out]    buffId        Index of the buffer (descriptor) within the ring.
+ * @retval GMAC_STATUS_SUCCESS The buffer has been successfully locked.
+ * @retval GMAC_STATUS_TX_BUFF_BUSY All buffers are currently in use for the current ring.
+ * @retval GMAC_STATUS_TX_BUFF_OVERFLOW The requested buffer length cannot be granted.
+ * @retval GMAC_STATUS_INVALID_FRAME_LENGTH The buffer length is smaller than minium of frame length.
+ */
+Gmac_Ip_StatusType Gmac_Ip_GetTxMultiBuff(uint8 Instance,
+                                                  uint8 ring,
+                                                  uint16 NumBuffers,
+                                                  const uint16 BufferLength[],
+                                                  uint16 *buffId);
 
 /*!
  * @brief Reads a received Ethernet frame
@@ -365,7 +408,9 @@ Gmac_Ip_StatusType Gmac_Ip_GetTransmitStatus(uint8 Instance,
                                              uint8 Ring,
                                              const Gmac_Ip_BufferType * Buff,
                                              Gmac_Ip_TxInfoType * Info);
-
+void Gmac_Ip_SetRxExternalBuffer(uint8 Instance,
+                           uint8 Ring,
+                           const Gmac_Ip_BufferType * Buff);
 /*!
  * @brief Gets statistics from the specified counter
  *
@@ -476,16 +521,6 @@ void Gmac_Ip_SetMacAddr(uint8 Instance,
  */
 void Gmac_Ip_GetMacAddr(uint8 Instance,
                         uint8 *MacAddr);
-/*!
- * @brief Initialize time aware shaper 
- *
- * @param[in]  instance Instance number
- * @param[in]  Parameters of controller will be used.
- * return GMAC_STATUS_SUCCESS write/read to Gate control registers successfully
- * return GMAC_STATUS_TIMEOUT write/read to Gate control registers failed
- */                        
-Gmac_Ip_StatusType Gmac_Ip_TxTimeAwareShaperInit(uint8 Instance,
-                                                const Gmac_CtrlConfigType *Config);
 
 /*!
  * @brief Gets a mask of the common interrupt events which occurred.
@@ -719,7 +754,7 @@ void Gmac_Ip_SetTxInnerVlanTag(uint8 Instance,
 void Gmac_Ip_SetVlanTagRxFilter(uint8 Instance,
                                 boolean Enable,
                                 const Gmac_Ip_VlanRxFilterType * RxFilter);
-                                
+
 /*!
  * @brief Adds a VLAN Tag to the Rx filter.
  *
@@ -780,14 +815,16 @@ void Gmac_Ip_RemoveVlanTagFromHashTable(uint8 Instance,
                                         uint16 VlanTag);
 
 /*!
- * @brief Initialize system time.
+ * @brief Initialize the clock counter for PTP time.
  *
- * @param[in]  instance       Instance number
- * @param[in]  sysTimeConfig  Pointer to a structure representing the configuration
- *                            of the system time
+ * @param[in]  Instance       Instance number.
+ * @param[in]  SysTimeConfig  Pointer to a structure representing the configuration of the system time.
+ *
+ * @retval GMAC_STATUS_SUCCESS    The system time configuration could be set without any error.
+ * @retval GMAC_STATUS_TIMEOUT    The system time configuration could not be set before timeout.
  */
-void Gmac_Ip_InitSysTime(uint8 Instance,
-                         const Gmac_Ip_SysTimeConfigType * SysTimeConfig);
+Gmac_Ip_StatusType Gmac_Ip_InitSysTime(const uint8 Instance,
+                                       const Gmac_Ip_SysTimeConfigType *SysTimeConfig);
 
 /*!
  * @brief Set system time correction.
@@ -804,19 +841,19 @@ Gmac_Ip_StatusType Gmac_Ip_SetSysTimeCorr(uint8 Instance,
                                           Gmac_Ip_SysTimeCorrOffsetType Offset,
                                           uint32 SecondsUpdate,
                                           uint32 NanoSecondsUpdate);
-                                          
+
 /*!
- * @brief Set system time correction.
+ * @brief Sets the system time correction by rate ratio
+ *        the selected value from the current system time.
  *
  * @param[in]  instance           Instance number
  * @param[in]  rateRatio          Rate ratio is used to sync
  * @retval GMAC_STATUS_SUCCESS    The correction was set with no error.
  * @retval GMAC_STATUS_TIMEOUT    The correction could not be set before
  *                                expiration of timeout.
- */                                          
+ */
 Gmac_Ip_StatusType Gmac_Ip_SetRateRatioCorr(uint8 Instance,
-                                            float64 RateRatio
-                                           );
+                                            float64 RateRatio);
 
 /*!
  * @brief Gets the current system time.
@@ -870,8 +907,58 @@ void Gmac_Ip_SetTxThreshold(uint8 Instance,
                             uint8 Ring,
                             Gmac_Ip_TxThresholdType ThresholdValue);
 
-#define ETH_STOP_SEC_CODE
-#include "Eth_MemMap.h"
+#if (STD_ON == GMAC_IP_PPS_OUTPUT_SUPPORT)
+/*!
+ * @brief Initialize PPS outputs signal.
+ *
+ * @param[in] Instance            Instance number
+ * @param[in] ModuleClk           The clock drives the PPS signal generation
+ * @param[in] PPSOutputsNum       The number of PPS outputs
+ * @param[in] PPSOutputConfig     The configuration of PPS outputs
+ */
+void Gmac_Ip_PPSOutputSignalInit(uint8 Instance, uint32 ModuleClk, uint8 PPSOutputsNum, const Gmac_Ip_FlexiblePPSOutput PPSOutputConfig[]);
+
+/*!
+ * @brief Enable/disable PPS outputs generation
+ *
+ * @param[in] Instance       Instance number
+ * @param[in] SignalMode     PPS Target Time
+ */
+void Gmac_Ip_SetPpsSignalMode(uint8 Instance, boolean SignalMode);
+
+/*!
+ * @brief Perform generating pulse(s) on Pulse Per Second.
+ *
+ * @param[in] Instance       Instance number
+ * @param[in] PPSOutputIdx   PPS Output Index
+ * @param[in] PPSTargetTime  PPS Target Time
+ * @param[in] PPSOutputCmd   PPS Output Control Command
+ */
+Gmac_Ip_StatusType Gmac_Ip_GeneratePulsePerSecondOutput(uint8 Instance,
+                                                        uint8 PPSOutputIdx,
+                                                        Gmac_Ip_PPSTargetTime * PPSTargetTime,
+                                                        Gmac_Ip_PPSOutputCmd PPSOutputCmd);
+#endif
+
+#if (STD_ON == GMAC_IP_LPI_ENABLE)
+/*!
+ * @brief Entering LPI mode.
+ *
+ * @param[in] Instance       Instance number
+ * @param[in] ModuleClk      The CSR clock
+ */
+void Gmac_Ip_EnteringTxLpi(uint8 Instance, uint32 ModuleClk);
+
+/*!
+ * @brief Exiting LPI mode.
+ *
+ * @param[in] Instance       Instance number
+ */
+void Gmac_Ip_ExitingTxLpi(uint8 Instance);
+#endif /* (STD_ON == GMAC_IP_LPI_ENABLE) */
+
+#define ETH_43_GMAC_STOP_SEC_CODE
+#include "Eth_43_GMAC_MemMap.h"
 
 
 #ifdef __cplusplus

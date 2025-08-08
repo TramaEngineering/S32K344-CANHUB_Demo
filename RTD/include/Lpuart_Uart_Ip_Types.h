@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : FLEXIO
 *   Dependencies         : 
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -42,16 +41,16 @@ extern "C"{
 * 2) needed interfaces from external units
 * 3) internal and external interfaces from this unit
 ==================================================================================================*/
-#include "StandardTypes.h"
+#include "Std_Types.h"
 #include "Lpuart_Uart_Ip_HwAccess.h"
 /*==================================================================================================
 *                                 SOURCE FILE VERSION INFORMATION
 ==================================================================================================*/
 #define LPUART_UART_IP_TYPES_VENDOR_ID                    43
 #define LPUART_UART_IP_TYPES_AR_RELEASE_MAJOR_VERSION     4
-#define LPUART_UART_IP_TYPES_AR_RELEASE_MINOR_VERSION     4
+#define LPUART_UART_IP_TYPES_AR_RELEASE_MINOR_VERSION     7
 #define LPUART_UART_IP_TYPES_AR_RELEASE_REVISION_VERSION  0
-#define LPUART_UART_IP_TYPES_SW_MAJOR_VERSION             2
+#define LPUART_UART_IP_TYPES_SW_MAJOR_VERSION             5
 #define LPUART_UART_IP_TYPES_SW_MINOR_VERSION             0
 #define LPUART_UART_IP_TYPES_SW_PATCH_VERSION             0
 
@@ -64,20 +63,23 @@ extern "C"{
 #endif
 #if ((LPUART_UART_IP_HWACCESS_AR_RELEASE_MAJOR_VERSION    != LPUART_UART_IP_TYPES_AR_RELEASE_MAJOR_VERSION) || \
      (LPUART_UART_IP_HWACCESS_AR_RELEASE_MINOR_VERSION    != LPUART_UART_IP_TYPES_AR_RELEASE_MINOR_VERSION) || \
-     (LPUART_UART_IP_HWACCESS_AR_RELEASE_REVISION_VERSION != LPUART_UART_IP_TYPES_AR_RELEASE_REVISION_VERSION))
+     (LPUART_UART_IP_HWACCESS_AR_RELEASE_REVISION_VERSION != LPUART_UART_IP_TYPES_AR_RELEASE_REVISION_VERSION) \
+    )
      #error "AUTOSAR Version Numbers of Lpuart_Uart_Ip_HwAccess.h and Lpuart_Uart_Ip_Types.h are different"
 #endif
 #if ((LPUART_UART_IP_HWACCESS_SW_MAJOR_VERSION != LPUART_UART_IP_TYPES_SW_MAJOR_VERSION) || \
      (LPUART_UART_IP_HWACCESS_SW_MINOR_VERSION != LPUART_UART_IP_TYPES_SW_MINOR_VERSION) || \
-     (LPUART_UART_IP_HWACCESS_SW_PATCH_VERSION != LPUART_UART_IP_TYPES_SW_PATCH_VERSION))
+     (LPUART_UART_IP_HWACCESS_SW_PATCH_VERSION != LPUART_UART_IP_TYPES_SW_PATCH_VERSION) \
+    )
     #error "Software Version Numbers of Lpuart_Uart_Ip_HwAccess.h and Lpuart_Uart_Ip_Types.h are different"
 #endif
 
 #ifndef DISABLE_MCAL_INTERMODULE_ASR_CHECK
-/* Check if current file and StandardTypes.h header file are of the same Autosar version */
+/* Check if current file and Std_Types.h header file are of the same Autosar version */
     #if ((LPUART_UART_IP_TYPES_AR_RELEASE_MAJOR_VERSION != STD_AR_RELEASE_MAJOR_VERSION) || \
-            (LPUART_UART_IP_TYPES_AR_RELEASE_MINOR_VERSION != STD_AR_RELEASE_MINOR_VERSION))
-        #error "Lpuart_Uart_Ip_Types.h and StandardTypes.h are different"
+         (LPUART_UART_IP_TYPES_AR_RELEASE_MINOR_VERSION != STD_AR_RELEASE_MINOR_VERSION) \
+        )
+        #error "Lpuart_Uart_Ip_Types.h and Std_Types.h are different"
     #endif
 #endif
 /*==================================================================================================
@@ -122,7 +124,9 @@ typedef enum
     LPUART_UART_IP_STATUS_PARITY_ERROR               = 0x08U,  /**< @brief Parity error */
     LPUART_UART_IP_STATUS_NOISE_ERROR                = 0x09U,  /**< @brief Noise error */
     LPUART_UART_IP_STATUS_DMA_ERROR                  = 0x10U,  /**< @brief DMA error */
-
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+    LPUART_UART_IP_STATUS_RX_IDLE_STATE              = 0x11U   /**< @brief The idle state of the reception line is generated */
+#endif
 } Lpuart_Uart_Ip_StatusType;
 
 
@@ -139,6 +143,9 @@ typedef enum
     LPUART_UART_IP_EVENT_TX_EMPTY     = 0x01U,    /**< @brief Tx buffer is empty */
     LPUART_UART_IP_EVENT_END_TRANSFER = 0x02U,    /**< @brief The current transfer is ending */
     LPUART_UART_IP_EVENT_ERROR        = 0x03U,    /**< @brief An error occured during transfer */
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+    LPUART_UART_IP_EVENT_IDLE_STATE   = 0x04U     /**< @brief The idle state of the reception line is generated*/
+#endif
 } Lpuart_Uart_Ip_EventType;
 
 /**
@@ -176,7 +183,7 @@ typedef enum
  */
 typedef void (*Lpuart_Uart_Ip_CallbackType)(const uint8 HwInstance,
                                             const Lpuart_Uart_Ip_EventType Event,
-                                            void *UserData);
+                                            const void *UserData);
 
 
 /*!

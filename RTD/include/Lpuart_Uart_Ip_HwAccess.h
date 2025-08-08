@@ -1,19 +1,18 @@
 /*==================================================================================================
-*   Project              : RTD AUTOSAR 4.4
+*   Project              : RTD AUTOSAR 4.7
 *   Platform             : CORTEXM
 *   Peripheral           : FLEXIO
 *   Dependencies         : 
 *
-*   Autosar Version      : 4.4.0
-*   Autosar Revision     : ASR_REL_4_4_REV_0000
+*   Autosar Version      : 4.7.0
+*   Autosar Revision     : ASR_REL_4_7_REV_0000
 *   Autosar Conf.Variant :
-*   SW Version           : 2.0.0
-*   Build Version        : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+*   SW Version           : 5.0.0
+*   Build Version        : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-*   (c) Copyright 2020 - 2022 NXP Semiconductors
-*   All Rights Reserved.
+*   Copyright 2020 - 2024 NXP
 *
-*   NXP Confidential. This software is owned or controlled by NXP and may only be
+*   NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 *   used strictly in accordance with the applicable license terms. By expressly
 *   accepting such terms or by downloading, installing, activating and/or otherwise
 *   using the software, you are agreeing that you have read, and that you agree to
@@ -22,8 +21,8 @@
 *   activate or otherwise use the software.
 ==================================================================================================*/
 
-#ifndef LPUART_UART_IP_HWACCESS_H__
-#define LPUART_UART_IP_HWACCESS_H__
+#ifndef LPUART_UART_IP_HWACCESS_H
+#define LPUART_UART_IP_HWACCESS_H
 
 /**
 *   @file
@@ -43,7 +42,7 @@ extern "C"{
 * 2) needed interfaces from external units
 * 3) internal and external interfaces from this unit
 ==================================================================================================*/
-#include "StandardTypes.h"
+#include "Std_Types.h"
 #include "OsIf.h"
 #include "Lpuart_Uart_Ip_Defines.h"
 #include "SchM_Uart.h"
@@ -53,9 +52,9 @@ extern "C"{
 ==================================================================================================*/
 #define LPUART_UART_IP_HWACCESS_VENDOR_ID                    43
 #define LPUART_UART_IP_HWACCESS_AR_RELEASE_MAJOR_VERSION     4
-#define LPUART_UART_IP_HWACCESS_AR_RELEASE_MINOR_VERSION     4
+#define LPUART_UART_IP_HWACCESS_AR_RELEASE_MINOR_VERSION     7
 #define LPUART_UART_IP_HWACCESS_AR_RELEASE_REVISION_VERSION  0
-#define LPUART_UART_IP_HWACCESS_SW_MAJOR_VERSION             2
+#define LPUART_UART_IP_HWACCESS_SW_MAJOR_VERSION             5
 #define LPUART_UART_IP_HWACCESS_SW_MINOR_VERSION             0
 #define LPUART_UART_IP_HWACCESS_SW_PATCH_VERSION             0
 
@@ -68,30 +67,35 @@ extern "C"{
 #endif
 #if ((LPUART_UART_IP_HWACCESS_AR_RELEASE_MAJOR_VERSION    != LPUART_UART_IP_DEFINES_AR_RELEASE_MAJOR_VERSION) || \
      (LPUART_UART_IP_HWACCESS_AR_RELEASE_MINOR_VERSION    != LPUART_UART_IP_DEFINES_AR_RELEASE_MINOR_VERSION) || \
-     (LPUART_UART_IP_HWACCESS_AR_RELEASE_REVISION_VERSION != LPUART_UART_IP_DEFINES_AR_RELEASE_REVISION_VERSION))
+     (LPUART_UART_IP_HWACCESS_AR_RELEASE_REVISION_VERSION != LPUART_UART_IP_DEFINES_AR_RELEASE_REVISION_VERSION) \
+    )
      #error "AUTOSAR Version Numbers of Lpuart_Uart_Ip_HwAccess.h and Lpuart_Uart_Ip_Defines.h are different"
 #endif
 #if ((LPUART_UART_IP_HWACCESS_SW_MAJOR_VERSION != LPUART_UART_IP_DEFINES_SW_MAJOR_VERSION) || \
      (LPUART_UART_IP_HWACCESS_SW_MINOR_VERSION != LPUART_UART_IP_DEFINES_SW_MINOR_VERSION) || \
-     (LPUART_UART_IP_HWACCESS_SW_PATCH_VERSION != LPUART_UART_IP_DEFINES_SW_PATCH_VERSION))
+     (LPUART_UART_IP_HWACCESS_SW_PATCH_VERSION != LPUART_UART_IP_DEFINES_SW_PATCH_VERSION) \
+    )
     #error "Software Version Numbers of Lpuart_Uart_Ip_HwAccess.h and Lpuart_Uart_Ip_Defines.h are different"
 #endif
 
 #ifndef DISABLE_MCAL_INTERMODULE_ASR_CHECK
-/* Check if current file and StandardTypes.h header file are of the same Autosar version */
+/* Check if current file and Std_Types.h header file are of the same Autosar version */
     #if ((LPUART_UART_IP_HWACCESS_AR_RELEASE_MAJOR_VERSION != STD_AR_RELEASE_MAJOR_VERSION) || \
-            (LPUART_UART_IP_HWACCESS_AR_RELEASE_MINOR_VERSION != STD_AR_RELEASE_MINOR_VERSION))
-        #error "Lpuart_Uart_Ip_HwAccess.h and StandardTypes.h are different"
+         (LPUART_UART_IP_HWACCESS_AR_RELEASE_MINOR_VERSION != STD_AR_RELEASE_MINOR_VERSION) \
+        )
+        #error "Lpuart_Uart_Ip_HwAccess.h and Std_Types.h are different"
     #endif
     /* Check if current file and OsIf.h header file are of the same Autosar version */
     #if ((LPUART_UART_IP_HWACCESS_AR_RELEASE_MAJOR_VERSION != OSIF_AR_RELEASE_MAJOR_VERSION) || \
-         (LPUART_UART_IP_HWACCESS_AR_RELEASE_MINOR_VERSION != OSIF_AR_RELEASE_MINOR_VERSION))
+         (LPUART_UART_IP_HWACCESS_AR_RELEASE_MINOR_VERSION != OSIF_AR_RELEASE_MINOR_VERSION) \
+        )
         #error "Lpuart_Uart_Ip_HwAccess.h and OsIf.h are different"
     #endif
 
     /* Check if current file and SchM_Uart.h header file are of the same Autosar version */
     #if ((LPUART_UART_IP_HWACCESS_AR_RELEASE_MAJOR_VERSION != SCHM_UART_AR_RELEASE_MAJOR_VERSION) || \
-         (LPUART_UART_IP_HWACCESS_AR_RELEASE_MINOR_VERSION != SCHM_UART_AR_RELEASE_MAJOR_VERSION))
+         (LPUART_UART_IP_HWACCESS_AR_RELEASE_MINOR_VERSION != SCHM_UART_AR_RELEASE_MINOR_VERSION) \
+        )
         #error "Lpuart_Uart_Ip_HwAccess.h and SchM_Uart.h are different"
     #endif
 #endif
@@ -113,6 +117,9 @@ extern "C"{
 
 #define LPUART_IP_DATA_MASK_U32   ((uint32)0x000000FFUL)
 
+/*==================================================================================================
+*                                              ENUMS
+==================================================================================================*/
 /*! @brief LPUART number of bits in a character
  *
  *
@@ -164,6 +171,9 @@ typedef enum
     LPUART_UART_IP_FRAME_ERR                  = (uint32)LPUART_STAT_FE_SHIFT,
                                                 /*!< Frame error flag, sets if logic 0 was detected where stop bit expected */
     LPUART_UART_IP_PARITY_ERR                 = (uint32)LPUART_STAT_PF_SHIFT,
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+    LPUART_UART_IP_TIMEOUT                    = (uint32)LPUART_STAT_IDLE_SHIFT
+#endif
 } Lpuart_Uart_Ip_StatusFlagType;
 
 /*! @brief LPUART interrupt configuration structure, default settings are 0 (disabled) */
@@ -176,7 +186,9 @@ typedef enum
     LPUART_UART_IP_INT_NOISE_ERR_FLAG    = (uint32)LPUART_CTRL_NEIE_SHIFT,    /*!< Noise error flag. */
     LPUART_UART_IP_INT_FRAME_ERR_FLAG    = (uint32)LPUART_CTRL_FEIE_SHIFT,    /*!< Framing error flag. */
     LPUART_UART_IP_INT_PARITY_ERR_FLAG   = (uint32)LPUART_CTRL_PEIE_SHIFT,    /*!< Parity error flag. */
-
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+    LPUART_UART_IP_INT_TIMEOUT           = (uint32)LPUART_CTRL_ILIE_SHIFT
+#endif
 } Lpuart_Uart_Ip_InterruptType;
 
 /*==================================================================================================
@@ -336,16 +348,18 @@ static inline void Lpuart_Uart_Ip_EnableBothEdgeSamplingCmd(LPUART_Type * Base)
  * @param Parity  Specifies whether parity bit is enabled
  */
 static inline void Lpuart_Uart_Ip_SetBitCountPerChar(LPUART_Type * Base,
-                                                  Lpuart_Uart_Ip_BitCountPerCharType BitCountPerChar,
-                                                  boolean Parity)
+                                                     Lpuart_Uart_Ip_BitCountPerCharType BitCountPerChar,
+                                                     boolean Parity
+                                                    )
 {
     uint32 TmpBitCountPerChar = (uint32)BitCountPerChar;
+
     if (Parity)
     {
         TmpBitCountPerChar += 1U;
     }
 
-    if (TmpBitCountPerChar == (uint32)LPUART_UART_IP_10_BITS_PER_CHAR)
+    if ((uint32)LPUART_UART_IP_10_BITS_PER_CHAR == TmpBitCountPerChar)
     {
         Base->BAUD = (Base->BAUD & ~LPUART_BAUD_M10_MASK) | ((uint32)1U << LPUART_BAUD_M10_SHIFT);
     }
@@ -423,7 +437,7 @@ static inline void Lpuart_Uart_Ip_SetStopBitCount(LPUART_Type * Base, Lpuart_Uar
  */
 static inline void Lpuart_Uart_Ip_SetIntMode(LPUART_Type * Base, Lpuart_Uart_Ip_InterruptType IntSrc, boolean Enable)
 {
-    Base->CTRL = (Base->CTRL & ~(1UL << (uint32)IntSrc)) | ((Enable ? 1U : 0U) << (uint32)IntSrc);
+    Base->CTRL = (Base->CTRL & ~(1UL << (uint32)IntSrc)) | ((Enable ? 1UL : 0UL) << (uint32)IntSrc);
 }
 
 /*!
@@ -439,6 +453,7 @@ static inline void Lpuart_Uart_Ip_SetIntMode(LPUART_Type * Base, Lpuart_Uart_Ip_
 static inline boolean Lpuart_Uart_Ip_GetIntMode(const LPUART_Type * Base, Lpuart_Uart_Ip_InterruptType IntSrc)
 {
     boolean RetVal = FALSE;
+
     RetVal = (((Base->CTRL >> (uint32)(IntSrc)) & 1U) > 0U);
     return RetVal;
 }
@@ -485,6 +500,7 @@ static inline void Lpuart_Uart_Ip_SetRxDmaCmd(LPUART_Type * Base, boolean Enable
 static inline void Lpuart_Uart_Ip_Putchar(LPUART_Type * Base, uint8 Data)
 {
     volatile uint8 * DataRegBytes = (volatile uint8 *)(&(Base->DATA));
+
     DataRegBytes[0] = Data;
 }
 
@@ -610,6 +626,7 @@ static inline uint16 Lpuart_Uart_Ip_Getchar10(const LPUART_Type * Base)
 static inline boolean Lpuart_Uart_Ip_GetStatusFlag(const LPUART_Type * Base, Lpuart_Uart_Ip_StatusFlagType StatusFlag)
 {
     boolean RetVal = FALSE;
+
     RetVal = (((Base->STAT >> (uint32)(StatusFlag)) & 1U) > 0U);
     return RetVal;
 }
@@ -625,7 +642,7 @@ static inline boolean Lpuart_Uart_Ip_GetStatusFlag(const LPUART_Type * Base, Lpu
  */
 static inline void Lpuart_Uart_Ip_ClearStatusFlag(LPUART_Type * Base, Lpuart_Uart_Ip_StatusFlagType StatusFlag)
 {
-    switch(StatusFlag)
+    switch (StatusFlag)
     {
         case LPUART_UART_IP_RX_OVERRUN:
             Base->STAT = (Base->STAT & (~LPUART_FEATURE_STAT_REG_FLAGS_MASK)) | LPUART_STAT_OR_MASK;
@@ -642,6 +659,11 @@ static inline void Lpuart_Uart_Ip_ClearStatusFlag(LPUART_Type * Base, Lpuart_Uar
         case LPUART_UART_IP_PARITY_ERR:
             Base->STAT = (Base->STAT & (~LPUART_FEATURE_STAT_REG_FLAGS_MASK)) | LPUART_STAT_PF_MASK;
             break;
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+        case LPUART_UART_IP_TIMEOUT:
+            Base->STAT = (Base->STAT & (~LPUART_FEATURE_STAT_REG_FLAGS_MASK)) | LPUART_STAT_IDLE_MASK;
+            break;
+#endif
         default:
             /* Dummy code */
             break;
@@ -698,9 +720,16 @@ static inline void Lpuart_Uart_Ip_StartTimeout(uint32 *StartTimeOut, uint32 *Tim
  */
 static inline boolean Lpuart_Uart_Ip_CheckTimeout(uint32 * StartTime, uint32 * ElapsedTicks, uint32 TimeoutTicks, OsIf_CounterType OsifCounter)
 {
+    boolean RetVal = FALSE;
     uint32 CurrentElapsedTicks = OsIf_GetElapsed(StartTime, OsifCounter);
+
     *ElapsedTicks += CurrentElapsedTicks;
-    return ((*ElapsedTicks >= TimeoutTicks) ? TRUE : FALSE);
+    if (*ElapsedTicks >= TimeoutTicks)
+    {
+        RetVal = TRUE;
+    }
+
+    return RetVal;
 }
 
 /**
@@ -740,13 +769,29 @@ static inline void Lpuart_Uart_Ip_EnableInternalLoopback(LPUART_Type * Base)
 }
 #endif
 
-#define UART_STOP_SEC_CODE
-#include "Uart_MemMap.h"
-
-#if defined(__cplusplus)
+#if (LPUART_UART_IP_ENABLE_TIMEOUT_INTERRUPT == STD_ON)
+/**
+ * @brief   : Enable Timeout Interrupt
+ *
+ * *
+ * @param Base LPUART Base pointer
+ */
+static inline void Lpuart_Uart_Ip_SetupIdleInterrupt(LPUART_Type * Base)
+{
+    /* Configures the number of idle characters that must be received before the IDLE flag is set - 1 idle character */
+    Base->CTRL = Base->CTRL | LPUART_CTRL_IDLECFG(0);
+    /* Idle character bit count starts after stop bit */
+    Base->CTRL = (Base->CTRL & ~LPUART_CTRL_ILT_MASK) | (1UL << LPUART_CTRL_ILT_SHIFT);
 }
 #endif
 
-/*@}*/
+#define UART_STOP_SEC_CODE
+#include "Uart_MemMap.h"
 
-#endif /* LPUART_HW_ACCESS_H__ */
+#ifdef __cplusplus
+}
+#endif
+
+/** @} */
+
+#endif /* LPUART_HW_ACCESS_H */

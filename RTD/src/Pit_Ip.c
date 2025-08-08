@@ -1,19 +1,18 @@
 /*==================================================================================================
-* Project : RTD AUTOSAR 4.4
+* Project : RTD AUTOSAR 4.7
 * Platform : CORTEXM
 * Peripheral : Stm_Pit_Rtc_Emios
 * Dependencies : none
 *
-* Autosar Version : 4.4.0
-* Autosar Revision : ASR_REL_4_4_REV_0000
+* Autosar Version : 4.7.0
+* Autosar Revision : ASR_REL_4_7_REV_0000
 * Autosar Conf.Variant :
-* SW Version : 2.0.0
-* Build Version : S32K3_RTD_2_0_0_D2203_ASR_REL_4_4_REV_0000_20220331
+* SW Version : 5.0.0
+* Build Version : S32K3_RTD_5_0_0_D2408_ASR_REL_4_7_REV_0000_20241002
 *
-* (c) Copyright 2020 - 2022 NXP Semiconductors
-* All Rights Reserved.
+* Copyright 2020 - 2024 NXP
 *
-* NXP Confidential. This software is owned or controlled by NXP and may only be
+* NXP Confidential and Proprietary. This software is owned or controlled by NXP and may only be
 * used strictly in accordance with the applicable license terms. By expressly
 * accepting such terms or by downloading, installing, activating and/or otherwise
 * using the software, you are agreeing that you have read, and that you agree to
@@ -41,7 +40,7 @@ extern "C"{
 ==================================================================================================*/
 #include "Pit_Ip.h"
 
-#ifdef PIT_IP_ENABLE_USER_MODE_SUPPORT
+#if (defined(PIT_IP_ENABLE_USER_MODE_SUPPORT) && (STD_ON == PIT_IP_ENABLE_USER_MODE_SUPPORT))
    #define USER_MODE_REG_PROT_ENABLED   PIT_IP_ENABLE_USER_MODE_SUPPORT
    #include "RegLockMacros.h"
 #endif
@@ -50,9 +49,9 @@ extern "C"{
 ==================================================================================================*/
 #define PIT_IP_VENDOR_ID_C                    43
 #define PIT_IP_AR_RELEASE_MAJOR_VERSION_C     4
-#define PIT_IP_AR_RELEASE_MINOR_VERSION_C     4
+#define PIT_IP_AR_RELEASE_MINOR_VERSION_C     7
 #define PIT_IP_AR_RELEASE_REVISION_VERSION_C  0
-#define PIT_IP_SW_MAJOR_VERSION_C             2
+#define PIT_IP_SW_MAJOR_VERSION_C             5
 #define PIT_IP_SW_MINOR_VERSION_C             0
 #define PIT_IP_SW_PATCH_VERSION_C             0
 
@@ -77,7 +76,7 @@ extern "C"{
     #error "Software Version Numbers of Pit_Ip.h and Pit_Ip.c are different"
 #endif
 
-#ifdef PIT_IP_ENABLE_USER_MODE_SUPPORT
+#if (defined(PIT_IP_ENABLE_USER_MODE_SUPPORT) && (STD_ON == PIT_IP_ENABLE_USER_MODE_SUPPORT))
 #ifndef DISABLE_MCAL_INTERMODULE_ASR_CHECK
     #if ((REGLOCKMACROS_AR_RELEASE_MAJOR_VERSION != PIT_IP_AR_RELEASE_MAJOR_VERSION_C) || \
          (REGLOCKMACROS_AR_RELEASE_MINOR_VERSION != PIT_IP_AR_RELEASE_MINOR_VERSION_C))
@@ -92,6 +91,9 @@ extern "C"{
 /*=================================================================================================
 *                                       LOCAL MACROS
 =================================================================================================*/
+#ifndef MCAL_PIT_REG_PROT_AVAILABLE
+    #define MCAL_PIT_REG_PROT_AVAILABLE STD_OFF
+#endif
 
 /*==================================================================================================
 *                                      LOCAL CONSTANTS
@@ -122,52 +124,70 @@ static boolean Pit_Ip_bIsChangedTimeout;
 *                                      GLOBAL VARIABLES
 ==================================================================================================*/
 #if (PIT_IP_CHANGE_NEXT_TIMEOUT_VALUE == STD_ON)
-#define GPT_START_SEC_VAR_CLEARED_32
+#define GPT_START_SEC_VAR_CLEARED_32_NO_CACHEABLE
 #include "Gpt_MemMap.h"
 /**
 * @brief            Pit_Ip_u32OldTargetValue
 * @details          Local variable used to store the previous target time value after call ChangeNextTimeout.
 */
-uint32 Pit_Ip_u32OldTargetValue;
-#define GPT_STOP_SEC_VAR_CLEARED_32
+uint32 Pit_Ip_u32OldTargetValue = 0UL;
+#define GPT_STOP_SEC_VAR_CLEARED_32_NO_CACHEABLE
 #include "Gpt_MemMap.h"
 #endif /* (PIT_IP_CHANGE_NEXT_TIMEOUT_VALUE == STD_ON) */
 
 #define GPT_START_SEC_CONST_UNSPECIFIED
 #include "Gpt_MemMap.h"
 
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
+#if (defined(CRS_FSS_AND_RTU_BASE_ADDR_OF_PIT_REGISTERS_CONCATENATED) && (CRS_FSS_AND_RTU_BASE_ADDR_OF_PIT_REGISTERS_CONCATENATED == STD_ON))
+#define IP_PIT_BASE_PTRS_CONCATENATED   { IP_CRS__PIT_0, IP_CRS__PIT_1, IP_FSS__COSS_PIT_0, IP_FSS__COSS_PIT_1, IP_FSS__COSS_PIT_2, IP_FSS__COSS_PIT_3, IP_FSS__COSS_PIT_4, IP_FSS__COSS_PIT_5, IP_FSS__COSS_PIT_6, IP_FSS__HKI_PIT, IP_FSS__PIT, (PIT_Type *)IP_RTU0__RTU_PIT0_BASE, (PIT_Type *)IP_RTU0__RTU_PIT1_BASE, (PIT_Type *)IP_RTU1__RTU_PIT0_BASE, (PIT_Type *)IP_RTU1__RTU_PIT1_BASE, (PIT_Type *)IP_RTU2__RTU_PIT0_BASE, (PIT_Type *)IP_RTU2__RTU_PIT1_BASE, (PIT_Type *)IP_RTU3__RTU_PIT0_BASE, (PIT_Type *)IP_RTU3__RTU_PIT1_BASE }
+/** @brief Table of base addresses for PIT instances. */
+static PIT_Type * const pitBase[GPT_PIT_INSTANCE_COUNT] = IP_PIT_BASE_PTRS_CONCATENATED;
+#elif (defined(PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
 #define IP_PIT_BASE_PTRS_ALT               {IP_PIT_0, NULL_PTR, IP_PIT_2}
 /** @brief Table of base addresses for PIT instances. */
-PIT_Type * const pitBase[PIT_INSTANCE_COUNT_ALT] = IP_PIT_BASE_PTRS_ALT;
+static PIT_Type * const pitBase[GPT_PIT_INSTANCE_COUNT] = IP_PIT_BASE_PTRS_ALT;
 #else
 /** @brief Table of base addresses for PIT instances. */
-PIT_Type * const pitBase[PIT_INSTANCE_COUNT] = IP_PIT_BASE_PTRS;
+static PIT_Type * const pitBase[GPT_PIT_INSTANCE_COUNT] = IP_PIT_BASE_PTRS;
 #endif
 
 #define GPT_STOP_SEC_CONST_UNSPECIFIED
 #include "Gpt_MemMap.h"
 
-#define GPT_START_SEC_VAR_INIT_UNSPECIFIED
+#define GPT_START_SEC_VAR_INIT_UNSPECIFIED_NO_CACHEABLE
 #include "Gpt_MemMap.h"
-#if ((defined PIT_0_ISR_USED)    || (defined PIT_1_ISR_USED)     || (defined PIT_2_ISR_USED)    || (defined PIT_4_ISR_USED)    || (defined PIT_5_ISR_USED)    || \
-     (defined CE_PIT_0_ISR_USED) || (defined CE_PIT_1_ISR_USED)  || (defined CE_PIT_2_ISR_USED) || (defined CE_PIT_3_ISR_USED) || (defined CE_PIT_4_ISR_USED) || \
-     (defined CE_PIT_5_ISR_USED) || (defined RTU_PIT_0_ISR_USED) || (defined RTU_PIT_1_ISR_USED))
+#if (   defined(PIT_0_ISR_USED) || defined(PIT_1_ISR_USED) || defined(PIT_2_ISR_USED) || defined(PIT_4_ISR_USED) || defined(PIT_5_ISR_USED) || \
+        defined(CE_PIT_0_CH_0_ISR_USED) || defined(CE_PIT_0_CH_1_ISR_USED) || \
+        defined(CE_PIT_0_CH_2_ISR_USED) || defined(CE_PIT_0_CH_3_ISR_USED) || \
+        defined(CE_PIT_1_CH_0_ISR_USED) || defined(CE_PIT_1_CH_1_ISR_USED) || \
+        defined(CE_PIT_1_CH_2_ISR_USED) || defined(CE_PIT_1_CH_3_ISR_USED) || \
+        defined(CE_PIT_2_CH_0_ISR_USED) || defined(CE_PIT_2_CH_1_ISR_USED) || \
+        defined(CE_PIT_2_CH_2_ISR_USED) || defined(CE_PIT_2_CH_3_ISR_USED) || \
+        defined(CE_PIT_3_CH_0_ISR_USED) || defined(CE_PIT_3_CH_1_ISR_USED) || \
+        defined(CE_PIT_3_CH_2_ISR_USED) || defined(CE_PIT_3_CH_3_ISR_USED) || \
+        defined(CE_PIT_4_CH_0_ISR_USED) || defined(CE_PIT_4_CH_1_ISR_USED) || \
+        defined(CE_PIT_4_CH_2_ISR_USED) || defined(CE_PIT_4_CH_3_ISR_USED) || \
+        defined(CE_PIT_5_CH_0_ISR_USED) || defined(CE_PIT_5_CH_1_ISR_USED) || \
+        defined(CE_PIT_5_CH_2_ISR_USED) || defined(CE_PIT_5_CH_3_ISR_USED) || \
+        defined(RTU0_PIT_0_ISR_USED) || defined(RTU0_PIT_1_ISR_USED) || \
+        defined(RTU1_PIT_0_ISR_USED) || defined(RTU1_PIT_1_ISR_USED) || \
+        defined(RTU2_PIT_0_ISR_USED) || defined(RTU2_PIT_1_ISR_USED) || \
+        defined(RTU3_PIT_0_ISR_USED) || defined(RTU3_PIT_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_0_ISR_USED) || defined(CRS_PIT_0_CH_0_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_1_ISR_USED) || defined(CRS_PIT_0_CH_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_2_ISR_USED) || defined(CRS_PIT_0_CH_2_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_3_ISR_USED) || defined(CRS_PIT_0_CH_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_0_ISR_USED) || defined(CRS_PIT_1_CH_0_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_1_ISR_USED) || defined(CRS_PIT_1_CH_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_2_ISR_USED) || defined(CRS_PIT_1_CH_2_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_3_ISR_USED) || defined(CRS_PIT_1_CH_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_2_ISR_USED) || defined(FSS_COSS_PIT_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_4_ISR_USED) || defined(FSS_COSS_PIT_5_ISR_USED) || \
+        defined(FSS_COSS_PIT_6_ISR_USED) || \
+        defined(FSS_HKI_PIT_0_ISR_USED) || \
+        defined(FSS_PIT_0_CH_0_ISR_USED) || defined(FSS_PIT_0_CH_1_ISR_USED) || defined(FSS_PIT_0_CH_2_ISR_USED) )
 /** @brief Global array variable used to channel state for process common interrupt */
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-static Pit_Ip_State Pit_Ip_u32ChState[PIT_INSTANCE_COUNT_ALT][PIT_CHANNEL_COUNT] =  {
-                                                                                        {
-                                                                                            {
-                                                                                                (boolean)FALSE,
-                                                                                                NULL_PTR,
-                                                                                                0U,
-                                                                                                PIT_IP_CH_MODE_CONTINUOUS
-                                                                                            }
-                                                                                        }
-                                                                                    };
-#else
-/** @brief Global array variable used to channel state for process common interrupt */
-static Pit_Ip_State Pit_Ip_u32ChState[PIT_INSTANCE_COUNT][PIT_CHANNEL_COUNT] =  {
+static Pit_Ip_State Pit_Ip_u32ChState[GPT_PIT_INSTANCE_COUNT][PIT_CHANNEL_COUNT] =  {
                                                                                     {
                                                                                         {
                                                                                             (boolean)FALSE,
@@ -178,8 +198,7 @@ static Pit_Ip_State Pit_Ip_u32ChState[PIT_INSTANCE_COUNT][PIT_CHANNEL_COUNT] =  
                                                                                     }
                                                                                 };
 #endif
-#endif
-#define GPT_STOP_SEC_VAR_INIT_UNSPECIFIED
+#define GPT_STOP_SEC_VAR_INIT_UNSPECIFIED_NO_CACHEABLE
 #include "Gpt_MemMap.h"
 /*==================================================================================================
 *                                  LOCAL FUNCTION PROTOTYPES
@@ -187,55 +206,279 @@ static Pit_Ip_State Pit_Ip_u32ChState[PIT_INSTANCE_COUNT][PIT_CHANNEL_COUNT] =  
 #define GPT_START_SEC_CODE
 #include "Gpt_MemMap.h"
 
-#if (PIT_IP_MODULE_SINGLE_INTERRUPT == STD_ON)
-#ifdef PIT_0_ISR_USED
+#if ((STD_ON == PIT_GPT_IP_MODULE_SINGLE_INTERRUPT) || (STD_ON == PIT_GPT_IP_MODULE_SINGLE_AND_MULTIPLE_INTERRUPTS))
+
+#if defined(PIT_0_ISR_USED)
 ISR(PIT_0_ISR);
 #endif
-#ifdef PIT_1_ISR_USED
+#if defined(PIT_1_ISR_USED)
 ISR(PIT_1_ISR);
 #endif
-#ifdef PIT_2_ISR_USED
-ISR(PIT_2_ISR);
-#endif
-#ifdef PIT_4_ISR_USED
+#if defined(PIT_4_ISR_USED)
 ISR(PIT_4_ISR);
 #endif
-#ifdef PIT_5_ISR_USED
+#if defined(PIT_5_ISR_USED)
 ISR(PIT_5_ISR);
 #endif
-#ifdef CE_PIT_0_ISR_USED
-ISR(CE_PIT_0_ISR);
-#endif
-#ifdef CE_PIT_1_ISR_USED
-ISR(CE_PIT_1_ISR);
-#endif
-#ifdef CE_PIT_2_ISR_USED
-ISR(CE_PIT_2_ISR);
-#endif
-#ifdef CE_PIT_3_ISR_USED
-ISR(CE_PIT_3_ISR);
-#endif
-#ifdef CE_PIT_4_ISR_USED
-ISR(CE_PIT_4_ISR);
-#endif
-#ifdef CE_PIT_5_ISR_USED
-ISR(CE_PIT_5_ISR);
-#endif
-#ifdef RTU_PIT_0_ISR_USED
-ISR(RTU_PIT_0_ISR);
-#endif
-#ifdef RTU_PIT_1_ISR_USED
-ISR(RTU_PIT_1_ISR);
-#endif
-#endif /*PIT_IP_MODULE_SINGLE_INTERRUPT == STD_ON*/
 
-#if ((defined PIT_0_ISR_USED)    || (defined PIT_1_ISR_USED)     || (defined PIT_2_ISR_USED)    || (defined PIT_4_ISR_USED)    || (defined PIT_5_ISR_USED)    || \
-     (defined CE_PIT_0_ISR_USED) || (defined CE_PIT_1_ISR_USED)  || (defined CE_PIT_2_ISR_USED) || (defined CE_PIT_3_ISR_USED) || (defined CE_PIT_4_ISR_USED) || \
-     (defined CE_PIT_5_ISR_USED) || (defined RTU_PIT_0_ISR_USED) || (defined RTU_PIT_1_ISR_USED))
-static void Pit_Ip_ProcessCommonInterrupt(uint8 instance, uint8 channel);
-static inline uint32 Pit_Ip_GetInterruptBit(uint8 instance, uint8 channel);
+#if (STD_ON == PIT_GPT_IP_MODULE_SINGLE_AND_MULTIPLE_INTERRUPTS)
+
+#if defined(CE_PIT_0_CH_0_ISR_USED)
+ISR(CE_PIT_0_CH_0_ISR);
 #endif
-#if ((defined PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
+
+#if defined(CE_PIT_0_CH_1_ISR_USED)
+ISR(CE_PIT_0_CH_1_ISR);
+#endif
+
+#if defined(CE_PIT_0_CH_2_ISR_USED)
+ISR(CE_PIT_0_CH_2_ISR);
+#endif
+
+#if defined(CE_PIT_0_CH_3_ISR_USED)
+ISR(CE_PIT_0_CH_3_ISR);
+#endif
+
+#if defined(CE_PIT_1_CH_0_ISR_USED)
+ISR(CE_PIT_1_CH_0_ISR);
+#endif
+
+#if defined(CE_PIT_1_CH_1_ISR_USED)
+ISR(CE_PIT_1_CH_1_ISR);
+#endif
+
+#if defined(CE_PIT_1_CH_2_ISR_USED)
+ISR(CE_PIT_1_CH_2_ISR);
+#endif
+
+#if defined(CE_PIT_1_CH_3_ISR_USED)
+ISR(CE_PIT_1_CH_3_ISR);
+#endif
+
+#if defined(CE_PIT_2_CH_0_ISR_USED)
+ISR(CE_PIT_2_CH_0_ISR);
+#endif
+
+#if defined(CE_PIT_2_CH_1_ISR_USED)
+ISR(CE_PIT_2_CH_1_ISR);
+#endif
+
+#if defined(CE_PIT_2_CH_2_ISR_USED)
+ISR(CE_PIT_2_CH_2_ISR);
+#endif
+
+#if defined(CE_PIT_2_CH_3_ISR_USED)
+ISR(CE_PIT_2_CH_3_ISR);
+#endif
+
+#if defined(CE_PIT_3_CH_0_ISR_USED)
+ISR(CE_PIT_3_CH_0_ISR);
+#endif
+
+#if defined(CE_PIT_3_CH_1_ISR_USED)
+ISR(CE_PIT_3_CH_1_ISR);
+#endif
+
+#if defined(CE_PIT_3_CH_2_ISR_USED)
+ISR(CE_PIT_3_CH_2_ISR);
+#endif
+
+#if defined(CE_PIT_3_CH_3_ISR_USED)
+ISR(CE_PIT_3_CH_3_ISR);
+#endif
+
+#if defined(CE_PIT_4_CH_0_ISR_USED)
+ISR(CE_PIT_4_CH_0_ISR);
+#endif
+
+#if defined(CE_PIT_4_CH_1_ISR_USED)
+ISR(CE_PIT_4_CH_1_ISR);
+#endif
+
+#if defined(CE_PIT_4_CH_2_ISR_USED)
+ISR(CE_PIT_4_CH_2_ISR);
+#endif
+
+#if defined(CE_PIT_4_CH_3_ISR_USED)
+ISR(CE_PIT_4_CH_3_ISR);
+#endif
+
+#if defined(CE_PIT_5_CH_0_ISR_USED)
+ISR(CE_PIT_5_CH_0_ISR);
+#endif
+
+#if defined(CE_PIT_5_CH_1_ISR_USED)
+ISR(CE_PIT_5_CH_1_ISR);
+#endif
+
+#if defined(CE_PIT_5_CH_2_ISR_USED)
+ISR(CE_PIT_5_CH_2_ISR);
+#endif
+
+#if defined(CE_PIT_5_CH_3_ISR_USED)
+ISR(CE_PIT_5_CH_3_ISR);
+#endif
+
+#if defined(FSS_HKI_PIT_0_ISR_USED)
+ISR(FSS_HKI_PIT_0_ISR);
+#endif
+
+#if defined(RTU0_PIT_0_ISR_USED)
+ISR(RTU0_PIT_0_ISR);
+#endif
+#if defined(RTU0_PIT_1_ISR_USED)
+ISR(RTU0_PIT_1_ISR);
+#endif
+#if defined(RTU1_PIT_0_ISR_USED)
+ISR(RTU1_PIT_0_ISR);
+#endif
+#if defined(RTU1_PIT_1_ISR_USED)
+ISR(RTU1_PIT_1_ISR);
+#endif
+#if defined(RTU2_PIT_0_ISR_USED)
+ISR(RTU2_PIT_0_ISR);
+#endif
+#if defined(RTU2_PIT_1_ISR_USED)
+ISR(RTU2_PIT_1_ISR);
+#endif
+#if defined(RTU3_PIT_0_ISR_USED)
+ISR(RTU3_PIT_0_ISR);
+#endif
+#if defined(RTU3_PIT_1_ISR_USED)
+ISR(RTU3_PIT_1_ISR);
+#endif
+
+#if defined(CRS_PIT_0_CH_0_ISR_USED)
+ISR(CRS_PIT_0_CH_0_ISR);
+#endif
+#if defined(CRS_PIT_0_CH_1_ISR_USED)
+ISR(CRS_PIT_0_CH_1_ISR);
+#endif
+#if defined(CRS_PIT_0_CH_2_ISR_USED)
+ISR(CRS_PIT_0_CH_2_ISR);
+#endif
+#if defined(CRS_PIT_0_CH_3_ISR_USED)
+ISR(CRS_PIT_0_CH_3_ISR);
+#endif
+
+#if defined(CRS_PIT_1_CH_0_ISR_USED)
+ISR(CRS_PIT_1_CH_0_ISR);
+#endif
+#if defined(CRS_PIT_1_CH_1_ISR_USED)
+ISR(CRS_PIT_1_CH_1_ISR);
+#endif
+#if defined(CRS_PIT_1_CH_2_ISR_USED)
+ISR(CRS_PIT_1_CH_2_ISR);
+#endif
+#if defined(CRS_PIT_1_CH_3_ISR_USED)
+ISR(CRS_PIT_1_CH_3_ISR);
+#endif
+
+#if defined(FSS_COSS_PIT_0_CH_0_ISR_USED)
+ISR(FSS_COSS_PIT_0_CH_0_ISR);
+#endif
+#if defined(FSS_COSS_PIT_0_CH_1_ISR_USED)
+ISR(FSS_COSS_PIT_0_CH_1_ISR);
+#endif
+#if defined(FSS_COSS_PIT_0_CH_2_ISR_USED)
+ISR(FSS_COSS_PIT_0_CH_2_ISR);
+#endif
+#if defined(FSS_COSS_PIT_0_CH_3_ISR_USED)
+ISR(FSS_COSS_PIT_0_CH_3_ISR);
+#endif
+
+#if defined(FSS_COSS_PIT_1_CH_0_ISR_USED)
+ISR(FSS_COSS_PIT_1_CH_0_ISR);
+#endif
+#if defined(FSS_COSS_PIT_1_CH_1_ISR_USED)
+ISR(FSS_COSS_PIT_1_CH_1_ISR);
+#endif
+#if defined(FSS_COSS_PIT_1_CH_2_ISR_USED)
+ISR(FSS_COSS_PIT_1_CH_2_ISR);
+#endif
+#if defined(FSS_COSS_PIT_1_CH_3_ISR_USED)
+ISR(FSS_COSS_PIT_1_CH_3_ISR);
+#endif
+
+#if defined(FSS_COSS_PIT_2_ISR_USED)
+ISR(FSS_COSS_PIT_2_ISR);
+#endif
+
+#if defined(FSS_COSS_PIT_3_ISR_USED)
+ISR(FSS_COSS_PIT_3_ISR);
+#endif
+
+#if defined(FSS_COSS_PIT_4_ISR_USED)
+ISR(FSS_COSS_PIT_4_ISR);
+#endif
+
+#if defined(FSS_COSS_PIT_5_ISR_USED)
+ISR(FSS_COSS_PIT_5_ISR);
+#endif
+
+#if defined(FSS_COSS_PIT_6_ISR_USED)
+ISR(FSS_COSS_PIT_6_ISR);
+#endif
+
+#if defined(FSS_PIT_0_CH_0_ISR_USED)
+ISR(FSS_PIT_0_CH_0_ISR);
+#endif
+#if defined(FSS_PIT_0_CH_1_ISR_USED)
+ISR(FSS_PIT_0_CH_1_ISR);
+#endif
+#if defined(FSS_PIT_0_CH_2_ISR_USED)
+ISR(FSS_PIT_0_CH_2_ISR);
+#endif
+
+#endif /* STD_ON == PIT_GPT_IP_MODULE_SINGLE_AND_MULTIPLE_INTERRUPTS */
+
+#if (STD_ON == PIT_GPT_IP_MODULE_SINGLE_INTERRUPT)
+
+#if defined(PIT_2_ISR_USED)
+ISR(PIT_2_ISR);
+#endif
+#if defined(PIT_3_ISR_USED)
+ISR(PIT_3_ISR);
+#endif
+
+#endif /* STD_ON == PIT_GPT_IP_MODULE_SINGLE_INTERRUPT */
+
+#endif /* (STD_ON == PIT_GPT_IP_MODULE_SINGLE_INTERRUPT) || (STD_ON == PIT_GPT_IP_MODULE_SINGLE_AND_MULTIPLE_INTERRUPTS) */
+
+#if (   defined(PIT_0_ISR_USED) || defined(PIT_1_ISR_USED) || defined(PIT_2_ISR_USED) || defined(PIT_4_ISR_USED) || defined(PIT_5_ISR_USED) || \
+        defined(CE_PIT_0_CH_0_ISR_USED) || defined(CE_PIT_0_CH_1_ISR_USED) || \
+        defined(CE_PIT_0_CH_2_ISR_USED) || defined(CE_PIT_0_CH_3_ISR_USED) || \
+        defined(CE_PIT_1_CH_0_ISR_USED) || defined(CE_PIT_1_CH_1_ISR_USED) || \
+        defined(CE_PIT_1_CH_2_ISR_USED) || defined(CE_PIT_1_CH_3_ISR_USED) || \
+        defined(CE_PIT_2_CH_0_ISR_USED) || defined(CE_PIT_2_CH_1_ISR_USED) || \
+        defined(CE_PIT_2_CH_2_ISR_USED) || defined(CE_PIT_2_CH_3_ISR_USED) || \
+        defined(CE_PIT_3_CH_0_ISR_USED) || defined(CE_PIT_3_CH_1_ISR_USED) || \
+        defined(CE_PIT_3_CH_2_ISR_USED) || defined(CE_PIT_3_CH_3_ISR_USED) || \
+        defined(CE_PIT_4_CH_0_ISR_USED) || defined(CE_PIT_4_CH_1_ISR_USED) || \
+        defined(CE_PIT_4_CH_2_ISR_USED) || defined(CE_PIT_4_CH_3_ISR_USED) || \
+        defined(CE_PIT_5_CH_0_ISR_USED) || defined(CE_PIT_5_CH_1_ISR_USED) || \
+        defined(CE_PIT_5_CH_2_ISR_USED) || defined(CE_PIT_5_CH_3_ISR_USED) || \
+        defined(RTU0_PIT_0_ISR_USED) || defined(RTU0_PIT_1_ISR_USED) || \
+        defined(RTU1_PIT_0_ISR_USED) || defined(RTU1_PIT_1_ISR_USED) || \
+        defined(RTU2_PIT_0_ISR_USED) || defined(RTU2_PIT_1_ISR_USED) || \
+        defined(RTU3_PIT_0_ISR_USED) || defined(RTU3_PIT_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_0_ISR_USED) || defined(CRS_PIT_0_CH_0_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_1_ISR_USED) || defined(CRS_PIT_0_CH_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_2_ISR_USED) || defined(CRS_PIT_0_CH_2_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_3_ISR_USED) || defined(CRS_PIT_0_CH_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_0_ISR_USED) || defined(CRS_PIT_1_CH_0_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_1_ISR_USED) || defined(CRS_PIT_1_CH_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_2_ISR_USED) || defined(CRS_PIT_1_CH_2_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_3_ISR_USED) || defined(CRS_PIT_1_CH_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_2_ISR_USED) || defined(FSS_COSS_PIT_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_4_ISR_USED) || defined(FSS_COSS_PIT_5_ISR_USED) || \
+        defined(FSS_COSS_PIT_6_ISR_USED) || \
+        defined(FSS_HKI_PIT_0_ISR_USED) || \
+        defined(FSS_PIT_0_CH_0_ISR_USED) || defined(FSS_PIT_0_CH_1_ISR_USED) || defined(FSS_PIT_0_CH_2_ISR_USED) )
+static void Pit_Ip_ProcessCommonInterrupt(uint8 instance, uint8 channel);
+static inline boolean Pit_Ip_GetInterruptEnableFlag(uint8 instance, uint8 channel);
+#endif
+#if (defined(PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
 static inline void Pit_Ip_EnableModule(uint8 instance, uint8 timerType);
 #endif
 static inline void Pit_Ip_Reset(uint8 instance, uint8 channelNum, boolean available, boolean bitExists);
@@ -245,39 +488,46 @@ static inline void Pit_Ip_SetChainMode(uint8 instance, uint8 channel, boolean en
 static inline boolean Pit_Ip_IsChannelRunning(uint8 instance, uint8 channel);
 static inline void Pit_Ip_SetCounterValue(uint8 instance, uint8 channel, uint32 value);
 static inline uint32 Pit_Ip_GetCounterValue(uint8 instance, uint8 channel);
-static inline void Pit_Ip_EnableInterrupt(uint8 instance, uint8 channel, boolean enable);
+static inline void Pit_Ip_SetEnableInterruptFlag(uint8 instance, uint8 channel, boolean enable);
 
-static inline void Pit_Ip_ClearInterruptFlag(uint8 instance, uint8 channel);
+static inline void Pit_Ip_ClearInterruptStatusFlag(uint8 instance, uint8 channel);
 static inline uint32 Pit_Ip_GetUpperLifetimerValue(uint8 instance);
 static inline uint32 Pit_Ip_GetLowerLifetimerValue(uint8 instance);
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-static inline Pit_Ip_StatusType Pit_Ip_ValidateInsCall(uint8 instance);
+#if (defined(PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
+static inline Pit_Ip_StatusType Pit_Ip_ValidateInstCall(uint8 instance);
 #endif
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
 static void Pit_Ip_StartTimeout(uint32 *startTimeOut,
                          uint32 *elapsedTimeOut,
                          uint32 *timeoutTicksOut,
                          uint32 timeoutUs);
 
-static boolean Pit_Ip_TimeoutExpired(uint32 *startTimeInOut,
-                            uint32 *elapsedTimeInOut,
-                            uint32 timeoutTicks);
+static boolean Pit_Ip_TimeoutExpired(   uint32 *startTimeInOut,
+                                        uint32 *elapsedTimeInOut,
+                                        uint32 timeoutTicks );
 static inline uint32 Pit_Ip_GetRtiStatusReg(uint8 instance);
 #endif
-#if (STD_ON == PIT_IP_ENABLE_USER_MODE_SUPPORT)
+
+#if (   (defined(PIT_IP_ENABLE_USER_MODE_SUPPORT) && (STD_ON == PIT_IP_ENABLE_USER_MODE_SUPPORT)) && \
+        (   (defined(MCAL_PIT_REG_PROT_AVAILABLE) && (STD_ON == MCAL_PIT_REG_PROT_AVAILABLE)) || \
+            (defined(GPT_PIT_AE_REG_PROT_AVAILABLE) && (STD_ON == GPT_PIT_AE_REG_PROT_AVAILABLE))))
     void Pit_Ip_SetUserAccessAllowed(uint32 PitBaseAddr);
 #endif
 
-#if (defined(MCAL_PIT_REG_PROT_AVAILABLE) && (STD_ON == PIT_IP_ENABLE_USER_MODE_SUPPORT))
+#if (   (defined(PIT_IP_ENABLE_USER_MODE_SUPPORT) && (STD_ON == PIT_IP_ENABLE_USER_MODE_SUPPORT)) && \
+        (   (defined(MCAL_PIT_REG_PROT_AVAILABLE) && (STD_ON == MCAL_PIT_REG_PROT_AVAILABLE)) || \
+            (defined(GPT_PIT_AE_REG_PROT_AVAILABLE) && (STD_ON == GPT_PIT_AE_REG_PROT_AVAILABLE))))
 
     #define Call_Pit_Ip_SetUserAccessAllowed(PitBaseAddr) OsIf_Trusted_Call1param(Pit_Ip_SetUserAccessAllowed,(PitBaseAddr))
 
 #else
-
     #define Call_Pit_Ip_SetUserAccessAllowed(PitBaseAddr)
 #endif
 
-#if (defined(MCAL_PIT_REG_PROT_AVAILABLE) && (STD_ON == PIT_IP_ENABLE_USER_MODE_SUPPORT))
+
+#if (   (defined(PIT_IP_ENABLE_USER_MODE_SUPPORT) && (STD_ON == PIT_IP_ENABLE_USER_MODE_SUPPORT)) && \
+        (   (defined(MCAL_PIT_REG_PROT_AVAILABLE) && (STD_ON == MCAL_PIT_REG_PROT_AVAILABLE)) || \
+            (defined(GPT_PIT_AE_REG_PROT_AVAILABLE) && (STD_ON == GPT_PIT_AE_REG_PROT_AVAILABLE))))
 /**
 * @brief        Enables PIT registers writing in User Mode by configuring REG_PROT
 * @details      Sets the UAA (User Access Allowed) bit of the PIT IP allowing PIT registers writing in User Mode
@@ -291,9 +541,13 @@ static inline uint32 Pit_Ip_GetRtiStatusReg(uint8 instance);
 */
 void Pit_Ip_SetUserAccessAllowed (uint32 PitBaseAddr)
 {
+#if (defined(GPT_PIT_AE_REG_PROT_AVAILABLE) && (STD_ON == GPT_PIT_AE_REG_PROT_AVAILABLE))
+    SET_USER_ACCESS_ALLOWED(PitBaseAddr, PIT_AE_PROT_MEM_U32);
+#else
     SET_USER_ACCESS_ALLOWED(PitBaseAddr, PIT_PROT_MEM_U32);
+#endif
 }
-#endif /* MCAL_PIT_REG_PROT_AVAILABLE */
+#endif /* MCAL_PIT_REG_PROT_AVAILABLE && PIT_IP_ENABLE_USER_MODE_SUPPORT */
 /*==================================================================================================
 *                                      LOCAL FUNCTIONS
 ==================================================================================================*/
@@ -312,50 +566,23 @@ uint32 Pit_Ip_GetLoadValue(uint8 instance, uint8 channel)
 {
     uint32 periodValue = 0U;
 
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
     if (RTI == channel)
     {
        periodValue = pitBase[instance]->RTI_LDVAL;
     }
     else
     {
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
+#endif
        periodValue = pitBase[instance]->TIMER[channel].LDVAL;
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
     }
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
+#endif
 
     return periodValue;
 }
 
-/**
-* @brief         Pit_Ip_GetInterruptFlags
-* @details       Support PIT interrupt flags
-*                This register is intended for Timer Interrupt Flag
-*
-* @param[in]     instance     PIT hw instance number
-* @param[in]     channel      PIT hw channel number
-* @return        returnFlag
-* @pre           The driver needs to be initialized.
-*/
-uint32 Pit_Ip_GetInterruptFlags(uint8 instance, uint8 channel)
-{
-    uint32 returnFlag = 0U;
-#ifdef PIT_IP_RTI_CHANNEL_EXISTS
-    if (RTI == channel)
-    {
-        returnFlag = ((pitBase[instance]->RTI_TFLG & PIT_RTI_TFLG_TIF_MASK) >> PIT_RTI_TFLG_TIF_SHIFT);
-
-    }
-    else
-#endif
-    {
-        returnFlag = ((pitBase[instance]->TIMER[channel].TFLG & PIT_TFLG_TIF_MASK) >> PIT_TFLG_TIF_SHIFT);
-    }
-    return returnFlag;
-}
-
-#if ((defined PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
+#if (defined(PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
 /**
 * @brief         Pit_Ip_EnableModule
 * @details       Support Pit enable module.
@@ -374,7 +601,7 @@ static inline void Pit_Ip_EnableModule(uint8 instance, uint8 timerType)
     {
          pitBase[instance]->MCR &= ~PIT_MCR_MDIS_MASK;
     }
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
     else
     {
         pitBase[instance]->MCR &= ~PIT_MCR_MDIS_RTI_MASK;
@@ -402,37 +629,36 @@ static inline void Pit_Ip_EnableTimer(uint8 instance, uint8 channel, boolean ena
     {
         if (TRUE == enable)
         {
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
             if (RTI == channel)
-                {
-                    pitBase[instance]->RTI_TCTRL |= PIT_RTI_TCTRL_TEN_MASK;
-                }
+            {
+                pitBase[instance]->RTI_TCTRL |= PIT_RTI_TCTRL_TEN_MASK;
+            }
             else
-                {
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
-                    pitBase[instance]->TIMER[channel].TCTRL |= PIT_TCTRL_TEN_MASK;
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
-                }
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
+            {
+#endif
+                pitBase[instance]->TIMER[channel].TCTRL |= PIT_TCTRL_TEN_MASK;
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+            }
+#endif
         }
         else
         {
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
             if (RTI == channel)
-                {
-                    pitBase[instance]->RTI_TCTRL &= ~PIT_RTI_TCTRL_TEN_MASK;
-                }
+            {
+                pitBase[instance]->RTI_TCTRL &= ~PIT_RTI_TCTRL_TEN_MASK;
+            }
             else
-                {
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
-                    pitBase[instance]->TIMER[channel].TCTRL &= ~PIT_TCTRL_TEN_MASK;
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
-                }
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
+            {
+#endif
+                pitBase[instance]->TIMER[channel].TCTRL &= ~PIT_TCTRL_TEN_MASK;
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+            }
+#endif
         }
     }
     SchM_Exit_Gpt_GPT_EXCLUSIVE_AREA_00();
-
 }
 /**
 * @brief         Pit_Ip_SetDebugMode
@@ -499,7 +725,7 @@ static inline void Pit_Ip_SetChainMode(uint8 instance, uint8 channel, boolean en
 static inline void Pit_Ip_Reset(uint8 instance, uint8 channelNum, boolean available, boolean bitExists)
 {
     uint32 mask = 0U;
-    uint32 channelIndex = channelNum;
+    uint8 channelIndex = channelNum;
 
     if(TRUE == available)
     {
@@ -512,7 +738,7 @@ static inline void Pit_Ip_Reset(uint8 instance, uint8 channelNum, boolean availa
         {
             mask = PIT_MCR_FRZ(0U) | PIT_MCR_MDIS_RTI(1U);
         }
-#if(defined (PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
+#if (defined(PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
         else
         {
             mask = PIT_MCR_MDIS(1U) | PIT_MCR_FRZ(0U) | PIT_MCR_MDIS_RTI(1U);
@@ -527,7 +753,7 @@ static inline void Pit_Ip_Reset(uint8 instance, uint8 channelNum, boolean availa
             mask = PIT_MCR_FRZ(0U);
 
         }
-#if(defined (PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
+#if (defined(PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
         else
         {
              mask = PIT_MCR_MDIS(1U) | PIT_MCR_FRZ(0U);
@@ -540,10 +766,46 @@ static inline void Pit_Ip_Reset(uint8 instance, uint8 channelNum, boolean availa
         pitBase[instance]->TIMER[i].TCTRL = PIT_TCTRL_TEN(0U) | PIT_TCTRL_TIE(0U) | PIT_TCTRL_CHN(0U);
         pitBase[instance]->TIMER[i].LDVAL = PIT_LDVAL_TSV(0U);
         pitBase[instance]->TIMER[i].TFLG = PIT_TFLG_TIF_MASK;
+#if (   defined(PIT_0_ISR_USED) || defined(PIT_1_ISR_USED) || defined(PIT_2_ISR_USED) || defined(PIT_4_ISR_USED) || defined(PIT_5_ISR_USED) || \
+        defined(CE_PIT_0_CH_0_ISR_USED) || defined(CE_PIT_0_CH_1_ISR_USED) || \
+        defined(CE_PIT_0_CH_2_ISR_USED) || defined(CE_PIT_0_CH_3_ISR_USED) || \
+        defined(CE_PIT_1_CH_0_ISR_USED) || defined(CE_PIT_1_CH_1_ISR_USED) || \
+        defined(CE_PIT_1_CH_2_ISR_USED) || defined(CE_PIT_1_CH_3_ISR_USED) || \
+        defined(CE_PIT_2_CH_0_ISR_USED) || defined(CE_PIT_2_CH_1_ISR_USED) || \
+        defined(CE_PIT_2_CH_2_ISR_USED) || defined(CE_PIT_2_CH_3_ISR_USED) || \
+        defined(CE_PIT_3_CH_0_ISR_USED) || defined(CE_PIT_3_CH_1_ISR_USED) || \
+        defined(CE_PIT_3_CH_2_ISR_USED) || defined(CE_PIT_3_CH_3_ISR_USED) || \
+        defined(CE_PIT_4_CH_0_ISR_USED) || defined(CE_PIT_4_CH_1_ISR_USED) || \
+        defined(CE_PIT_4_CH_2_ISR_USED) || defined(CE_PIT_4_CH_3_ISR_USED) || \
+        defined(CE_PIT_5_CH_0_ISR_USED) || defined(CE_PIT_5_CH_1_ISR_USED) || \
+        defined(CE_PIT_5_CH_2_ISR_USED) || defined(CE_PIT_5_CH_3_ISR_USED) || \
+        defined(RTU0_PIT_0_ISR_USED) || defined(RTU0_PIT_1_ISR_USED) || \
+        defined(RTU1_PIT_0_ISR_USED) || defined(RTU1_PIT_1_ISR_USED) || \
+        defined(RTU2_PIT_0_ISR_USED) || defined(RTU2_PIT_1_ISR_USED) || \
+        defined(RTU3_PIT_0_ISR_USED) || defined(RTU3_PIT_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_0_ISR_USED) || defined(CRS_PIT_0_CH_0_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_1_ISR_USED) || defined(CRS_PIT_0_CH_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_2_ISR_USED) || defined(CRS_PIT_0_CH_2_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_3_ISR_USED) || defined(CRS_PIT_0_CH_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_0_ISR_USED) || defined(CRS_PIT_1_CH_0_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_1_ISR_USED) || defined(CRS_PIT_1_CH_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_2_ISR_USED) || defined(CRS_PIT_1_CH_2_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_3_ISR_USED) || defined(CRS_PIT_1_CH_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_2_ISR_USED) || defined(FSS_COSS_PIT_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_4_ISR_USED) || defined(FSS_COSS_PIT_5_ISR_USED) || \
+        defined(FSS_COSS_PIT_6_ISR_USED) || \
+        defined(FSS_HKI_PIT_0_ISR_USED) || \
+        defined(FSS_PIT_0_CH_0_ISR_USED) || defined(FSS_PIT_0_CH_1_ISR_USED) || defined(FSS_PIT_0_CH_2_ISR_USED) )
+        /* Set state variab values to default value */
+        Pit_Ip_u32ChState[instance][i].chInit = FALSE;
+        Pit_Ip_u32ChState[instance][i].callback = NULL_PTR;
+        Pit_Ip_u32ChState[instance][i].callbackParam = 0;
+        Pit_Ip_u32ChState[instance][i].channelMode = PIT_IP_CH_MODE_CONTINUOUS;
+#endif
     }
-
     pitBase[instance]->MCR = mask;
 }
+
 /**
 * @brief         Pit_Ip_IsChannelRunning
 * @details       Support enable/disable Timer Enable
@@ -561,18 +823,18 @@ static inline boolean Pit_Ip_IsChannelRunning(uint8 instance, uint8 channel)
 {
     boolean isRunning = FALSE;
 
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
     if (RTI == channel)
     {
         isRunning = ((pitBase[instance]->RTI_TCTRL & PIT_RTI_TCTRL_TEN_MASK) == PIT_RTI_TCTRL_TEN_MASK) ? TRUE : FALSE;
     }
     else
     {
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
+#endif
         isRunning = ((pitBase[instance]->TIMER[channel].TCTRL & PIT_TCTRL_TEN_MASK) == PIT_TCTRL_TEN_MASK) ? TRUE : FALSE;
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
     }
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
+#endif
 
     return isRunning;
 }
@@ -591,18 +853,18 @@ static inline boolean Pit_Ip_IsChannelRunning(uint8 instance, uint8 channel)
 static inline void Pit_Ip_SetCounterValue(uint8 instance, uint8 channel, uint32 value)
 {
 
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
     if (RTI == channel)
     {
         pitBase[instance]->RTI_LDVAL = value;
     }
     else
     {
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
+#endif
         pitBase[instance]->TIMER[channel].LDVAL = value;
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
     }
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
+#endif
 }
 
 /**
@@ -620,23 +882,23 @@ static inline uint32 Pit_Ip_GetCounterValue(uint8 instance, uint8 channel)
 {
     uint32 counterValue = 0U;
 
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
     if (RTI == channel)
     {
         counterValue = pitBase[instance]->RTI_CVAL;
     }
     else
     {
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
+#endif
         counterValue = pitBase[instance]->TIMER[channel].CVAL;
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
     }
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
+#endif
 
     return counterValue;
 }
 /**
-* @brief         Pit_Ip_EnableInterrupt
+* @brief         Pit_Ip_SetEnableInterruptFlag
 * @details       Support PIT clear interrupt flags
 *                This register is intended for Timer Interrupt Flag
 *
@@ -646,102 +908,71 @@ static inline uint32 Pit_Ip_GetCounterValue(uint8 instance, uint8 channel)
 * @return        void
 * @pre           The driver needs to be initialized.
 */
-static inline void Pit_Ip_EnableInterrupt(uint8 instance, uint8 channel, boolean enable)
+static inline void Pit_Ip_SetEnableInterruptFlag(uint8 instance, uint8 channel, boolean enable)
 {
     SchM_Enter_Gpt_GPT_EXCLUSIVE_AREA_02();
     {
         if (TRUE == enable)
         {
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
             if (RTI == channel)
-                {
-                    pitBase[instance]->RTI_TCTRL |= PIT_RTI_TCTRL_TIE_MASK;
-                }
+            {
+                pitBase[instance]->RTI_TCTRL |= PIT_RTI_TCTRL_TIE_MASK;
+            }
             else
-                {
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
-                    pitBase[instance]->TIMER[channel].TCTRL |= PIT_TCTRL_TIE_MASK;
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
-                }
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
+            {
+#endif
+                pitBase[instance]->TIMER[channel].TCTRL |= PIT_TCTRL_TIE_MASK;
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+            }
+#endif
         }
         else
         {
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
             if (RTI == channel)
-                {
-                    pitBase[instance]->RTI_TCTRL &= ~PIT_RTI_TCTRL_TIE_MASK;
-                }
+            {
+                pitBase[instance]->RTI_TCTRL &= ~PIT_RTI_TCTRL_TIE_MASK;
+            }
             else
-                {
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
-                    pitBase[instance]->TIMER[channel].TCTRL &= ~PIT_TCTRL_TIE_MASK;
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
-                }
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
+            {
+#endif
+                pitBase[instance]->TIMER[channel].TCTRL &= ~PIT_TCTRL_TIE_MASK;
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+            }
+#endif
         }
     }
     SchM_Exit_Gpt_GPT_EXCLUSIVE_AREA_02();
 }
-/**
-* @brief         Pit_Ip_ClearInterruptFlag
-* @details       Support PIT clear interrupt flags
-*                This register is intended for Timer Interrupt Flag
-*
-* @param[in]     instance     PIT hw instance number
-* @param[in]     channel      PIT hw channel number
-* @return        void
-* @pre           The driver needs to be initialized.
-*/
-static inline void Pit_Ip_ClearInterruptFlag(uint8 instance, uint8 channel)
-{
-    SchM_Enter_Gpt_GPT_EXCLUSIVE_AREA_03();
-    {
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
-        if (RTI == channel)
-            {
-                pitBase[instance]->RTI_TFLG |= PIT_RTI_TFLG_TIF_MASK;
-            }
-        else
-            {
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
-                pitBase[instance]->TIMER[channel].TFLG |= PIT_TFLG_TIF_MASK;
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
-            }
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
-    }
-    SchM_Exit_Gpt_GPT_EXCLUSIVE_AREA_03();
-}
 
-#if ((defined PIT_0_ISR_USED) || (defined PIT_1_ISR_USED) || (defined PIT_2_ISR_USED) || (defined PIT_4_ISR_USED) || (defined PIT_5_ISR_USED) || \
-     (defined CE_PIT_0_ISR_USED) || (defined CE_PIT_1_ISR_USED) || (defined CE_PIT_2_ISR_USED) || (defined CE_PIT_3_ISR_USED) || (defined CE_PIT_4_ISR_USED) || \
-     (defined CE_PIT_5_ISR_USED) || (defined RTU_PIT_0_ISR_USED) || (defined RTU_PIT_1_ISR_USED))
-/**
-* @brief         Pit_Ip_GetInterruptBit
-* @details       Support interrupt bit
-*                This register is intended for Timer Interrupt Enable.
-*
-* @param[in]     instance     PIT hw instance number
-* @param[in]     channel      PIT hw channel number
-* @return        returnFlag
-* @pre           The driver needs to be initialized.
-*/
-static inline uint32 Pit_Ip_GetInterruptBit(uint8 instance, uint8 channel)
+/*!
+ * @brief   Clear the Interrupt Status Flag of PIT peripheral timer channel.
+ * @details Support clear of PIT interrupt status flag
+ *          This register is intended for Timer interrupt status flag
+ *
+ * @param[in] instance - Instance number of PIT module
+ * @param[in] channel - The channel in the PIT instance
+ *
+ * @return  void
+ * @pre The driver needs to be initialized.
+ *
+ */
+static inline void Pit_Ip_ClearInterruptStatusFlag(uint8 instance, uint8 channel)
 {
-    uint32 returnFlag = 0U;
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
     if (RTI == channel)
     {
-        returnFlag = ((pitBase[instance]->RTI_TCTRL & PIT_RTI_TCTRL_TIE_MASK) >>  PIT_RTI_TCTRL_TIE_SHIFT);
+        pitBase[instance]->RTI_TFLG |= PIT_RTI_TFLG_TIF_MASK;
     }
     else
-#endif
     {
-        returnFlag = ((pitBase[instance]->TIMER[channel].TCTRL  & PIT_TCTRL_TIE_MASK) >> PIT_TCTRL_TIE_SHIFT);
-    }
-    return returnFlag;
-}
 #endif
+        pitBase[instance]->TIMER[channel].TFLG |= PIT_TFLG_TIF_MASK;
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+    }
+#endif
+}
 
 /**
 * @brief         Pit_Ip_GetUpperLifetimerValue
@@ -777,7 +1008,7 @@ static inline uint32 Pit_Ip_GetLowerLifetimerValue(uint8 instance)
 
     return lowerValue;
 }
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
 /**
 * @brief         Pit_Ip_StartTimeout
 * @details       Pit_Ip_StartTimeout
@@ -798,6 +1029,7 @@ static void Pit_Ip_StartTimeout(uint32 *startTimeOut,
     *elapsedTimeOut  = 0U;
     *timeoutTicksOut = OsIf_MicrosToTicks(timeoutUs, PIT_IP_TIMEOUT_TYPE);
 }
+
 /**
 * @brief         Pit_Ip_TimeoutExpired
 * @details       Pit_Ip_TimeoutExpired
@@ -809,13 +1041,17 @@ static void Pit_Ip_StartTimeout(uint32 *startTimeOut,
 * @return        TRUE/FALSE
 * @pre           The driver needs to be initialized.
 */
-static boolean Pit_Ip_TimeoutExpired(uint32 *startTimeInOut,
-                            uint32 *elapsedTimeInOut,
-                            uint32 timeoutTicks)
+static boolean Pit_Ip_TimeoutExpired(   uint32 *startTimeInOut,
+                                        uint32 *elapsedTimeInOut,
+                                        uint32 timeoutTicks )
 {
-    *elapsedTimeInOut += OsIf_GetElapsed(startTimeInOut, PIT_IP_TIMEOUT_TYPE);
+    uint64 elapsedTime = OsIf_GetElapsed(startTimeInOut, PIT_IP_TIMEOUT_TYPE);
+    boolean returnFlag = (elapsedTime >= timeoutTicks) ? TRUE : FALSE;
 
-    return ((*elapsedTimeInOut >= timeoutTicks)? TRUE : FALSE);
+    elapsedTime += *elapsedTimeInOut;
+    *elapsedTimeInOut = (uint32)elapsedTime;
+
+    return returnFlag;
 }
 /**
 * @brief         Pit_Ip_GetRtiStatusReg
@@ -828,16 +1064,81 @@ static boolean Pit_Ip_TimeoutExpired(uint32 *startTimeInOut,
 */
 static inline uint32 Pit_Ip_GetRtiStatusReg(uint8 instance)
 {
-    uint32 status = 0U;
-
-    status = ((pitBase[instance]->RTI_LDVAL_STAT  & PIT_RTI_LDVAL_STAT_RT_STAT_MASK) >> PIT_RTI_LDVAL_STAT_RT_STAT_SHIFT);
+    uint32 status = ((pitBase[instance]->RTI_LDVAL_STAT & PIT_RTI_LDVAL_STAT_RT_STAT_MASK) >> PIT_RTI_LDVAL_STAT_RT_STAT_SHIFT);
 
     return status;
 }
 #endif
-#if ((defined PIT_0_ISR_USED) || (defined PIT_1_ISR_USED) || (defined PIT_2_ISR_USED) || (defined PIT_4_ISR_USED) || (defined PIT_5_ISR_USED) || \
-     (defined CE_PIT_0_ISR_USED) || (defined CE_PIT_1_ISR_USED) || (defined CE_PIT_2_ISR_USED) || (defined CE_PIT_3_ISR_USED) || (defined CE_PIT_4_ISR_USED) || \
-     (defined CE_PIT_5_ISR_USED) || (defined RTU_PIT_0_ISR_USED) || (defined RTU_PIT_1_ISR_USED))
+
+#if (defined(PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
+static inline Pit_Ip_StatusType Pit_Ip_ValidateInstCall(uint8 instance)
+{
+    /* return success or error if PIT is initialized or not */
+    return (NULL_PTR == pitBase[instance]) ? PIT_IP_ERROR : PIT_IP_SUCCESS;
+}
+#endif
+
+/*================================================================================================*/
+#if (   defined(PIT_0_ISR_USED) || defined(PIT_1_ISR_USED) || defined(PIT_2_ISR_USED) || defined(PIT_4_ISR_USED) || defined(PIT_5_ISR_USED) || \
+        defined(CE_PIT_0_CH_0_ISR_USED) || defined(CE_PIT_0_CH_1_ISR_USED) || \
+        defined(CE_PIT_0_CH_2_ISR_USED) || defined(CE_PIT_0_CH_3_ISR_USED) || \
+        defined(CE_PIT_1_CH_0_ISR_USED) || defined(CE_PIT_1_CH_1_ISR_USED) || \
+        defined(CE_PIT_1_CH_2_ISR_USED) || defined(CE_PIT_1_CH_3_ISR_USED) || \
+        defined(CE_PIT_2_CH_0_ISR_USED) || defined(CE_PIT_2_CH_1_ISR_USED) || \
+        defined(CE_PIT_2_CH_2_ISR_USED) || defined(CE_PIT_2_CH_3_ISR_USED) || \
+        defined(CE_PIT_3_CH_0_ISR_USED) || defined(CE_PIT_3_CH_1_ISR_USED) || \
+        defined(CE_PIT_3_CH_2_ISR_USED) || defined(CE_PIT_3_CH_3_ISR_USED) || \
+        defined(CE_PIT_4_CH_0_ISR_USED) || defined(CE_PIT_4_CH_1_ISR_USED) || \
+        defined(CE_PIT_4_CH_2_ISR_USED) || defined(CE_PIT_4_CH_3_ISR_USED) || \
+        defined(CE_PIT_5_CH_0_ISR_USED) || defined(CE_PIT_5_CH_1_ISR_USED) || \
+        defined(CE_PIT_5_CH_2_ISR_USED) || defined(CE_PIT_5_CH_3_ISR_USED) || \
+        defined(RTU0_PIT_0_ISR_USED) || defined(RTU0_PIT_1_ISR_USED) || \
+        defined(RTU1_PIT_0_ISR_USED) || defined(RTU1_PIT_1_ISR_USED) || \
+        defined(RTU2_PIT_0_ISR_USED) || defined(RTU2_PIT_1_ISR_USED) || \
+        defined(RTU3_PIT_0_ISR_USED) || defined(RTU3_PIT_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_0_ISR_USED) || defined(CRS_PIT_0_CH_0_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_1_ISR_USED) || defined(CRS_PIT_0_CH_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_2_ISR_USED) || defined(CRS_PIT_0_CH_2_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_3_ISR_USED) || defined(CRS_PIT_0_CH_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_0_ISR_USED) || defined(CRS_PIT_1_CH_0_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_1_ISR_USED) || defined(CRS_PIT_1_CH_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_2_ISR_USED) || defined(CRS_PIT_1_CH_2_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_3_ISR_USED) || defined(CRS_PIT_1_CH_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_2_ISR_USED) || defined(FSS_COSS_PIT_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_4_ISR_USED) || defined(FSS_COSS_PIT_5_ISR_USED) || \
+        defined(FSS_COSS_PIT_6_ISR_USED) || \
+        defined(FSS_HKI_PIT_0_ISR_USED) || \
+        defined(FSS_PIT_0_CH_0_ISR_USED) || defined(FSS_PIT_0_CH_1_ISR_USED) || defined(FSS_PIT_0_CH_2_ISR_USED) )
+/*!
+ * @brief   Get the Interrupt Enable Flag of PIT peripheral timer channel.
+ * @details Support PIT interrupt flags
+ *          This register is intended for Timer Interrupt Flag
+ *
+ * @param[in] instance - Instance number of PIT module
+ * @param[in] channel - The channel in the PIT instance
+ *
+ * @return Channel Interrupt Enable Flag
+ *         - True : Channel interrupts are enabled
+ *         - False : Channel interrupts are disabled
+ * @pre The driver needs to be initialized.
+ *
+ */
+static inline boolean Pit_Ip_GetInterruptEnableFlag(uint8 instance, uint8 channel)
+{
+    boolean returnFlag;
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+    if (RTI == channel)
+    {
+        returnFlag = (0U != (pitBase[instance]->RTI_TCTRL & PIT_RTI_TCTRL_TIE_MASK)) ? TRUE : FALSE;
+    }
+    else
+#endif
+    {
+        returnFlag = (0U != (pitBase[instance]->TIMER[channel].TCTRL & PIT_TCTRL_TIE_MASK)) ? TRUE : FALSE;
+    }
+    return returnFlag;
+}
+
 /**
 * @brief         Driver routine to process all the interrupts of PIT.
 * @details       Support function used by interrupt service routines to implement PIT specific operations
@@ -851,56 +1152,109 @@ static inline uint32 Pit_Ip_GetRtiStatusReg(uint8 instance)
 */
 static void Pit_Ip_ProcessCommonInterrupt(uint8 instance, uint8 channel)
 {
-    uint32 flagEnable = 0U;
-    uint32 interruptEnable = 0U;
+    boolean IsChEvEnabled;
+    boolean HasChEvOccurred;
 
-    /*Checks for spurious interrupts*/
-    flagEnable = Pit_Ip_GetInterruptFlags(instance, channel);
-    interruptEnable = Pit_Ip_GetInterruptBit(instance, channel);
-    /* Clear interrupt flag */
-    Pit_Ip_ClearInterruptFlag(instance, channel);
+    boolean                 chInit;
+    Pit_Ip_CallbackType     callback;
+    uint8                   callbackParam;
+    Pit_Ip_ChannelModeType  channelMode;
 
-    if ((1U == flagEnable) && (1U == interruptEnable))
+    if ((instance < GPT_PIT_INSTANCE_COUNT) && (channel < PIT_CHANNEL_COUNT))
     {
-#if (PIT_IP_CHANGE_NEXT_TIMEOUT_VALUE == STD_ON)
-    Pit_Ip_bIsChangedTimeout = FALSE;
-#endif
-        if((PIT_IP_CH_MODE_ONESHOT == Pit_Ip_u32ChState[instance][channel].channelMode))
+        /* get the driver status */
+        chInit = Pit_Ip_u32ChState[instance][channel].chInit;
+
+        /* enter critical section */
+        SchM_Enter_Gpt_GPT_EXCLUSIVE_AREA_03();
         {
-            Pit_Ip_StopChannel(instance, channel);
+            /* check if channel event is enabled */
+            IsChEvEnabled = Pit_Ip_GetInterruptEnableFlag(instance, channel);
+
+            /* check if channel event has occurred */
+            HasChEvOccurred = Pit_Ip_GetInterruptStatusFlag(instance, channel);
+
+            /* Check if driver is initialized */
+            if (TRUE == chInit)
+            {
+                /* Check for spurious interrupts */
+                if (IsChEvEnabled && HasChEvOccurred)
+                {
+                    /* Clear pending interrupts */
+                    Pit_Ip_ClearInterruptStatusFlag(instance, channel);
+                }
+            }
+            else
+            {
+                /* Driver isn't initialized and just clear pending interrupts */
+                if (HasChEvOccurred)
+                {
+                    /* Clear pending interrupts */
+                    Pit_Ip_ClearInterruptStatusFlag(instance, channel);
+                }
+            }
         }
-        /* Call upper layer handler */
-        if((TRUE == Pit_Ip_u32ChState[instance][channel].chInit) && \
-                (NULL_PTR != Pit_Ip_u32ChState[instance][channel].callback))
+        /* exit critical section */
+        SchM_Exit_Gpt_GPT_EXCLUSIVE_AREA_03();
+
+        /* Check if driver is initialized */
+        if (TRUE == chInit)
         {
-            Pit_Ip_u32ChState[instance][channel].callback(Pit_Ip_u32ChState[instance][channel].callbackParam);
+            /* Check for spurious interrupts */
+            if (IsChEvEnabled && HasChEvOccurred)
+            {
+                callback        = Pit_Ip_u32ChState[instance][channel].callback;
+                channelMode     = Pit_Ip_u32ChState[instance][channel].channelMode;
+                callbackParam   = Pit_Ip_u32ChState[instance][channel].callbackParam;
+
+                if(PIT_IP_CH_MODE_ONESHOT == channelMode)
+                {
+                    Pit_Ip_StopChannel(instance, channel);
+                }
+
+                /* Call GPT upper layer handler */
+                if (NULL_PTR != callback)
+                {
+                    callback(callbackParam);
+                }
+            }
         }
     }
-}
-#endif
-
-
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-static inline Pit_Ip_StatusType Pit_Ip_ValidateInsCall(uint8 instance)
-{
-    Pit_Ip_StatusType status = PIT_IP_ERROR;
-
-    /*If Pit is not initialized*/
-    if (NULL_PTR == pitBase[instance])
-    {
-        status = PIT_IP_ERROR;
-    }
-    else
-    {
-        status = PIT_IP_SUCCESS;
-    }
-    return status;
-
 }
 #endif
 /*==================================================================================================
 *                                      GLOBAL FUNCTIONS
 ==================================================================================================*/
+/*!
+ * @brief   Get the Interrupt Status Flag of PIT peripheral timer channel.
+ * @details Support get of PIT interrupt status flag
+ *          This register is intended for Timer interrupt status flag
+ *
+ * @param[in] instance - Instance number of PIT module
+ * @param[in] channel - The channel in the PIT instance
+ *
+ * @return Channel Interrupt Status Flag
+ *         - True : Channel interrupt has occurred
+ *         - False: No channel interrupt has occurred
+ * @pre The driver needs to be initialized.
+ *
+ */
+boolean Pit_Ip_GetInterruptStatusFlag(uint8 instance, uint8 channel)
+{
+    boolean returnFlag;
+#ifdef PIT_IP_RTI_CHANNEL_EXISTS
+    if (RTI == channel)
+    {
+        returnFlag = (0U != (pitBase[instance]->RTI_TFLG & PIT_RTI_TFLG_TIF_MASK)) ? TRUE : FALSE;
+    }
+    else
+#endif
+    {
+        returnFlag = (0U != (pitBase[instance]->TIMER[channel].TFLG & PIT_TFLG_TIF_MASK)) ? TRUE : FALSE;
+    }
+    return returnFlag;
+}
+
 /**
 * @brief         Function Name : Pit_Ip_Init
 * @details       Driver initialization function. This function is called for each PIT hw Instance and
@@ -916,39 +1270,49 @@ static inline Pit_Ip_StatusType Pit_Ip_ValidateInsCall(uint8 instance)
 void Pit_Ip_Init(uint8 instance, const Pit_Ip_InstanceConfigType *config)
 {
 #if PIT_IP_DEV_ERROR_DETECT == STD_ON
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-    DevAssert(PIT_INSTANCE_COUNT_ALT > instance);
-#else
-    DevAssert(PIT_INSTANCE_COUNT > instance);
-#endif
+    DevAssert(GPT_PIT_INSTANCE_COUNT > instance);
     DevAssert(NULL_PTR != config);
 #endif
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-    Pit_Ip_StatusType status = PIT_IP_ERROR;
+#if (defined(PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
     /* Check if valid instance */
-    status = Pit_Ip_ValidateInsCall(instance);
+    Pit_Ip_StatusType status = Pit_Ip_ValidateInstCall(instance);
     if(PIT_IP_SUCCESS == status)
     {
 #endif
+
     /* Enable register access from user mode, if enabled from configuration file */
-     Call_Pit_Ip_SetUserAccessAllowed((uint32)pitBase[instance]);
-#if ((defined PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
-    /* Enables functional clock for standard timer */
-    if (config->enableStandardTimers)
+#if (defined(GPT_PIT_AE_REG_PROT_AVAILABLE) && (STD_ON == GPT_PIT_AE_REG_PROT_AVAILABLE))
+    if(PIT_AE_IP_INSTANCE_NUMBER == instance)
     {
-        Pit_Ip_EnableModule(instance, 0U);
+#endif
+        Call_Pit_Ip_SetUserAccessAllowed((uint32)pitBase[instance]);
+#if (defined(GPT_PIT_AE_REG_PROT_AVAILABLE) && (STD_ON == GPT_PIT_AE_REG_PROT_AVAILABLE))
     }
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
-    /* Enables functional clock for RTI timer */
-    if (config->enableRTITimer)
+#endif
+#if (defined(PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
+#if (defined(GPT_PIT_AE_REG_PROT_AVAILABLE) && (STD_ON == GPT_PIT_AE_REG_PROT_AVAILABLE))
+    if(PIT_AE_IP_INSTANCE_NUMBER != instance)
     {
-        Pit_Ip_EnableModule(instance, 1U);
+#endif
+        /* Enables functional clock for standard timer */
+        if (config->enableStandardTimers)
+        {
+            Pit_Ip_EnableModule(instance, 0U);
+        }
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+        /* Enables functional clock for RTI timer */
+        if (config->enableRTITimer)
+        {
+            Pit_Ip_EnableModule(instance, 1U);
+        }
+#endif
+#if (defined(GPT_PIT_AE_REG_PROT_AVAILABLE) && (STD_ON == GPT_PIT_AE_REG_PROT_AVAILABLE))
     }
-#endif /* FEATURE_PIT_HAS_RTI_CHANNEL */
+#endif
 #endif /* PIT_IP_MDIS_BIT_EXISTS */
     /* Sets PIT operation in Debug mode*/
     Pit_Ip_SetDebugMode(instance, config->stopRunInDebug);
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
+#if (defined(PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
     }
 #endif
 }
@@ -971,39 +1335,61 @@ void Pit_Ip_Init(uint8 instance, const Pit_Ip_InstanceConfigType *config)
 void Pit_Ip_InitChannel(uint8 instance, const Pit_Ip_ChannelConfigType *chnlConfig)
 {
 #if PIT_IP_DEV_ERROR_DETECT == STD_ON
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-    DevAssert(PIT_INSTANCE_COUNT_ALT > instance);
-#else
-    DevAssert(PIT_INSTANCE_COUNT > instance);
-#endif
+    DevAssert(GPT_PIT_INSTANCE_COUNT > instance);
     DevAssert(NULL_PTR != chnlConfig);
     DevAssert(PIT_CHANNEL_COUNT > chnlConfig->hwChannel);
 #endif
 
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-    Pit_Ip_StatusType status = PIT_IP_ERROR;
+#if (defined(PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
     /* Check if valid instance */
-    status = Pit_Ip_ValidateInsCall(instance);
+    Pit_Ip_StatusType status = Pit_Ip_ValidateInstCall(instance);
     if(PIT_IP_SUCCESS == status)
     {
 #endif
 
-    /*Stop channel to configure channel*/
+    /* Stop channel to configure channel */
     Pit_Ip_EnableTimer(instance, chnlConfig->hwChannel, FALSE);
-    /*Disable Interrupts */
-    Pit_Ip_EnableInterrupt(instance, chnlConfig->hwChannel, FALSE);
-    /*Clear pending interrupts */
-    Pit_Ip_ClearInterruptFlag(instance, chnlConfig->hwChannel);
-#if ((defined PIT_0_ISR_USED)    || (defined PIT_1_ISR_USED)     || (defined PIT_2_ISR_USED)    || (defined PIT_4_ISR_USED)    || (defined PIT_5_ISR_USED)    || \
-     (defined CE_PIT_0_ISR_USED) || (defined CE_PIT_1_ISR_USED)  || (defined CE_PIT_2_ISR_USED) || (defined CE_PIT_3_ISR_USED) || (defined CE_PIT_4_ISR_USED) || \
-     (defined CE_PIT_5_ISR_USED) || (defined RTU_PIT_0_ISR_USED) || (defined RTU_PIT_1_ISR_USED))
+    /* Disable Interrupts */
+    Pit_Ip_SetEnableInterruptFlag(instance, chnlConfig->hwChannel, FALSE);
+    /* Clear pending interrupts */
+    Pit_Ip_ClearInterruptStatusFlag(instance, chnlConfig->hwChannel);
+#if (   defined(PIT_0_ISR_USED) || defined(PIT_1_ISR_USED) || defined(PIT_2_ISR_USED) || defined(PIT_4_ISR_USED) || defined(PIT_5_ISR_USED) || \
+        defined(CE_PIT_0_CH_0_ISR_USED) || defined(CE_PIT_0_CH_1_ISR_USED) || \
+        defined(CE_PIT_0_CH_2_ISR_USED) || defined(CE_PIT_0_CH_3_ISR_USED) || \
+        defined(CE_PIT_1_CH_0_ISR_USED) || defined(CE_PIT_1_CH_1_ISR_USED) || \
+        defined(CE_PIT_1_CH_2_ISR_USED) || defined(CE_PIT_1_CH_3_ISR_USED) || \
+        defined(CE_PIT_2_CH_0_ISR_USED) || defined(CE_PIT_2_CH_1_ISR_USED) || \
+        defined(CE_PIT_2_CH_2_ISR_USED) || defined(CE_PIT_2_CH_3_ISR_USED) || \
+        defined(CE_PIT_3_CH_0_ISR_USED) || defined(CE_PIT_3_CH_1_ISR_USED) || \
+        defined(CE_PIT_3_CH_2_ISR_USED) || defined(CE_PIT_3_CH_3_ISR_USED) || \
+        defined(CE_PIT_4_CH_0_ISR_USED) || defined(CE_PIT_4_CH_1_ISR_USED) || \
+        defined(CE_PIT_4_CH_2_ISR_USED) || defined(CE_PIT_4_CH_3_ISR_USED) || \
+        defined(CE_PIT_5_CH_0_ISR_USED) || defined(CE_PIT_5_CH_1_ISR_USED) || \
+        defined(CE_PIT_5_CH_2_ISR_USED) || defined(CE_PIT_5_CH_3_ISR_USED) || \
+        defined(RTU0_PIT_0_ISR_USED) || defined(RTU0_PIT_1_ISR_USED) || \
+        defined(RTU1_PIT_0_ISR_USED) || defined(RTU1_PIT_1_ISR_USED) || \
+        defined(RTU2_PIT_0_ISR_USED) || defined(RTU2_PIT_1_ISR_USED) || \
+        defined(RTU3_PIT_0_ISR_USED) || defined(RTU3_PIT_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_0_ISR_USED) || defined(CRS_PIT_0_CH_0_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_1_ISR_USED) || defined(CRS_PIT_0_CH_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_2_ISR_USED) || defined(CRS_PIT_0_CH_2_ISR_USED) || \
+        defined(FSS_COSS_PIT_0_CH_3_ISR_USED) || defined(CRS_PIT_0_CH_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_0_ISR_USED) || defined(CRS_PIT_1_CH_0_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_1_ISR_USED) || defined(CRS_PIT_1_CH_1_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_2_ISR_USED) || defined(CRS_PIT_1_CH_2_ISR_USED) || \
+        defined(FSS_COSS_PIT_1_CH_3_ISR_USED) || defined(CRS_PIT_1_CH_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_2_ISR_USED) || defined(FSS_COSS_PIT_3_ISR_USED) || \
+        defined(FSS_COSS_PIT_4_ISR_USED) || defined(FSS_COSS_PIT_5_ISR_USED) || \
+        defined(FSS_COSS_PIT_6_ISR_USED) || \
+        defined(FSS_HKI_PIT_0_ISR_USED) || \
+        defined(FSS_PIT_0_CH_0_ISR_USED) || defined(FSS_PIT_0_CH_1_ISR_USED) || defined(FSS_PIT_0_CH_2_ISR_USED) )
     Pit_Ip_u32ChState[instance][chnlConfig->hwChannel].chInit = TRUE;
     Pit_Ip_u32ChState[instance][chnlConfig->hwChannel].callback = chnlConfig->callback;
     Pit_Ip_u32ChState[instance][chnlConfig->hwChannel].callbackParam = chnlConfig->callbackParam;
     Pit_Ip_u32ChState[instance][chnlConfig->hwChannel].channelMode = chnlConfig->channelMode;
 #endif
 
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
+#if (defined(PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
     }
 #endif
 }
@@ -1023,11 +1409,7 @@ void Pit_Ip_InitChannel(uint8 instance, const Pit_Ip_ChannelConfigType *chnlConf
 void Pit_Ip_Deinit(uint8 instance)
 {
 #if PIT_IP_DEV_ERROR_DETECT == STD_ON
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-    DevAssert(PIT_INSTANCE_COUNT_ALT > instance);
-#else
-    DevAssert(PIT_INSTANCE_COUNT > instance);
-#endif
+    DevAssert(GPT_PIT_INSTANCE_COUNT > instance);
 #endif
     uint8 channelNum = 0U;
     boolean rtiChannelExists = FALSE;
@@ -1041,7 +1423,7 @@ void Pit_Ip_Deinit(uint8 instance)
 #ifdef PIT_IP_RTI_CHANNEL_EXISTS
             rtiChannelExists = TRUE;
 #endif
-#if(defined (PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
+#if (defined(PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
             mdisBitExists = TRUE;
 #endif
         break;
@@ -1049,7 +1431,7 @@ void Pit_Ip_Deinit(uint8 instance)
 #ifdef PIT_1_IP_EXISTS
         case PIT_1_IP_INSTANCE_NUMBER:
             channelNum = PIT_1_IP_CHANNELS_NUMBER;
-#if(defined (PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
+#if (defined(PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
             mdisBitExists = TRUE;
 #endif
         break;
@@ -1057,7 +1439,7 @@ void Pit_Ip_Deinit(uint8 instance)
 #ifdef PIT_2_IP_EXISTS
         case PIT_2_IP_INSTANCE_NUMBER:
             channelNum = PIT_2_IP_CHANNELS_NUMBER;
-#if(defined (PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
+#if (defined(PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
             mdisBitExists = TRUE;
 #endif
         break;
@@ -1065,7 +1447,7 @@ void Pit_Ip_Deinit(uint8 instance)
 #ifdef PIT_3_IP_EXISTS
         case PIT_3_IP_INSTANCE_NUMBER:
             channelNum = PIT_3_IP_CHANNELS_NUMBER;
-#if(defined (PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
+#if (defined(PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
             mdisBitExists = TRUE;
 #endif
         break;
@@ -1073,7 +1455,7 @@ void Pit_Ip_Deinit(uint8 instance)
 #ifdef PIT_4_IP_EXISTS
         case PIT_4_IP_INSTANCE_NUMBER:
             channelNum = PIT_4_IP_CHANNELS_NUMBER;
-#if(defined (PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
+#if (defined(PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
             mdisBitExists = TRUE;
 #endif
         break;
@@ -1081,7 +1463,7 @@ void Pit_Ip_Deinit(uint8 instance)
 #ifdef PIT_5_IP_EXISTS
         case PIT_5_IP_INSTANCE_NUMBER:
             channelNum = PIT_5_IP_CHANNELS_NUMBER;
-#if(defined (PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
+#if (defined(PIT_IP_MDIS_BIT_EXISTS) && (PIT_IP_MDIS_BIT_EXISTS == STD_ON))
             mdisBitExists = TRUE;
 #endif
         break;
@@ -1116,18 +1498,103 @@ void Pit_Ip_Deinit(uint8 instance)
             channelNum = CE_PIT_5_IP_CHANNELS_NUMBER;
         break;
 #endif
-#ifdef RTU_PIT_0_IP_EXISTS
-        case RTU_PIT_0_IP_INSTANCE_NUMBER:
-            channelNum = RTU_PIT_0_IP_CHANNELS_NUMBER;
+#ifdef FSS_COSS_PIT_0_IP_EXISTS
+        case FSS_COSS_PIT_0_IP_INSTANCE_NUMBER:
+            channelNum = FSS_COSS_PIT_0_IP_CHANNELS_NUMBER;
         break;
 #endif
-#ifdef RTU_PIT_1_IP_EXISTS
-        case RTU_PIT_1_IP_INSTANCE_NUMBER:
-            channelNum = RTU_PIT_1_IP_CHANNELS_NUMBER;
+#ifdef FSS_COSS_PIT_1_IP_EXISTS
+        case FSS_COSS_PIT_1_IP_INSTANCE_NUMBER:
+            channelNum = FSS_COSS_PIT_1_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef FSS_COSS_PIT_2_IP_EXISTS
+        case FSS_COSS_PIT_2_IP_INSTANCE_NUMBER:
+            channelNum = FSS_COSS_PIT_2_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef FSS_COSS_PIT_3_IP_EXISTS
+        case FSS_COSS_PIT_3_IP_INSTANCE_NUMBER:
+            channelNum = FSS_COSS_PIT_3_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef FSS_COSS_PIT_4_IP_EXISTS
+        case FSS_COSS_PIT_4_IP_INSTANCE_NUMBER:
+            channelNum = FSS_COSS_PIT_4_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef FSS_COSS_PIT_5_IP_EXISTS
+        case FSS_COSS_PIT_5_IP_INSTANCE_NUMBER:
+            channelNum = FSS_COSS_PIT_5_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef FSS_COSS_PIT_6_IP_EXISTS
+        case FSS_COSS_PIT_6_IP_INSTANCE_NUMBER:
+            channelNum = FSS_COSS_PIT_6_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef FSS_HKI_PIT_0_IP_EXISTS
+        case FSS_HKI_PIT_0_IP_INSTANCE_NUMBER:
+            channelNum = FSS_HKI_PIT_0_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef FSS_PIT_0_IP_EXISTS
+        case FSS_PIT_0_IP_INSTANCE_NUMBER:
+            channelNum = FSS_PIT_0_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef CRS_PIT_0_IP_EXISTS
+        case CRS_PIT_0_IP_INSTANCE_NUMBER:
+            channelNum = CRS_PIT_0_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef CRS_PIT_1_IP_EXISTS
+        case CRS_PIT_1_IP_INSTANCE_NUMBER:
+            channelNum = CRS_PIT_1_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef RTU0_PIT_0_IP_EXISTS
+        case RTU0_PIT_0_IP_INSTANCE_NUMBER:
+            channelNum = RTU0_PIT_0_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef RTU0_PIT_1_IP_EXISTS
+        case RTU0_PIT_1_IP_INSTANCE_NUMBER:
+            channelNum = RTU0_PIT_1_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef RTU1_PIT_0_IP_EXISTS
+        case RTU1_PIT_0_IP_INSTANCE_NUMBER:
+            channelNum = RTU1_PIT_0_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef RTU1_PIT_1_IP_EXISTS
+        case RTU1_PIT_1_IP_INSTANCE_NUMBER:
+            channelNum = RTU1_PIT_1_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef RTU2_PIT_0_IP_EXISTS
+        case RTU2_PIT_0_IP_INSTANCE_NUMBER:
+            channelNum = RTU2_PIT_0_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef RTU2_PIT_1_IP_EXISTS
+        case RTU2_PIT_1_IP_INSTANCE_NUMBER:
+            channelNum = RTU2_PIT_1_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef RTU3_PIT_0_IP_EXISTS
+        case RTU3_PIT_0_IP_INSTANCE_NUMBER:
+            channelNum = RTU3_PIT_0_IP_CHANNELS_NUMBER;
+        break;
+#endif
+#ifdef RTU3_PIT_1_IP_EXISTS
+        case RTU3_PIT_1_IP_INSTANCE_NUMBER:
+            channelNum = RTU3_PIT_1_IP_CHANNELS_NUMBER;
         break;
 #endif
         default:
-            /*This switch branch is empty because it shall not be executed for normal behaviour*/
+            /* This switch branch is empty because it shall not be executed for normal behaviour */
         break;
     }
 
@@ -1152,16 +1619,12 @@ void Pit_Ip_Deinit(uint8 instance)
 Pit_Ip_StatusType Pit_Ip_StartChannel(uint8 instance, uint8 channel, uint32 countValue)
 {
 #if PIT_IP_DEV_ERROR_DETECT == STD_ON
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-    DevAssert(PIT_INSTANCE_COUNT_ALT > instance);
-#else
-    DevAssert(PIT_INSTANCE_COUNT > instance);
-#endif
+    DevAssert(GPT_PIT_INSTANCE_COUNT > instance);
     DevAssert(PIT_CHANNEL_COUNT > channel);
 #endif
     boolean isRunning = FALSE;
     Pit_Ip_StatusType status = PIT_IP_ERROR;
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
     uint32 startTime, elapsedTime, timeoutTicks;
     Pit_Ip_StartTimeout(&startTime, &elapsedTime, &timeoutTicks, PIT_IP_TIMEOUT_COUNTER);
 #endif
@@ -1174,7 +1637,7 @@ Pit_Ip_StatusType Pit_Ip_StartChannel(uint8 instance, uint8 channel, uint32 coun
 #if (PIT_IP_CHANGE_NEXT_TIMEOUT_VALUE == STD_ON)
         Pit_Ip_bIsChangedTimeout = FALSE;
 #endif
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
         if((0U == instance) && (RTI == channel))
         {
             do
@@ -1196,7 +1659,7 @@ Pit_Ip_StatusType Pit_Ip_StartChannel(uint8 instance, uint8 channel, uint32 coun
 #endif
             Pit_Ip_EnableTimer(instance, channel, TRUE);
             status = PIT_IP_SUCCESS;
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
         }
 #endif
     }
@@ -1220,15 +1683,12 @@ Pit_Ip_StatusType Pit_Ip_StartChannel(uint8 instance, uint8 channel, uint32 coun
 void Pit_Ip_StopChannel(uint8 instance, uint8 channel)
 {
 #if PIT_IP_DEV_ERROR_DETECT == STD_ON
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-    DevAssert(PIT_INSTANCE_COUNT_ALT > instance);
-#else
-    DevAssert(PIT_INSTANCE_COUNT > instance);
-#endif
+    DevAssert(GPT_PIT_INSTANCE_COUNT > instance);
     DevAssert(PIT_CHANNEL_COUNT > channel);
 #endif
     Pit_Ip_EnableTimer(instance, channel, FALSE);
-    Pit_Ip_ClearInterruptFlag(instance, channel);
+    /* Clear pending interrupts */
+    Pit_Ip_ClearInterruptStatusFlag(instance, channel);
 }
 
 /*================================================================================================*/
@@ -1248,12 +1708,7 @@ void Pit_Ip_StopChannel(uint8 instance, uint8 channel)
 uint64 Pit_Ip_GetCurrentTimer(uint8 instance, uint8 channel)
 {
 #if PIT_IP_DEV_ERROR_DETECT == STD_ON
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-    DevAssert(PIT_INSTANCE_COUNT_ALT > instance);
-#else
-    DevAssert(PIT_INSTANCE_COUNT > instance);
-#endif
-
+    DevAssert(GPT_PIT_INSTANCE_COUNT > instance);
     DevAssert(PIT_CHANNEL_COUNT > channel);
 #endif
     uint64 counterValue = 0U;
@@ -1278,15 +1733,13 @@ uint64 Pit_Ip_GetCurrentTimer(uint8 instance, uint8 channel)
 void Pit_Ip_EnableChannelInterrupt(uint8 instance, uint8 channel)
 {
 #if PIT_IP_DEV_ERROR_DETECT == STD_ON
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-    DevAssert(PIT_INSTANCE_COUNT_ALT > instance);
-#else
-    DevAssert(PIT_INSTANCE_COUNT > instance);
-#endif
+    DevAssert(GPT_PIT_INSTANCE_COUNT > instance);
     DevAssert(PIT_CHANNEL_COUNT > channel);
 #endif
-    Pit_Ip_ClearInterruptFlag(instance, channel);
-    Pit_Ip_EnableInterrupt(instance, channel, TRUE);
+    /* Clear pending interrupts */
+    Pit_Ip_ClearInterruptStatusFlag(instance, channel);
+    /* Enable Interrupts */
+    Pit_Ip_SetEnableInterruptFlag(instance, channel, TRUE);
 }
 
 /*================================================================================================*/
@@ -1304,15 +1757,13 @@ void Pit_Ip_EnableChannelInterrupt(uint8 instance, uint8 channel)
 void Pit_Ip_DisableChannelInterrupt(uint8 instance, uint8 channel)
 {
 #if PIT_IP_DEV_ERROR_DETECT == STD_ON
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-    DevAssert(PIT_INSTANCE_COUNT_ALT > instance);
-#else
-    DevAssert(PIT_INSTANCE_COUNT > instance);
-#endif
+    DevAssert(GPT_PIT_INSTANCE_COUNT > instance);
     DevAssert(PIT_CHANNEL_COUNT > channel);
 #endif
-    Pit_Ip_EnableInterrupt(instance, channel, FALSE);
-    Pit_Ip_ClearInterruptFlag(instance, channel);
+    /* Disable Interrupts */
+    Pit_Ip_SetEnableInterruptFlag(instance, channel, FALSE);
+    /* Clear pending interrupts */
+    Pit_Ip_ClearInterruptStatusFlag(instance, channel);
 }
 
 /*================================================================================================*/
@@ -1331,11 +1782,7 @@ void Pit_Ip_DisableChannelInterrupt(uint8 instance, uint8 channel)
 void Pit_Ip_ChangeNextTimeoutValue(uint8 instance, uint8 channel, uint32 value)
 {
 #if PIT_IP_DEV_ERROR_DETECT == STD_ON
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-    DevAssert(PIT_INSTANCE_COUNT_ALT > instance);
-#else
-    DevAssert(PIT_INSTANCE_COUNT > instance);
-#endif
+    DevAssert(GPT_PIT_INSTANCE_COUNT > instance);
     DevAssert(PIT_CHANNEL_COUNT > channel);
 #endif
 
@@ -1364,17 +1811,13 @@ void Pit_Ip_ChangeNextTimeoutValue(uint8 instance, uint8 channel, uint32 value)
 Pit_Ip_StatusType Pit_Ip_ChainMode(uint8 instance, uint8 channel, boolean enable)
 {
 #if PIT_IP_DEV_ERROR_DETECT == STD_ON
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-    DevAssert(PIT_INSTANCE_COUNT_ALT > instance);
-#else
-    DevAssert(PIT_INSTANCE_COUNT > instance);
-#endif
+    DevAssert(GPT_PIT_INSTANCE_COUNT > instance);
     DevAssert(PIT_CHANNEL_COUNT > channel);
 #endif
-    Pit_Ip_StatusType returnValue = PIT_IP_ERROR;
+    Pit_Ip_StatusType returnValue;
 
     /* Can not enable chain mode for PIT_RTI and CH_0 */
-#if (defined (PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
+#if (defined(PIT_IP_RTI_USED) && (PIT_IP_RTI_USED == STD_ON))
     if(((uint8) 0x00 < channel) && (RTI != channel))
 #else
     if((uint8) 0x00 < channel)
@@ -1383,6 +1826,10 @@ Pit_Ip_StatusType Pit_Ip_ChainMode(uint8 instance, uint8 channel, boolean enable
         /* Enable Chain Mode*/
         Pit_Ip_SetChainMode(instance, channel, enable);
         returnValue = PIT_IP_SUCCESS;
+    }
+    else
+    {
+        returnValue = PIT_IP_ERROR;
     }
 
     return returnValue;
@@ -1406,17 +1853,13 @@ Pit_Ip_StatusType Pit_Ip_ChainMode(uint8 instance, uint8 channel, boolean enable
 void Pit_Ip_SetLifetimeTimer(uint8 instance)
 {
 #if PIT_IP_DEV_ERROR_DETECT == STD_ON
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-    DevAssert(PIT_INSTANCE_COUNT_ALT > instance);
-#else
-    DevAssert(PIT_INSTANCE_COUNT > instance);
-#endif
+    DevAssert(GPT_PIT_INSTANCE_COUNT > instance);
 #endif
 
     /* Setup timer channel 1 for maximum counting period */
     Pit_Ip_SetCounterValue(instance, 1U, PIT_MAX_VALUE);
     /* Disable timer channel 1 interrupt */
-    Pit_Ip_EnableInterrupt(instance, 1U, FALSE);
+    Pit_Ip_SetEnableInterruptFlag(instance, 1U, FALSE);
     /* Chain timer channel 1 to timer channel 0 */
     Pit_Ip_SetChainMode(instance, 1U, TRUE);
     /* Start timer channel 1 */
@@ -1445,17 +1888,14 @@ void Pit_Ip_SetLifetimeTimer(uint8 instance)
 uint64 Pit_Ip_GetLifetimeTimer(uint8 instance)
 {
 #if PIT_IP_DEV_ERROR_DETECT == STD_ON
-#if(defined (PIT_IP_INSTANCE_GAP_EXISTS) && (PIT_IP_INSTANCE_GAP_EXISTS == STD_ON))
-    DevAssert(PIT_INSTANCE_COUNT_ALT > instance);
-#else
-    DevAssert(PIT_INSTANCE_COUNT > instance);
-#endif
+    DevAssert(GPT_PIT_INSTANCE_COUNT > instance);
 #endif
 
     uint64 lifeTimeValue = 0U;
     uint32 valueH = 0U;
     uint32 valueL = 0U;
 
+SchM_Enter_Gpt_GPT_EXCLUSIVE_AREA_09();
     /* LTMR64H should be read before LTMR64L */
     /* Read LTMR64H*/
     valueH = Pit_Ip_GetUpperLifetimerValue(instance);
@@ -1463,7 +1903,7 @@ uint64 Pit_Ip_GetLifetimeTimer(uint8 instance)
     valueL = Pit_Ip_GetLowerLifetimerValue(instance);
 
     /* TODO: ERRATA versioning*/
-    #ifdef ERR_IPV_PIT_E050130
+#ifdef ERR_IPV_PIT_E050130
     /* If the read value of LTMR64L is equal to LDVAL */
     if (valueL == Pit_Ip_GetLoadValue(instance, 0U))
     {
@@ -1472,15 +1912,18 @@ uint64 Pit_Ip_GetLifetimeTimer(uint8 instance)
         valueH = Pit_Ip_GetUpperLifetimerValue(instance);
         valueL = Pit_Ip_GetLowerLifetimerValue(instance);
     }
-    #endif
+#endif
+SchM_Exit_Gpt_GPT_EXCLUSIVE_AREA_09();
 
     lifeTimeValue = (((uint64)valueH << 32U) + (uint64)(valueL));
 
     return lifeTimeValue;
 }
 /*================================================================================================*/
-#if (PIT_IP_MODULE_SINGLE_INTERRUPT == STD_ON)
-#ifdef PIT_0_ISR_USED
+
+#if ((STD_ON == PIT_GPT_IP_MODULE_SINGLE_INTERRUPT) || (STD_ON == PIT_GPT_IP_MODULE_SINGLE_AND_MULTIPLE_INTERRUPTS))
+
+#if defined(PIT_0_ISR_USED)
 /**
 * @brief   Interrupt handler for PIT_0 channels.
 * @details Interrupt Service Routine corresponding to PIT_0 hw module.
@@ -1491,72 +1934,48 @@ uint64 Pit_Ip_GetLifetimeTimer(uint8 instance)
 */
 ISR(PIT_0_ISR)
 {
-#if ((defined PIT_IP_PECULIAR_INSTANCES) && (PIT_IP_PECULIAR_INSTANCES == STD_ON))
-    uint8 instance = 6U;
+    uint8 channel;
+#if defined(PIT_0_IP_EXISTS)
+    uint8 instance = PIT_0_IP_INSTANCE_NUMBER;
 #else
-    uint8 instance = 0U;
+    #error "undefined PIT instance number"
 #endif
-    uint8 channel = 0U;
-
-#if ((defined PIT_IP_RTI_CHANNEL_EXISTS) && (PIT_IP_RTI_USED == STD_OFF))
-
-    for (channel = 0U; channel < PIT_0_IP_CHANNELS_NUMBER - 1U; channel++)
+#if (defined(PIT_IP_RTI_CHANNEL_EXISTS) && (PIT_IP_RTI_USED == STD_OFF))
+    for (channel = 0U; channel < PIT_0_IP_CHANNELS_NUMBER - 1U; ++channel)
 #else
-    for (channel = 0U; channel < (PIT_0_IP_CHANNELS_NUMBER); channel++)
+    for (channel = 0U; channel < PIT_0_IP_CHANNELS_NUMBER; ++channel)
 #endif
     {
         Pit_Ip_ProcessCommonInterrupt(instance, channel);
     }
 }
 #endif
-/*================================================================================================*/
-#ifdef PIT_1_ISR_USED
+
+#if defined(PIT_1_ISR_USED)
 /**
 * @brief   Interrupt handler for PIT_1 channels.
 * @details Interrupt Service Routine corresponding to PIT_1 hw module.
 * @param[in] none
 * @return  void
 * @isr
-* @pre      The driver needs to be initialized.
+* @pre      The driver needs to be initialized
 */
 ISR(PIT_1_ISR)
 {
-#if ((defined PIT_IP_PECULIAR_INSTANCES) && (PIT_IP_PECULIAR_INSTANCES == STD_ON))
-    uint8 instance = 7U;
+    uint8 channel;
+#if defined(PIT_1_IP_EXISTS)
+    uint8 instance = PIT_1_IP_INSTANCE_NUMBER;
 #else
-    uint8 instance = 1U;
+    #error "undefined PIT instance number"
 #endif
-    uint8 channel = 0U;
-
-    for (channel = 0U; channel < PIT_1_IP_CHANNELS_NUMBER; channel++)
+    for (channel = 0U; channel < PIT_1_IP_CHANNELS_NUMBER; ++channel)
     {
         Pit_Ip_ProcessCommonInterrupt(instance, channel);
     }
 }
 #endif
-/*================================================================================================*/
-#ifdef PIT_2_ISR_USED
-/**
-* @brief   Interrupt handler for PIT_2 channels.
-* @details Interrupt Service Routine corresponding to PIT_2 hw module.
-* @param[in] none
-* @return  void
-* @isr
-* @pre      The driver needs to be initialized
-*/
-ISR(PIT_2_ISR)
-{
-    uint8 instance = 2U;
-    uint8 channel = 0U;
 
-    for (channel = 0U; channel < PIT_2_IP_CHANNELS_NUMBER; channel++)
-    {
-        Pit_Ip_ProcessCommonInterrupt(instance, channel);
-    }
-}
-#endif
-/*================================================================================================*/
-#ifdef PIT_4_ISR_USED
+#if defined(PIT_4_ISR_USED)
 /**
 * @brief   Interrupt handler for PIT_4 channels.
 * @details Interrupt Service Routine corresponding to PIT_4 hw module.
@@ -1567,21 +1986,20 @@ ISR(PIT_2_ISR)
 */
 ISR(PIT_4_ISR)
 {
-#if ((defined PIT_IP_PECULIAR_INSTANCES) && (PIT_IP_PECULIAR_INSTANCES == STD_ON))
-    uint8 instance = 8U;
+    uint8 channel;
+#if defined(PIT_4_IP_EXISTS)
+    uint8 instance = PIT_4_IP_INSTANCE_NUMBER;
 #else
-    uint8 instance = 4U;
+    #error "undefined PIT instance number"
 #endif
-    uint8 channel = 0U;
-
-    for (channel = 0U; channel < PIT_4_IP_CHANNELS_NUMBER; channel++)
+    for (channel = 0U; channel < PIT_4_IP_CHANNELS_NUMBER; ++channel)
     {
         Pit_Ip_ProcessCommonInterrupt(instance, channel);
     }
 }
 #endif
-/*================================================================================================*/
-#ifdef PIT_5_ISR_USED
+
+#if defined(PIT_5_ISR_USED)
 /**
 * @brief   Interrupt handler for PIT_5 channels.
 * @details Interrupt Service Routine corresponding to PIT_5 hw module.
@@ -1592,188 +2010,1100 @@ ISR(PIT_4_ISR)
 */
 ISR(PIT_5_ISR)
 {
-#if ((defined PIT_IP_PECULIAR_INSTANCES) && (PIT_IP_PECULIAR_INSTANCES == STD_ON))
-    uint8 instance = 9U;
+    uint8 channel;
+#if defined(PIT_5_IP_EXISTS)
+    uint8 instance = PIT_5_IP_INSTANCE_NUMBER;
 #else
-    uint8 instance = 5U;
+    #error "undefined PIT instance number"
 #endif
-    uint8 channel = 0U;
-
-    for (channel = 0U; channel < PIT_5_IP_CHANNELS_NUMBER; channel++)
+    for (channel = 0U; channel < PIT_5_IP_CHANNELS_NUMBER; ++channel)
     {
         Pit_Ip_ProcessCommonInterrupt(instance, channel);
     }
 }
 #endif
-/*================================================================================================*/
-#ifdef CE_PIT_0_ISR_USED
+
+#if (STD_ON == PIT_GPT_IP_MODULE_SINGLE_AND_MULTIPLE_INTERRUPTS)
+
+#if defined(CE_PIT_0_CH_0_ISR_USED)
 /**
-* @brief   Interrupt handler for CE_PIT_0 channels.
-* @details Interrupt Service Routine corresponding to CE_PIT_0 hw module.
+* @brief   Interrupt handler for CE_PIT_0_CH_0 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_0_CH_0 hw module.
 * @param[in] none
 * @return  void
 * @isr
 * @pre      The driver needs to be initialized
 */
-ISR(CE_PIT_0_ISR)
+ISR(CE_PIT_0_CH_0_ISR)
 {
-    uint8 instance = 0U;
     uint8 channel = 0U;
+#if defined(CE_PIT_0_IP_EXISTS)
+    uint8 instance = CE_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
 
-    for (channel = 0U; channel < CE_PIT_0_IP_CHANNELS_NUMBER; channel++)
+#if defined(CE_PIT_0_CH_1_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_0_CH_1 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_0_CH_1 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_0_CH_1_ISR)
+{
+    uint8 channel = 1U;
+#if defined(CE_PIT_0_IP_EXISTS)
+    uint8 instance = CE_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_0_CH_2_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_0_CH_2 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_0_CH_2 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_0_CH_2_ISR)
+{
+    uint8 channel = 2U;
+#if defined(CE_PIT_0_IP_EXISTS)
+    uint8 instance = CE_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_0_CH_3_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_0_CH_3 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_0_CH_3 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_0_CH_3_ISR)
+{
+    uint8 channel = 3U;
+#if defined(CE_PIT_0_IP_EXISTS)
+    uint8 instance = CE_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_1_CH_0_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_1_CH_0 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_1_CH_0 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_1_CH_0_ISR)
+{
+    uint8 channel = 0U;
+#if defined(CE_PIT_1_IP_EXISTS)
+    uint8 instance = CE_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_1_CH_1_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_1_CH_1 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_1_CH_1 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_1_CH_1_ISR)
+{
+    uint8 channel = 1U;
+#if defined(CE_PIT_1_IP_EXISTS)
+    uint8 instance = CE_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_1_CH_2_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_1_CH_2 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_1_CH_2 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_1_CH_2_ISR)
+{
+    uint8 channel = 2U;
+#if defined(CE_PIT_1_IP_EXISTS)
+    uint8 instance = CE_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_1_CH_3_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_1_CH_3 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_1_CH_3 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_1_CH_3_ISR)
+{
+    uint8 channel = 3U;
+#if defined(CE_PIT_1_IP_EXISTS)
+    uint8 instance = CE_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_2_CH_0_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_2_CH_0 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_2_CH_0 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_2_CH_0_ISR)
+{
+    uint8 channel = 0U;
+#if defined(CE_PIT_2_IP_EXISTS)
+    uint8 instance = CE_PIT_2_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_2_CH_1_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_2_CH_1 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_2_CH_1 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_2_CH_1_ISR)
+{
+    uint8 channel = 1U;
+#if defined(CE_PIT_2_IP_EXISTS)
+    uint8 instance = CE_PIT_2_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_2_CH_2_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_2_CH_2 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_2_CH_2 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_2_CH_2_ISR)
+{
+    uint8 channel = 2U;
+#if defined(CE_PIT_2_IP_EXISTS)
+    uint8 instance = CE_PIT_2_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_2_CH_3_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_2_CH_3 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_2_CH_3 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_2_CH_3_ISR)
+{
+    uint8 channel = 3U;
+#if defined(CE_PIT_2_IP_EXISTS)
+    uint8 instance = CE_PIT_2_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_3_CH_0_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_3_CH_0 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_3_CH_0 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_3_CH_0_ISR)
+{
+    uint8 channel = 0U;
+#if defined(CE_PIT_3_IP_EXISTS)
+    uint8 instance = CE_PIT_3_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_3_CH_1_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_3_CH_1 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_3_CH_1 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_3_CH_1_ISR)
+{
+    uint8 channel = 1U;
+#if defined(CE_PIT_3_IP_EXISTS)
+    uint8 instance = CE_PIT_3_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_3_CH_2_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_3_CH_2 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_3_CH_2 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_3_CH_2_ISR)
+{
+    uint8 channel = 2U;
+#if defined(CE_PIT_3_IP_EXISTS)
+    uint8 instance = CE_PIT_3_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_3_CH_3_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_3_CH_3 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_3_CH_3 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_3_CH_3_ISR)
+{
+    uint8 channel = 3U;
+#if defined(CE_PIT_3_IP_EXISTS)
+    uint8 instance = CE_PIT_3_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_4_CH_0_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_4_CH_0 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_4_CH_0 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_4_CH_0_ISR)
+{
+    uint8 channel = 0U;
+#if defined(CE_PIT_4_IP_EXISTS)
+    uint8 instance = CE_PIT_4_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_4_CH_1_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_4_CH_1 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_4_CH_1 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_4_CH_1_ISR)
+{
+    uint8 channel = 1U;
+#if defined(CE_PIT_4_IP_EXISTS)
+    uint8 instance = CE_PIT_4_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_4_CH_2_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_4_CH_2 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_4_CH_2 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_4_CH_2_ISR)
+{
+    uint8 channel = 2U;
+#if defined(CE_PIT_4_IP_EXISTS)
+    uint8 instance = CE_PIT_4_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_4_CH_3_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_4_CH_3 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_4_CH_3 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_4_CH_3_ISR)
+{
+    uint8 channel = 3U;
+#if defined(CE_PIT_4_IP_EXISTS)
+    uint8 instance = CE_PIT_4_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_5_CH_0_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_5_CH_0 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_5_CH_0 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_5_CH_0_ISR)
+{
+    uint8 channel = 0U;
+#if defined(CE_PIT_5_IP_EXISTS)
+    uint8 instance = CE_PIT_5_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_5_CH_1_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_5_CH_1 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_5_CH_1 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_5_CH_1_ISR)
+{
+    uint8 channel = 1U;
+#if defined(CE_PIT_5_IP_EXISTS)
+    uint8 instance = CE_PIT_5_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_5_CH_2_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_5_CH_2 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_5_CH_2 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_5_CH_2_ISR)
+{
+    uint8 channel = 2U;
+#if defined(CE_PIT_5_IP_EXISTS)
+    uint8 instance = CE_PIT_5_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CE_PIT_5_CH_3_ISR_USED)
+/**
+* @brief   Interrupt handler for CE_PIT_5_CH_3 channel.
+* @details Interrupt Service Routine corresponding to CE_PIT_5_CH_3 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(CE_PIT_5_CH_3_ISR)
+{
+    uint8 channel = 3U;
+#if defined(CE_PIT_5_IP_EXISTS)
+    uint8 instance = CE_PIT_5_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(FSS_HKI_PIT_0_ISR_USED)
+ISR(FSS_HKI_PIT_0_ISR){
+    uint8 channel;
+#if defined(FSS_HKI_PIT_0_IP_EXISTS)
+    uint8 instance = FSS_HKI_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    for (channel = 0U; channel < FSS_HKI_PIT_0_IP_CHANNELS_NUMBER; ++channel)
     {
-         Pit_Ip_ProcessCommonInterrupt(instance, channel);
+        Pit_Ip_ProcessCommonInterrupt(instance, channel);
     }
 }
 #endif
-/*================================================================================================*/
-#ifdef CE_PIT_1_ISR_USED
+
+#if defined(RTU0_PIT_0_ISR_USED)
 /**
-* @brief   Interrupt handler for CE_PIT_1 channels.
-* @details Interrupt Service Routine corresponding to CE_PIT_1 hw module.
+* @brief   Interrupt handler for RTU0_PIT_0 channels.
+* @details Interrupt Service Routine corresponding to RTU0_PIT_0 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(RTU0_PIT_0_ISR)
+{
+    uint8 channel;
+#if defined(RTU0_PIT_0_IP_EXISTS)
+    uint8 instance = RTU0_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    for (channel = 0U; channel < RTU0_PIT_0_IP_CHANNELS_NUMBER; ++channel)
+    {
+        Pit_Ip_ProcessCommonInterrupt(instance, channel);
+    }
+}
+#endif
+
+#if defined(RTU0_PIT_1_ISR_USED)
+/**
+* @brief   Interrupt handler for RTU0_PIT_1 channels.
+* @details Interrupt Service Routine corresponding to RTU0_PIT_1 hw module.
 * @param[in] none
 * @return  void
 * @isr
 * @pre      The driver needs to be initialized.
 */
-ISR(CE_PIT_1_ISR)
+ISR(RTU0_PIT_1_ISR)
 {
-    uint8 instance = 1U;
-    uint8 channel = 0U;
-
-    for (channel = 0U; channel < CE_PIT_1_IP_CHANNELS_NUMBER; channel++)
+    uint8 channel;
+#if defined(RTU0_PIT_1_IP_EXISTS)
+    uint8 instance = RTU0_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    for (channel = 0U; channel < RTU0_PIT_1_IP_CHANNELS_NUMBER; ++channel)
     {
         Pit_Ip_ProcessCommonInterrupt(instance, channel);
     }
 }
 #endif
-/*================================================================================================*/
-#ifdef CE_PIT_2_ISR_USED
+
+#if defined(RTU1_PIT_0_ISR_USED)
 /**
-* @brief   Interrupt handler for CE_PIT_2 channels.
-* @details Interrupt Service Routine corresponding to CE_PIT_2 hw module.
+* @brief   Interrupt handler for RTU1_PIT_0 channels.
+* @details Interrupt Service Routine corresponding to RTU1_PIT_0 hw module.
 * @param[in] none
 * @return  void
 * @isr
 * @pre      The driver needs to be initialized
 */
-ISR(CE_PIT_2_ISR)
+ISR(RTU1_PIT_0_ISR)
 {
-    uint8 instance = 2U;
-    uint8 channel = 0U;
-
-    for (channel = 0U; channel < CE_PIT_2_IP_CHANNELS_NUMBER; channel++)
+    uint8 channel;
+#if defined(RTU1_PIT_0_IP_EXISTS)
+    uint8 instance = RTU1_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    for (channel = 0U; channel < RTU1_PIT_0_IP_CHANNELS_NUMBER; ++channel)
     {
         Pit_Ip_ProcessCommonInterrupt(instance, channel);
     }
 }
 #endif
-/*================================================================================================*/
-#ifdef CE_PIT_3_ISR_USED
-/**
-* @brief   Interrupt handler for CE_PIT_3 channels.
-* @details Interrupt Service Routine corresponding to CE_PIT_3 hw module.
-* @param[in] none
-* @return  void
-* @isr
-* @pre      The driver needs to be initialized
-*/
-ISR(CE_PIT_3_ISR)
-{
-    uint8 instance = 3U;
-    uint8 channel = 0U;
 
-    for (channel = 0U; channel < CE_PIT_3_IP_CHANNELS_NUMBER; channel++)
-    {
-        Pit_Ip_ProcessCommonInterrupt(instance, channel);
-    }
-}
-#endif
-/*================================================================================================*/
-#ifdef  CE_PIT_4_ISR_USED
+#if defined(RTU1_PIT_1_ISR_USED)
 /**
-* @brief   Interrupt handler for  CE_PIT_4 channels.
-* @details Interrupt Service Routine corresponding to  CE_PIT_4 hw module.
-* @param[in] none
-* @return  void
-* @isr
-* @pre      The driver needs to be initialized
-*/
-ISR(CE_PIT_4_ISR)
-{
-    uint8 instance = 4U;
-    uint8 channel = 0U;
-
-    for (channel = 0U; channel < CE_PIT_4_IP_CHANNELS_NUMBER; channel++)
-    {
-        Pit_Ip_ProcessCommonInterrupt(instance, channel);
-    }
-}
-#endif
-/*================================================================================================*/
-#ifdef CE_PIT_5_ISR_USED
-/**
-* @brief   Interrupt handler for CE_PIT_5 channels.
-* @details Interrupt Service Routine corresponding to CE_PIT_5 hw module.
-* @param[in] none
-* @return  void
-* @isr
-* @pre      The driver needs to be initialized
-*/
-ISR(CE_PIT_5_ISR)
-{
-    uint8 instance = 5U;
-    uint8 channel = 0U;
-
-    for (channel = 0U; channel < CE_PIT_5_IP_CHANNELS_NUMBER; channel++)
-    {
-        Pit_Ip_ProcessCommonInterrupt(instance, channel);
-    }
-}
-#endif
-/*================================================================================================*/
-#ifdef RTU_PIT_0_ISR_USED
-/**
-* @brief   Interrupt handler for RTU_PIT_0 channels.
-* @details Interrupt Service Routine corresponding to RTU_PIT_0 hw module.
-* @param[in] none
-* @return  void
-* @isr
-* @pre      The driver needs to be initialized
-*/
-ISR(RTU_PIT_0_ISR)
-{
-    uint8 instance = 10U;
-    uint8 channel = 0U;
-
-    for (channel = 0U; channel < RTU_PIT_0_IP_CHANNELS_NUMBER; channel++)
-    {
-        Pit_Ip_ProcessCommonInterrupt(instance, channel);
-    }
-}
-#endif
-/*================================================================================================*/
-#ifdef RTU_PIT_1_ISR_USED
-/**
-* @brief   Interrupt handler for RTU_PIT_1 channels.
-* @details Interrupt Service Routine corresponding to RTU_PIT_1 hw module.
+* @brief   Interrupt handler for RTU1_PIT_1 channels.
+* @details Interrupt Service Routine corresponding to RTU1_PIT_1 hw module.
 * @param[in] none
 * @return  void
 * @isr
 * @pre      The driver needs to be initialized.
 */
-ISR(RTU_PIT_1_ISR)
+ISR(RTU1_PIT_1_ISR)
 {
-    uint8 instance = 11U;
-    uint8 channel = 0U;
-
-    for (channel = 0U; channel < RTU_PIT_1_IP_CHANNELS_NUMBER; channel++)
+    uint8 channel;
+#if defined(RTU1_PIT_1_IP_EXISTS)
+    uint8 instance = RTU1_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    for (channel = 0U; channel < RTU1_PIT_1_IP_CHANNELS_NUMBER; ++channel)
     {
         Pit_Ip_ProcessCommonInterrupt(instance, channel);
     }
 }
 #endif
-#endif /*PIT_IP_MODULE_SINGLE_INTERRUPT == STD_ON*/
+
+#if defined(RTU2_PIT_0_ISR_USED)
+/**
+* @brief   Interrupt handler for RTU2_PIT_0 channels.
+* @details Interrupt Service Routine corresponding to RTU2_PIT_0 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(RTU2_PIT_0_ISR)
+{
+    uint8 channel;
+#if defined(RTU2_PIT_0_IP_EXISTS)
+    uint8 instance = RTU2_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    for (channel = 0U; channel < RTU2_PIT_0_IP_CHANNELS_NUMBER; ++channel)
+    {
+        Pit_Ip_ProcessCommonInterrupt(instance, channel);
+    }
+}
+#endif
+
+#if defined(RTU2_PIT_1_ISR_USED)
+/**
+* @brief   Interrupt handler for RTU2_PIT_1 channels.
+* @details Interrupt Service Routine corresponding to RTU2_PIT_1 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized.
+*/
+ISR(RTU2_PIT_1_ISR)
+{
+    uint8 channel;
+#if defined(RTU2_PIT_1_IP_EXISTS)
+    uint8 instance = RTU2_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    for (channel = 0U; channel < RTU2_PIT_1_IP_CHANNELS_NUMBER; ++channel)
+    {
+        Pit_Ip_ProcessCommonInterrupt(instance, channel);
+    }
+}
+#endif
+
+#if defined(RTU3_PIT_0_ISR_USED)
+/**
+* @brief   Interrupt handler for RTU3_PIT_0 channels.
+* @details Interrupt Service Routine corresponding to RTU3_PIT_0 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(RTU3_PIT_0_ISR)
+{
+    uint8 channel;
+#if defined(RTU3_PIT_0_IP_EXISTS)
+    uint8 instance = RTU3_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    for (channel = 0U; channel < RTU3_PIT_0_IP_CHANNELS_NUMBER; ++channel)
+    {
+        Pit_Ip_ProcessCommonInterrupt(instance, channel);
+    }
+}
+#endif
+
+#if defined(RTU3_PIT_1_ISR_USED)
+/**
+* @brief   Interrupt handler for RTU3_PIT_1 channels.
+* @details Interrupt Service Routine corresponding to RTU3_PIT_1 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized.
+*/
+ISR(RTU3_PIT_1_ISR)
+{
+    uint8 channel;
+#if defined(RTU3_PIT_1_IP_EXISTS)
+    uint8 instance = RTU3_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    for (channel = 0U; channel < RTU3_PIT_1_IP_CHANNELS_NUMBER; ++channel)
+    {
+        Pit_Ip_ProcessCommonInterrupt(instance, channel);
+    }
+}
+#endif
+
+#if defined(CRS_PIT_0_CH_0_ISR_USED)
+ISR(CRS_PIT_0_CH_0_ISR){
+    uint8 channel = 0U;
+#if defined(CRS_PIT_0_IP_EXISTS)
+    uint8 instance = CRS_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+#if defined(CRS_PIT_0_CH_1_ISR_USED)
+ISR(CRS_PIT_0_CH_1_ISR){
+    uint8 channel = 1U;
+#if defined(CRS_PIT_0_IP_EXISTS)
+    uint8 instance = CRS_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+#if defined(CRS_PIT_0_CH_2_ISR_USED)
+ISR(CRS_PIT_0_CH_2_ISR){
+    uint8 channel = 2U;
+#if defined(CRS_PIT_0_IP_EXISTS)
+    uint8 instance = CRS_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+#if defined(CRS_PIT_0_CH_3_ISR_USED)
+ISR(CRS_PIT_0_CH_3_ISR){
+    uint8 channel = 3U;
+#if defined(CRS_PIT_0_IP_EXISTS)
+    uint8 instance = CRS_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(CRS_PIT_1_CH_0_ISR_USED)
+ISR(CRS_PIT_1_CH_0_ISR){
+    uint8 channel = 0U;
+#if defined(CRS_PIT_1_IP_EXISTS)
+    uint8 instance = CRS_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+#if defined(CRS_PIT_1_CH_1_ISR_USED)
+ISR(CRS_PIT_1_CH_1_ISR){
+    uint8 channel = 1U;
+#if defined(CRS_PIT_1_IP_EXISTS)
+    uint8 instance = CRS_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+#if defined(CRS_PIT_1_CH_2_ISR_USED)
+ISR(CRS_PIT_1_CH_2_ISR){
+    uint8 channel = 2U;
+#if defined(CRS_PIT_1_IP_EXISTS)
+    uint8 instance = CRS_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+#if defined(CRS_PIT_1_CH_3_ISR_USED)
+ISR(CRS_PIT_1_CH_3_ISR){
+    uint8 channel = 3U;
+#if defined(CRS_PIT_1_IP_EXISTS)
+    uint8 instance = CRS_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(FSS_COSS_PIT_0_CH_0_ISR_USED)
+ISR(FSS_COSS_PIT_0_CH_0_ISR){
+    uint8 channel = 0U;
+#if defined(FSS_COSS_PIT_0_IP_EXISTS)
+    uint8 instance = FSS_COSS_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+#if defined(FSS_COSS_PIT_0_CH_1_ISR_USED)
+ISR(FSS_COSS_PIT_0_CH_1_ISR){
+    uint8 channel = 1U;
+#if defined(FSS_COSS_PIT_0_IP_EXISTS)
+    uint8 instance = FSS_COSS_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+#if defined(FSS_COSS_PIT_0_CH_2_ISR_USED)
+ISR(FSS_COSS_PIT_0_CH_2_ISR){
+    uint8 channel = 2U;
+#if defined(FSS_COSS_PIT_0_IP_EXISTS)
+    uint8 instance = FSS_COSS_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+#if defined(FSS_COSS_PIT_0_CH_3_ISR_USED)
+ISR(FSS_COSS_PIT_0_CH_3_ISR){
+    uint8 channel = 3U;
+#if defined(FSS_COSS_PIT_0_IP_EXISTS)
+    uint8 instance = FSS_COSS_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(FSS_COSS_PIT_1_CH_0_ISR_USED)
+ISR(FSS_COSS_PIT_1_CH_0_ISR){
+    uint8 channel = 0U;
+#if defined(FSS_COSS_PIT_1_IP_EXISTS)
+    uint8 instance = FSS_COSS_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+#if defined(FSS_COSS_PIT_1_CH_1_ISR_USED)
+ISR(FSS_COSS_PIT_1_CH_1_ISR){
+    uint8 channel = 1U;
+#if defined(FSS_COSS_PIT_1_IP_EXISTS)
+    uint8 instance = FSS_COSS_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+#if defined(FSS_COSS_PIT_1_CH_2_ISR_USED)
+ISR(FSS_COSS_PIT_1_CH_2_ISR){
+    uint8 channel = 2U;
+#if defined(FSS_COSS_PIT_1_IP_EXISTS)
+    uint8 instance = FSS_COSS_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+#if defined(FSS_COSS_PIT_1_CH_3_ISR_USED)
+ISR(FSS_COSS_PIT_1_CH_3_ISR){
+    uint8 channel = 3U;
+#if defined(FSS_COSS_PIT_1_IP_EXISTS)
+    uint8 instance = FSS_COSS_PIT_1_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(FSS_COSS_PIT_2_ISR_USED)
+ISR(FSS_COSS_PIT_2_ISR){
+    uint8 channel = 0U;
+#if defined(FSS_COSS_PIT_2_IP_EXISTS)
+    uint8 instance = FSS_COSS_PIT_2_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+
+#if defined(FSS_COSS_PIT_3_ISR_USED)
+ISR(FSS_COSS_PIT_3_ISR){
+
+
+    uint8 channel = 0U;
+#if defined(FSS_COSS_PIT_3_IP_EXISTS)
+    uint8 instance = FSS_COSS_PIT_3_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+
+
+
+#if defined(FSS_COSS_PIT_4_ISR_USED)
+ISR(FSS_COSS_PIT_4_ISR){
+    uint8 channel = 0U;
+#if defined(FSS_COSS_PIT_4_IP_EXISTS)
+    uint8 instance = FSS_COSS_PIT_4_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+
+
+
+#if defined(FSS_COSS_PIT_5_ISR_USED)
+ISR(FSS_COSS_PIT_5_ISR){
+    uint8 channel = 0U;
+#if defined(FSS_COSS_PIT_5_IP_EXISTS)
+    uint8 instance = FSS_COSS_PIT_5_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+
+
+
+#if defined(FSS_COSS_PIT_6_ISR_USED)
+ISR(FSS_COSS_PIT_6_ISR){
+    uint8 channel = 0U;
+
+
+
+#if defined(FSS_COSS_PIT_6_IP_EXISTS)
+    uint8 instance = FSS_COSS_PIT_6_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#if defined(FSS_PIT_0_CH_0_ISR_USED)
+ISR(FSS_PIT_0_CH_0_ISR){
+    uint8 channel = 0U;
+#if defined(FSS_PIT_0_IP_EXISTS)
+    uint8 instance = FSS_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+#if defined(FSS_PIT_0_CH_1_ISR_USED)
+ISR(FSS_PIT_0_CH_1_ISR){
+    uint8 channel = 1U;
+#if defined(FSS_PIT_0_IP_EXISTS)
+    uint8 instance = FSS_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+#if defined(FSS_PIT_0_CH_2_ISR_USED)
+ISR(FSS_PIT_0_CH_2_ISR){
+    uint8 channel = 2U;
+#if defined(FSS_PIT_0_IP_EXISTS)
+    uint8 instance = FSS_PIT_0_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+
+    Pit_Ip_ProcessCommonInterrupt(instance, channel);
+}
+#endif
+
+#endif /* STD_ON == PIT_GPT_IP_MODULE_SINGLE_AND_MULTIPLE_INTERRUPTS */
+
+#if (STD_ON == PIT_GPT_IP_MODULE_SINGLE_INTERRUPT)
+
+#if defined(PIT_2_ISR_USED)
+/**
+* @brief   Interrupt handler for PIT_2 channels.
+* @details Interrupt Service Routine corresponding to PIT_2 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(PIT_2_ISR)
+{
+    uint8 channel;
+#if defined(PIT_2_IP_EXISTS)
+    uint8 instance = PIT_2_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    for (channel = 0U; channel < PIT_2_IP_CHANNELS_NUMBER; ++channel)
+    {
+        Pit_Ip_ProcessCommonInterrupt(instance, channel);
+    }
+}
+#endif
+
+#if defined(PIT_3_ISR_USED)
+/**
+* @brief   Interrupt handler for PIT_3 channels.
+* @details Interrupt Service Routine corresponding to PIT_3 hw module.
+* @param[in] none
+* @return  void
+* @isr
+* @pre      The driver needs to be initialized
+*/
+ISR(PIT_3_ISR)
+{
+    uint8 channel;
+#if defined(PIT_3_IP_EXISTS)
+    uint8 instance = PIT_3_IP_INSTANCE_NUMBER;
+#else
+    #error "undefined PIT instance number"
+#endif
+    for (channel = 0U; channel < PIT_3_IP_CHANNELS_NUMBER; ++channel)
+    {
+        Pit_Ip_ProcessCommonInterrupt(instance, channel);
+    }
+}
+#endif
+
+#endif /* STD_ON == PIT_GPT_IP_MODULE_SINGLE_INTERRUPT */
+
+#endif /* (STD_ON == PIT_GPT_IP_MODULE_SINGLE_INTERRUPT) || (STD_ON == PIT_GPT_IP_MODULE_SINGLE_AND_MULTIPLE_INTERRUPTS) */
 
 #define GPT_STOP_SEC_CODE
 #include "Gpt_MemMap.h"
