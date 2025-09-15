@@ -21,8 +21,9 @@
  * Includes
  ******************************************************************************/
 
-#include "Eth_43_GMAC.h"
+//#include "Eth_43_GMAC.h"
 #include "gptp.h"
+#include "Gmac_Ip.h"
 
 /*******************************************************************************
  * Definitions
@@ -55,8 +56,9 @@
  * @param[in]       eStatus Result.
 */
 void GPTP_PORT_TxConfirmation(uint8_t u8CtrlIdx,
-                              Eth_BufIdxType u32BufferIndex,
-                              Std_ReturnType eStatus);
+                              Eth_BufIdxType_g u32BufferIndex,
+                              Std_ReturnType eStatus,
+							  Gmac_Ip_TimestampType Timestamp);
 
 /*!
  * @brief           This function processes the timestamp of a received frames.
@@ -82,12 +84,13 @@ void GPTP_PORT_TxConfirmation(uint8_t u8CtrlIdx,
  *                  payload.
  * @param[in]       u16LenByte Length of the data in the buffer cpu8Data.
 */
-void GPTP_PORT_RxIndication(uint8 u8CtrlIdx,
-                            Eth_FrameType u16FrameType,
-                            boolean bIsBroadcast,
-                            const uint8 *cpu8PhysAddr,
-                            const Eth_DataType *cpu8Data,
-                            uint16 u16LenByte);
+void GPTP_PORT_RxIndication(uint8_t u8CtrlIdx,
+                            Eth_FrameType_g u16FrameType,
+                            bool bIsBroadcast,
+                            const uint8_t *cpu8PhysAddr,
+                            const Eth_DataType_g *cpu8Data,
+                            uint16_t u16LenByte,
+							Gmac_Ip_TimestampType Timestamp);
 
 /*!
 * @brief            This function increments the internal FreeRunning timer

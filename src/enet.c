@@ -58,6 +58,7 @@ extern uint32_t __UTEST_UID[2];
 #define TIMEOUT_MS					(200U)
 #define TJA1103_DEV_ID 				(0x001BU)
 #define RGMII_SUPPORTED 			(0U)
+#define CFG_PHY_CTRL_IDX        	(0U)
 
 /* MMDs */
 #define PHYAD                       18
@@ -80,6 +81,25 @@ extern uint32_t __UTEST_UID[2];
 #define DEV_SUPER_CONFIG_ENA_FLAG		(1 << 13)
 #define DEV_SUPER_CONFIG_DIS_FLAG		0XFFFF & ~(1 << 13)
 #define PHY_CONFIG_EN_FLAG 				(0x4000U)
+
+//TS register macro
+#define INGR_TS_0					(0X1155U)
+#define INGR_TS_1					(0X1156U)
+#define INGR_TS_2					(0x1157U)
+#define INGR_TS_3					(0X1158U)
+#define INGR_TS_4					(0X1159U)
+#define INGR_TS_5					(0X115AU)
+#define INGR_CTRL					(0X115BU)
+
+#define EGR_TS_0					(0X114EU)
+#define EGR_TS_1					(0X114FU)
+#define EGR_TS_2					(0x1150U)
+#define EGR_TS_3					(0X1151U)
+#define EGR_TS_4					(0X1152U)
+#define EGR_TS_5					(0X1153U)
+#define EGR_CTRL					(0X1154U)
+//#define DEBUG_PRINT
+
 //#define DEBUG_PRINT
 
 const Flexcan_Ip_MsgBuffType CanAvtp = {
@@ -186,7 +206,7 @@ uint8 pDelayResp_frame[68] = {
 	    0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
 	};// NO RESPONSE FOR THIS DELAY REQ
 
-Gmac_Ip_BufferType pDelayResp = { .Data = pDelayResp_frame, .Length=68};
+Gmac_Ip_BufferType pDelayResp = { .Data = pDelayResp_frame, .Length = 68 };
 Gmac_Ip_BufferType arpAnnouce = { .Data = annouce_frame, .Length = 48 };
 
 Gmac_Ip_StatusType enet_init(QueueHandle_t* tx_descr_queue_m) {
@@ -338,6 +358,18 @@ void tja1103_config_disable(void)
 #endif
 }
 
+bool get_device_link_status(void){
+	uint16 Tja1103_Base_Status;
+	Gmac_Ip_StatusType ePHY_Status;
+
+	ePHY_Status = Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD1, PHY_STATUS_REGISTER, &Tja1103_Base_Status, TIMEOUT_MS);//receive link status on pma status1
+	ePHY_Status = Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD1, PHY_STATUS_REGISTER, &Tja1103_Base_Status, TIMEOUT_MS);//receive link status on pma status1
+
+	DevAssert((Gmac_Ip_StatusType)GMAC_STATUS_SUCCESS == ePHY_Status);
+
+	return (0 != (Tja1103_Base_Status & PMA_STATUS_LINK_STATUS));
+}
+
 void tja1103_wait_for_link(void) {
 	uint16_t regvalue;
 	Gmac_Ip_StatusType read_result;
@@ -419,6 +451,9 @@ void eth_rx_worker(void *arg) {
 	Gmac_Ip_RxInfoType RxInfo  = {0};
 	uint32_t ulInterruptStatus;
 	BaseType_t notified = 0L;
+	boolean IsBroadcast;
+	uint16 PayloadLength;
+	Gmac_Ip_TimestampType srIngressTimeStamp;
 
 
 	for( ;; )
@@ -452,10 +487,19 @@ void eth_rx_worker(void *arg) {
 			const struct ethernet_frame* ether_frame = (struct ethernet_frame*)RxBuffer.Data;
 			Gmac_Ip_ProvideRxBuff(INST_GMAC_0, 0U, &RxBuffer);
 
+			IsBroadcast = (ether_frame->dst_macaddr[0] == 0xFF) && (ether_frame->dst_macaddr[1] == 0xFF) && (ether_frame->dst_macaddr[2] == 0xFF) && (ether_frame->dst_macaddr[3] == 0xFF) && (ether_frame->dst_macaddr[4] == 0xFF) && (ether_frame->dst_macaddr[5] == 0xFF);
+			PayloadLength = RxInfo.PktLen-((2*ETH_ALEN)+2);
 
 			if((ether_frame->dst_macaddr[0] == 0x01) && (ether_frame->dst_macaddr[1] == 0x80) && (ether_frame->dst_macaddr[2] == 0xC2) && (ether_frame->dst_macaddr[3] ==0x00) && (ether_frame->dst_macaddr[4] == 0x00) && (ether_frame->dst_macaddr[5] == 0x0E)){
+				//get_ts_ingress_data(&srIngressTimeStamp);
+				//printf("send resp delay\r\n");
 				xQueueSend(tx_descr_queue_send, &pDelayResp, portMAX_DELAY);
 			}
+
+
+
+            //EthIf_RxIndication(CFG_PHY_CTRL_IDX, ether_frame->ether_type, IsBroadcast, &ether_frame->dst_macaddr, &ether_frame->data, PayloadLength, RxInfo.Timestamp);
+
 		}
 
 
@@ -598,10 +642,11 @@ void send_main_can_frame_on_eth(Flexcan_Ip_MsgBuffType *can_frame){
 }
 
 
-void send_eth_frame(Gmac_Ip_BufferType* eth_message){
+Gmac_Ip_StatusType send_eth_frame(Gmac_Ip_BufferType* eth_message){
 	#ifdef DEBUG_PRINT
 		printf("Im about to send! \r\n");
 	#endif
+	Gmac_Ip_StatusType eERROR = GMAC_STATUS_SUCCESS;
 	xSemaphoreTake(tx_send_mutex, portMAX_DELAY);
 
 	Gmac_Ip_BufferType TxBuffer = {0};
@@ -614,7 +659,8 @@ void send_eth_frame(Gmac_Ip_BufferType* eth_message){
 	/*request a buffer of at least 64 bytes*/
 	TxBuffer.Length = 128U;
 
-	while((GMAC_STATUS_SUCCESS != Gmac_Ip_GetTxBuff(INST_GMAC_0, 0u, &TxBuffer, NULL_PTR)) || (TxBuffer.Length < 128U)){
+	eERROR = Gmac_Ip_GetTxBuff(INST_GMAC_0, 0u, &TxBuffer, NULL_PTR);
+	while(GMAC_STATUS_SUCCESS != eERROR || (TxBuffer.Length < 128U)){
 		xSemaphoreTake(tx_queue_handle, portMAX_DELAY);
 	}
 
@@ -628,7 +674,8 @@ void send_eth_frame(Gmac_Ip_BufferType* eth_message){
 
 	/* Send the ETH frame */
 	/*true function that sends data to the transceiver*/
-	while (GMAC_STATUS_TX_QUEUE_FULL == Gmac_Ip_SendFrame(INST_GMAC_0, 0U, &TxBuffer, &TxOptions))
+	eERROR = Gmac_Ip_SendFrame(INST_GMAC_0, 0U, &TxBuffer, &TxOptions);
+	while (GMAC_STATUS_TX_QUEUE_FULL == eERROR)
 	{
 		xSemaphoreTake(tx_queue_handle, portMAX_DELAY);
 	}
@@ -645,6 +692,7 @@ void send_eth_frame(Gmac_Ip_BufferType* eth_message){
 		printf("Sent message!\r\n");
 	#endif
 
+	return eERROR;
 
 }
 
@@ -685,6 +733,32 @@ void enet_ieee1722_acf_can_send(uint8 instance, Flexcan_Ip_MsgBuffType *can_fram
 	}
 	xSemaphoreGive(eth_blink_send);
 	xSemaphoreGive( tx_send_mutex );
+
+}
+
+void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp){
+
+	uint16_t ingr_seq_id;
+	uint16_t reg_0, reg_1, reg_2, reg_3, reg_4, reg_5;
+
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR, &ingr_seq_id, 100);
+
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_0, &reg_0, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_1, &reg_1, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_2, &reg_2, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_3, &reg_3, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_4, &reg_4, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_5, &reg_5, 100);
+
+	srIngressTimeStamp->nanoseconds = 0x00000000 | ((uint32) reg_3<<18) | (reg_2 & 0x3FFFFFFF);
+	srIngressTimeStamp->seconds = 0x00000000 | (reg_5 & 0xFFF0) | ((reg_0 & 0x7000)>>10) | ((reg_3 & 0xC000)>>14);
+
+	printf("TS nanoseconds: \r\n");
+	//print_32(srIngressTimeStamp->nanoseconds);
+	printf("TS seconds: \r\n");
+	//print_32(srIngressTimeStamp->seconds);
+
+
 
 }
 

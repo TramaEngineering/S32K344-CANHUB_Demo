@@ -27,8 +27,14 @@
 #include "gptp_frame.h"
 #include "gptp_pi.h"
 #include "gptp_internal.h"
-#include "Eth_43_GMAC.h"
+//#include "Eth_43_GMAC.h"
 #include "EthTrcv.h"
+#include "Gmac_Ip.h"
+#include "enet.h"
+#include "retarget.h"
+#include "Siul2_Dio_Ip.h"
+#include "Siul2_Port_Ip_Cfg.h"
+#include "bsp.h"
 
 /*******************************************************************************
  * Definitions
@@ -189,12 +195,13 @@ gptp_err_type_t GPTP_PORT_PortLookup(uint8_t *pu8GptpPort,
 void GPTP_PORT_MulticastForward(const uint8_t *cpu8MacAddr)
 {
     uint8_t u8CtrlIdx;
-
-    for (u8CtrlIdx = 0u; u8CtrlIdx < ETH_43_GMAC_MAX_CTRLIDX_SUPPORTED; u8CtrlIdx++)
+    printf("I'm in GPTP_PORT_MulticastForward\r\n");
+    /*TODO change*/
+    /*for (u8CtrlIdx = 0u; u8CtrlIdx < ETH_43_GMAC_MAX_CTRLIDX_SUPPORTED; u8CtrlIdx++)
     {
         (void)Eth_43_GMAC_UpdatePhysAddrFilter(u8CtrlIdx, cpu8MacAddr,
                                                ETH_ADD_TO_FILTER);
-    }
+    }*/
 }
 
 /*!
@@ -474,65 +481,86 @@ gptp_err_type_t GPTP_PORT_MsgSend(uint8_t u8Port,
         su16BufferLength = u16PTPFramePayloadLength;
 
         /* Get transmit buffer to store gPTP frame payload. */
-        eBufStatus = Eth_43_GMAC_ProvideTxBuffer(u8PhyPort, u8FramePrio,
+        /* DONE change*/
+        /*eBufStatus = Eth_43_GMAC_ProvideTxBuffer(u8PhyPort, u8FramePrio,
                                                  &seBuffIdx, &spu8Buffer,
-                                                 &su16BufferLength);
+                                                 &su16BufferLength);*/
+        Gmac_Ip_BufferType gPTP_message = {
+        		.Data = cprTxData->pau8TxBuffPtr,
+				.Length = (uint16)cprTxData->u8FrameLength
+        };
+        OsIf_Delay_Ms(1000);
+
+        eStatus = send_eth_frame(&gPTP_message);
+        // blink led already included in the sen_eth_frame function
+//        if(eStatus == GMAC_STATUS_SUCCESS){
+//        	Siul2_Dio_Ip_TogglePins(LED3_PORT, 1<<LED3_PIN);
+//        }
+
 
         /* The buffer is provided with desired length. */
-        if ((BUFREQ_OK == eBufStatus) &&
-            (NULL != spu8Buffer) &&
-            (su16BufferLength >= u16PTPFramePayloadLength))
-        {
-            /* Copy only payload of the gPTP generated frame to buffer provided
-               by Eth_43 driver. */
-            for (uint16_t i = 0u; i < u16PTPFramePayloadLength; i++)
-            {
-                spu8Buffer[i] = cprTxData->pau8TxBuffPtr[GPTP_DEF_ETH_II_LEN + i];
-            }
-
-            /* If timestmp for this frame is requested by the gPTP stack. */
-            if (true == cprTxData->bTsRequested)
-            {
-                /* Instruct the Ethernet driver to capture timestamp of egress
-                   ethernet frame associated with buffIdx. */
-                Eth_43_GMAC_EnableEgressTimeStamp(u8PhyPort, seBuffIdx);
-
-                /* Only store frame metadata if egress timestamp is required
-                   by stack. */
-                if (NULL != cprTxData->prFrameMap)
-                {
-                    /* Store frame metadata before transmission.
-                       Timestamp in metadata is inserted in TxConfirmation. */
-                    cprTxData->prFrameMap->u8PtpFrameId = u8FrameId;
-                    cprTxData->prFrameMap->u32BufferIndex = seBuffIdx;
-                    cprTxData->prFrameMap->eTsEntryStatus = GPTP_DEF_TS_MAP_ENTRY_ENQUEUED;
-                }
-            }
-
-            /* Enable transmission, destination MAC address is taken from
-               generated PTP frame, which contains full eth header. */
-            eStatus = Eth_43_GMAC_Transmit(u8PhyPort, seBuffIdx,
-                                           GPTP_FR_ETH_TYPE_PTP, true,
-                                           u16PTPFramePayloadLength,
-                                           &cprTxData->pau8TxBuffPtr[0]);
-            if ((Std_ReturnType)E_OK != eStatus)
-            {
-                /* Transmission falied. */
-                eError = GPTP_ERR_F_FRAME_SEND;
-            }
+//        if ((BUFREQ_OK == eBufStatus) &&
+//            (NULL != spu8Buffer) &&
+//            (su16BufferLength >= u16PTPFramePayloadLength))
+//        {
+//            /* Copy only payload of the gPTP generated frame to buffer provided
+//               by Eth_43 driver. */
+//            for (uint16_t i = 0u; i < u16PTPFramePayloadLength; i++)
+//            {
+//                spu8Buffer[i] = cprTxData->pau8TxBuffPtr[GPTP_DEF_ETH_II_LEN + i];
+//            }
+//
+//            /* If timestmp for this frame is requested by the gPTP stack. */
+//            if (true == cprTxData->bTsRequested)
+//            {
+//                /* Instruct the Ethernet driver to capture timestamp of egress
+//                   ethernet frame associated with buffIdx. */
+//        			/*done in in the bsp by enabling timestamp in the MAC*/
+//                /*Eth_43_GMAC_EnableEgressTimeStamp(u8PhyPort, seBuffIdx);*/
+//
+//                /* Only store frame metadata if egress timestamp is required
+//                   by stack. */
+//                if (NULL != cprTxData->prFrameMap)
+//                {
+//                    /* Store frame metadata before transmission.
+//                       Timestamp in metadata is inserted in TxConfirmation. */
+//                    cprTxData->prFrameMap->u8PtpFrameId = u8FrameId;
+//                    cprTxData->prFrameMap->u32BufferIndex = seBuffIdx;
+//                    cprTxData->prFrameMap->eTsEntryStatus = GPTP_DEF_TS_MAP_ENTRY_ENQUEUED;
+//                }
+//            }
+//
+//            /* Enable transmission, destination MAC address is taken from
+//               generated PTP frame, which contains full eth header. */
+//        		/*DONE change embedded in the send_eth_frame_lld function that call GMAC functions*/
+//            /*eStatus = Eth_43_GMAC_Transmit(u8PhyPort, seBuffIdx,
+//                                           GPTP_FR_ETH_TYPE_PTP, true,
+//                                           u16PTPFramePayloadLength,
+//                                           &cprTxData->pau8TxBuffPtr[0]);*/
+//            if ((Std_ReturnType)E_OK != eStatus)
+//            {
+//                /* Transmission falied. */
+//                eError = GPTP_ERR_F_FRAME_SEND;
+//            }
+//        }
+//        else
+//        {
+//            /* No Tx buffer. */
+//            eError = GPTP_ERR_M_MSG_BUFF_PTR_NULL;
+//        }
+        if(eStatus == GMAC_STATUS_TX_QUEUE_FULL){
+        	eError = GPTP_ERR_F_FRAME_SEND;
         }
-        else
-        {
-            /* No Tx buffer. */
-            eError = GPTP_ERR_M_MSG_BUFF_PTR_NULL;
+        else if(eStatus == GMAC_STATUS_TX_QUEUE_FULL){
+        	eError = GPTP_ERR_M_MSG_BUFF_PTR_NULL;
         }
+
     }
     else
     {
         /* Invalid input arguments. */
         eError = GPTP_ERR_V_NULL_PTR;
     }
-
     return eError;
 }
 
@@ -615,6 +643,7 @@ gptp_def_timestamp_t GPTP_PORT_CurrentTimeGet(gptp_def_ts_type_t eTsType)
     Std_ReturnType               eStatus;
     gptp_def_timestamp_t         rTimeStamp;
     uint64_t                     u64FreeRunningCapture;
+    Gmac_Ip_TimestampType		 TimeStamp;
 
     switch (eTsType)
     {
@@ -625,9 +654,18 @@ gptp_def_timestamp_t GPTP_PORT_CurrentTimeGet(gptp_def_ts_type_t eTsType)
             break;
 
         case GPTP_DEF_TS_CORRECTED:
-            eStatus = Eth_43_GMAC_GetCurrentTime(GPTP_PORT_ETH_CTRL_IDX,
+        	/*DONE change above*/
+            /*eStatus = Eth_43_GMAC_GetCurrentTime(GPTP_PORT_ETH_CTRL_IDX,
                                                  &seTimeStampQuality,
-                                                 &srEthTimestamp);
+                                                 &srEthTimestamp);*/
+			Gmac_Ip_GetSysTime(INST_GMAC_0, &TimeStamp);
+
+			srEthTimestamp.nanoseconds = TimeStamp.nanoseconds;
+			srEthTimestamp.seconds = TimeStamp.seconds;
+			srEthTimestamp.secondsHi = TimeStamp.secondsHi;
+
+			seTimeStampQuality = ETH_VALID;
+
             if (((Std_ReturnType)E_OK == eStatus) &&
                 (ETH_VALID == seTimeStampQuality))
             {
@@ -679,8 +717,16 @@ gptp_err_type_t GPTP_PORT_ObtainPortMac(uint8_t u8Port,
     {
         if (u8Port < srPortMap.u8NumOfGptpPorts)
         {
-            Eth_43_GMAC_GetPhysAddr(srPortMap.prMapTable[u8Port].u8SwitchPort,
-                                    (uint8_t *)pu64Mac);
+        	/*DONE change*/
+            /*Eth_43_GMAC_GetPhysAddr(srPortMap.prMapTable[u8Port].u8SwitchPort,
+                                    (uint8_t *)pu64Mac);*/
+        	Gmac_Ip_GetMacAddr(INST_GMAC_0, (uint8_t *)pu64Mac);
+        	uint8_t * pu8Mac= (uint8_t *)pu64Mac;
+        	for(uint8_t i = 0; i<3;i++){
+        		pu8Mac[i] ^= pu8Mac[5-i];
+        		pu8Mac[5-i] ^= pu8Mac[i];
+        		pu8Mac[i] ^= pu8Mac[5-i];
+        	}
             eError = GPTP_ERR_OK;
         }
         else
@@ -825,7 +871,9 @@ gptp_err_type_t GPTP_PORT_UpdateLocalClock(gptp_def_data_t *prGptp,
         srPseudoRatio = GPTP_PORT_PPBToPseudoRatio(i32PPBAdjustment);
 
         /* Apply time and frequency correction to the GMAC timer. */
-        if ((Std_ReturnType)E_OK == Eth_43_GMAC_SetCorrectionTime(GPTP_PORT_ETH_CTRL_IDX, &srTimeStampDiff, &srPseudoRatio))
+        /*TODO implement correction time for sync without Eth_43*/
+        //printf("I'm in UpdatelocalClock to exec Eth_43_GMAC_SetCorrectionTime\r\n");
+        if ((Std_ReturnType)E_OK == E_OK/*Eth_43_GMAC_SetCorrectionTime(GPTP_PORT_ETH_CTRL_IDX, &srTimeStampDiff, &srPseudoRatio)*/)
         {
             /* Notification to gPTP stack, clock was successfully updated. */
             *pbUpdated = true;
@@ -894,7 +942,9 @@ gptp_err_type_t GPTP_PORT_FixLocalClock(const float64_t *cpf64RateRatio)
     srPseudoRatio = GPTP_PORT_PPBToPseudoRatio(si32PPBadjustmentAverage);
 
     /* Adjust only the frequency of local GMAC timer. */
-    if ((Std_ReturnType)E_OK == Eth_43_GMAC_SetCorrectionTime(GPTP_PORT_ETH_CTRL_IDX, &srTimeStampDiff, &srPseudoRatio))
+    /*TODO Set correction time ration in the mac clock*/
+    //printf("I'm in FixlocalClock to exec Eth_43_GMAC_SetCorrectionTime\r\n");
+    if ((Std_ReturnType)E_OK == E_OK/*Eth_43_GMAC_SetCorrectionTime(GPTP_PORT_ETH_CTRL_IDX, &srTimeStampDiff, &srPseudoRatio)*/)
     {
         eError = GPTP_ERR_OK;
     }
@@ -932,8 +982,19 @@ gptp_err_type_t GPTP_PORT_GetSwitchTimes(gptp_def_timestamp_t *prFreeRunClk,
     Std_ReturnType               eStatus;
 
     /* Capture HW GMAC timer timestamp. */
-    eStatus = Eth_43_GMAC_GetCurrentTime(GPTP_PORT_ETH_CTRL_IDX,
-                                         &seTimeStampQuality, &srTimeStamp);
+    /*DONE change*/
+    /*eStatus = Eth_43_GMAC_GetCurrentTime(GPTP_PORT_ETH_CTRL_IDX,
+                                         &seTimeStampQuality, &srTimeStamp);*/
+    Gmac_Ip_TimestampType TimeStamp;
+
+	Gmac_Ip_GetSysTime(INST_GMAC_0, &TimeStamp);
+
+	srTimeStamp.nanoseconds = TimeStamp.nanoseconds;
+	srTimeStamp.seconds = TimeStamp.seconds;
+	srTimeStamp.secondsHi = TimeStamp.secondsHi;
+
+	seTimeStampQuality = ETH_VALID;
+
     if (((Std_ReturnType)E_OK == eStatus) && (ETH_VALID == seTimeStampQuality))
     {
         /* Check address of destination buffers. */

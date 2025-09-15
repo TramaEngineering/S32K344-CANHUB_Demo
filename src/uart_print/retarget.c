@@ -236,12 +236,13 @@ int	__write_console(__std(__file_handle) iFileHandle, unsigned char *pcBuffer, _
         // Function returns number of unwritten bytes if error
         return (iLength);
 #else
+    //UART_TIMEOUT_US
    if(LPUART_UART_IP_STATUS_SUCCESS == Lpuart_Uart_Ip_SyncSend(CONSOLE_UART_INST, (unsigned char *)pcBuffer, iLength, UART_TIMEOUT_US))
    {
 	   /* wait till the UART transmission is completed, otherwise functional reset will cause the last char is not printed correctly. */
-	   LPUART_Type * Base = Lpuart_Uart_Ip_userBases[CONSOLE_UART_INST];
-	   	while((Base->STAT & LPUART_STAT_TC_MASK) == 0) {}
-	   return 0;
+	   //LPUART_Type * Base = Lpuart_Uart_Ip_userBases[CONSOLE_UART_INST];
+	   	//while((Base->STAT & LPUART_STAT_TC_MASK) == 0) {}
+	   //return 0;
    }
    else
     return iLength;

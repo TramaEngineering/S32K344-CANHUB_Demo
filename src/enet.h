@@ -102,7 +102,7 @@ void enet_start_tx(void);
 
 void send_main_can_frame_on_eth(Flexcan_Ip_MsgBuffType *can_frame);
 
-void send_eth_frame(Gmac_Ip_BufferType* eth_message);
+Gmac_Ip_StatusType send_eth_frame(Gmac_Ip_BufferType* eth_message);
 
 void start_link_check(void);
 
@@ -111,6 +111,8 @@ void link_check_worker(void *args);
 void init_annouce(void);
 
 void send_eth_custom_frame(uint8 *message);
+
+void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp);
 
 void print_16(uint16_t *data);
 void print_32(uint32_t *data);

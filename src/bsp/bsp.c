@@ -52,6 +52,13 @@ volatile uint32 Qspi_Program_WaitLoopCnt = 0;
 /*==================================================================================================
 *                                      GLOBAL VARIABLES
 ==================================================================================================*/
+uint32_t Task_Flag_1mS = 0;
+uint32_t Task_Flag_2mS = 0;
+uint32_t Task_Flag_10mS = 0;
+uint32_t Task_Flag_100mS = 0;
+uint32_t Task_Flag_200mS = 0;
+uint32_t Task_Flag_1000mS = 0;
+uint32_t Task_Flag_Cnt = 0;
 
 /*==================================================================================================
 *                                   LOCAL FUNCTION PROTOTYPES

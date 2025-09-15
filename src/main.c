@@ -41,8 +41,19 @@
 #include "IntCtrl_Ip.h"
 #include "bsp.h"
 
+/*gptp libraries*/
+#include "Devassert.h"
+#include "gptp.h"
+#include "gptp_port_platform.h"
+#include "s32k344_gptp_config.h"
+#include "Clock_Ip.h"
+
+#include "EthTrcv.h"
+#include "EthIf_Cbk.h"
+
 //define a vector of can queues (RTOS)
 #define CAN_COUNT 6
+#define MILLISECOND_IN_NS               (1000000U)
 QueueHandle_t eth_can_queues[CAN_COUNT];
 /*message queue to be filled with the message to be sent when button is pressed*/
 QueueHandle_t tx_queue_send;
@@ -195,7 +206,33 @@ int fs26SpiTransferFunction(uint8_t *TxBuffer, uint8_t *RxBuffer, uint16_t Lengt
 void link_check(uint8 channel){
 	(void) channel;
 
-	//printf("Hello i'm PIT\r\n");
+	/* toggle LED1 */
+	Task_Flag_Cnt++;
+
+	//ENET_PPS_CLK_GEN(); /* to generate 500Hz clock output */
+	static volatile uint64_t u64PitIsrCountMs = 0;
+
+	/* Increment 1ms = 1000000 ns. */
+	GPTP_PORT_IncFreeRunningTimer(MILLISECOND_IN_NS);
+
+	Task_Flag_1mS = 1;
+	if((Task_Flag_Cnt % 10) == 0)
+		Task_Flag_10mS = 1;
+	if((Task_Flag_Cnt % 2) == 0)
+			Task_Flag_2mS = 1;
+	if((Task_Flag_Cnt % 100) == 0)
+		Task_Flag_100mS = 1;
+	if((Task_Flag_Cnt % 200) == 0)
+			Task_Flag_200mS = 1;
+	if((Task_Flag_Cnt % 1000) == 0){
+		//Siul2_Dio_Ip_TogglePins(LED2_PORT, 1<<LED2_PIN);
+		Task_Flag_1000mS = 1;
+		Task_Flag_Cnt = 0;
+		printf("%d\r\n",(int)u64PitIsrCountMs);
+	}
+	u64PitIsrCountMs++;
+
+	return;
 }
 
 /**
@@ -206,6 +243,7 @@ void link_check(uint8 channel){
 
 int main(void)
 {
+	uint8 timer0, timer1, annouce = 0;
 	/* Initialize Clock */
 	OsIf_Init(NULL_PTR);
 
@@ -257,11 +295,15 @@ int main(void)
 	/*PIT initialization*/
 	Pit_Ip_Init(PIT_0_IP_INSTANCE_NUMBER, &PIT_0_InitConfig_PB);
 	/*PIT channel initialization*/
-	Pit_Ip_InitChannel(PIT_0_IP_INSTANCE_NUMBER, &PIT_0_ChannelConfig_PB[0]);
+	Pit_Ip_InitChannel(PIT_0_IP_INSTANCE_NUMBER, &PIT_0_ChannelConfig_PB[0U]);
 	/*Start pit 0 channel 0*/
-	Pit_Ip_StartChannel(PIT_0_IP_INSTANCE_NUMBER, 0, 16000000);/*400ms*/
+	Pit_Ip_StartChannel(PIT_0_IP_INSTANCE_NUMBER, 0, 40000);/*400ms*/
 	/*enable channel interrupt*/
 	Pit_Ip_EnableChannelInterrupt(PIT_0_IP_INSTANCE_NUMBER, 0);
+
+	IntCtrl_Ip_InstallHandler(PIT0_IRQn, PIT_0_ISR, NULL_PTR);
+	IntCtrl_Ip_EnableIrq(PIT0_IRQn);
+	IntCtrl_Ip_SetPriority(PIT0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
 
 	/* Initialize ethernet MAC */
 	/*set the MAC to slave mode and not to master mode*/
@@ -281,16 +323,13 @@ int main(void)
 		if(can != NULL) {
 			eth_can_queues[i] = can->eth_can_queue;
 		} else {
-			//set_rgb_status(ERROR);
+			set_rgb_status(ERROR);
 			while(1); /* Error during initialization. */
 		}
 	}
 
-	/*have to init on another way the interrupts because at this moment all the other interrupt are misconfigured*/
-	/*route the handler to the interrupt*/
-	//IntCtrl_Ip_ConfigIrqRouting(&intRouteConfig);
 	/*load the interrupt configuration*/
-	//IntCtrl_Ip_Init(&IntCtrlConfig_0);
+	IntCtrl_Ip_Init(&IntCtrlConfig_0);
 
 	/*start link check task*/
 	start_link_check();
@@ -301,7 +340,7 @@ int main(void)
 	/*create a thread that pools on a message queue and send the message when it receive one*/
 	enet_start_tx();
 
-	//set_rgb_status(NOMINAL);
+	set_rgb_status(NOMINAL);
 
 	/* Start FreeRTOS */
 	vTaskStartScheduler();
@@ -311,7 +350,66 @@ int main(void)
 
 	printf("Error in code!\r\n");
 
-	for( ;; );
+	for( ;; ){
+//		timer0 = Task_Flag_Cnt;
+//				if(annouce == 0){
+//					//send_eth_frame_lld(&pDelayReq);
+//					//send_eth_frame_lld(&arpAnnouce);
+//					annouce = 1;
+//				}
+//				if(Task_Flag_2mS){
+//					Task_Flag_2mS = 0;
+//
+//					//Eth_PollLinkStatus();
+//					//Eth_Poll();
+//					/* Add task call for 1ms interval */
+//
+//				}
+//				if(Task_Flag_10mS){
+//					Task_Flag_10mS = 0;
+//
+//					//GPTP_TimerPeriodic();
+//					/* Add task call for 10ms interval */
+//
+//				}
+//				if(Task_Flag_1000mS){
+//					printf("Hello\r\n");
+//				}
+//
+//				/* If User button1 event is detected. */
+////				if(usrBtn1Status){
+////					usrBtn1Status = 0;
+//					/* Print ADC value */
+//					//BaseTask_Btn1Event();
+//					/* Send and receive LIN messages */
+//					//lin_task_runtime();
+////				}
+//
+//				/* If User button2 event is detected. */
+////				if(usrBtn2Status){
+////					usrBtn2Status = 0;
+////					printf("User button SW3 pressed.\r\n");
+//		#if (1 == MMA8452Q_IS_WELDED)
+//					/* Read accelerometer value */
+//					MMA8452Q_Task_Runtime();
+//		#endif
+//
+//					/* Send and receive CAN messages */
+//					//CAN_Task_Runtime();
+//					//OsIf_Delay_Ms(50);
+//					/* Send data to SGTL5000. */
+//					//SGTL5000_Task_RunTime();
+//					/* Read Ethernet Switch and Ethernet Phy status. */
+//					//Ethernet_Task_Runtime();
+////				}
+//
+//				//MainLoop_IdleCnt++;
+//				timer1 = Task_Flag_Cnt;
+//				//printf("start time: %lu\r\n",timer0);
+//				//printf("end time: %lu\r\n",timer1);
+//				/*8/10ms time for the for loop*/
+//				/*we have to be simple to read tx and rx every 2ms*/
+	}
 
 	return 0;
 }

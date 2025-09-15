@@ -21,6 +21,8 @@
 
 #include "gptp_port_platform.h"
 #include "gptp_port.h"
+#include "stdbool.h"
+#include "enet.h"
 
 /*******************************************************************************
  * Definitions
@@ -62,23 +64,28 @@
  * @ requirements 529270
 */
 void GPTP_PORT_TxConfirmation(uint8_t u8CtrlIdx,
-                              Eth_BufIdxType u32BufferIndex,
-                              Std_ReturnType eStatus)
+                              Eth_BufIdxType_g u32BufferIndex,
+                              Std_ReturnType eStatus,
+							  Gmac_Ip_TimestampType Timestamp)
 {
-    static Eth_TimeStampQualType seTimeStampQuality;
-    static Eth_TimeStampType     srEgressTimeStamp;
+    static Eth_TimeStampQualType_g seTimeStampQuality;
+    static Gmac_Ip_TimestampType     srEgressTimeStamp;
     static uint8_t               su8GptpPort;
     Std_ReturnType               eStatusEgressTS;
 
     if ((Std_ReturnType)E_OK == eStatus)
     {
-        eStatusEgressTS = Eth_43_GMAC_GetEgressTimeStamp(u8CtrlIdx,
+    	/*DONE change*/
+        /*eStatusEgressTS = Eth_43_GMAC_GetEgressTimeStamp(u8CtrlIdx,
                                                          u32BufferIndex,
                                                          &seTimeStampQuality,
-                                                         &srEgressTimeStamp);
+                                                         &srEgressTimeStamp);*/
+
+    	/*get egress timestamp*/
+    	srEgressTimeStamp = Timestamp;
 
         if (((Std_ReturnType)E_OK == eStatusEgressTS) &&
-            (ETH_VALID == seTimeStampQuality))
+            (ETH_VAL == seTimeStampQuality))
         {
             /* Get gPTP port ID from map table. */
             if (GPTP_ERR_OK == GPTP_PORT_PortLookup(&su8GptpPort, u8CtrlIdx, 0u))
@@ -125,31 +132,41 @@ void GPTP_PORT_TxConfirmation(uint8_t u8CtrlIdx,
  * @ requirements 529199
  * @ requirements 529269
 */
-void GPTP_PORT_RxIndication(uint8 u8CtrlIdx,
-                            Eth_FrameType u16FrameType,
-                            boolean bIsBroadcast,
-                            const uint8 *cpu8PhysAddr,
-                            const Eth_DataType *cpu8Data,
-                            uint16 u16LenByte)
+void GPTP_PORT_RxIndication(uint8_t u8CtrlIdx,
+                            Eth_FrameType_g u16FrameType,
+                            bool bIsBroadcast,
+                            const uint8_t *cpu8PhysAddr,
+                            const Eth_DataType_g *cpu8Data,
+                            uint16_t u16LenByte,
+							Gmac_Ip_TimestampType Timestamp)
 {
     (void)bIsBroadcast;
     (void)u16LenByte;
 
-    static Eth_TimeStampQualType seTimeStampQuality;
-    static Eth_TimeStampType     srIngressTimeStamp;
+    static Eth_TimeStampQualType_g seTimeStampQuality = ETH_UNCERT;
+    static Gmac_Ip_TimestampType     srIngressTimeStamp;
     static uint8_t               su8GptpPort;
     gptp_def_rx_data_t           rRxData;
-    Std_ReturnType               eStatus;
+    //Std_ReturnType               eStatus;
     uint64_t                     u64MacAddress;
 
-    eStatus = Eth_43_GMAC_GetIngressTimeStamp(u8CtrlIdx, cpu8Data,
+    /* DONE change by passing the timestamp from the MAC*/
+    /*eStatus = Eth_43_GMAC_GetIngressTimeStamp(u8CtrlIdx, cpu8Data,
                                               &seTimeStampQuality,
-                                              &srIngressTimeStamp);
+                                              &srIngressTimeStamp);*/
+    get_ts_ingress_data(&srIngressTimeStamp);
+    //srIngressTimeStamp = Timestamp;// USED IN WB BECAUSE NOT CABABLE OF HA TIMESTAMPING
+    if ((0U == srIngressTimeStamp.seconds) && (0U == srIngressTimeStamp.nanoseconds)){
+		seTimeStampQuality = ETH_INVAL;
+	}
+    else{
+    	seTimeStampQuality = ETH_VAL;
+    }
 
     rRxData.cpu8RxData = cpu8Data;
     rRxData.u16EthType = (uint16_t)u16FrameType;
 
-    if (((Std_ReturnType)E_OK == eStatus) && (ETH_VALID == seTimeStampQuality))
+    if (ETH_VAL == seTimeStampQuality)
     {
         /* Eth_43 driver not provides secondsHi. */
         rRxData.u32TsSec = srIngressTimeStamp.seconds;

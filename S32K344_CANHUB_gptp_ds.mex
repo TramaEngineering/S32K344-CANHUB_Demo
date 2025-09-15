@@ -1118,7 +1118,7 @@
                                  <setting name="SpiByteSwapTransfer" value="false"/>
                                  <setting name="SpiTimeClk2Cs" value="0.000001"/>
                                  <setting name="SpiTimeCs2Clk" value="0.000001"/>
-                                 <setting name="SpiTimeCs2Cs" value="0.0000032125"/>
+                                 <setting name="SpiTimeCs2Cs" value="0.0000064"/>
                                  <setting name="SpiDeviceHalfDuplexSupport" value="false"/>
                                  <setting name="SpiTransferWidth" value="TRANSFER_1_BIT"/>
                                  <setting name="SpiHalfDuplexPinSelect" value="HALF_DUPLEX_SIN"/>
