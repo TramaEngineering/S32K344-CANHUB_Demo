@@ -41,19 +41,8 @@
 #include "IntCtrl_Ip.h"
 #include "bsp.h"
 
-/*gptp libraries*/
-#include "Devassert.h"
-#include "gptp.h"
-#include "gptp_port_platform.h"
-#include "s32k344_gptp_config.h"
-#include "Clock_Ip.h"
-
-#include "EthTrcv.h"
-#include "EthIf_Cbk.h"
-
 //define a vector of can queues (RTOS)
 #define CAN_COUNT 6
-#define MILLISECOND_IN_NS               (1000000U)
 QueueHandle_t eth_can_queues[CAN_COUNT];
 /*message queue to be filled with the message to be sent when button is pressed*/
 QueueHandle_t tx_queue_send;

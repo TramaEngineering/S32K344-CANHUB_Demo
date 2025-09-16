@@ -114,6 +114,10 @@ void send_eth_custom_frame(uint8 *message);
 
 void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp);
 
+/*gPTP method*/
+void eth_rx_check(void);
+void enet_tx_free_buffer(void);
+
 void print_16(uint16_t *data);
 void print_32(uint32_t *data);
 void print_64(uint64_t *data);
