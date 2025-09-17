@@ -518,6 +518,9 @@ void eth_rx_worker(void *arg) {
 				//printf("send resp delay\r\n");
 				xQueueSend(tx_descr_queue_send, &pDelayResp, portMAX_DELAY);
 			}
+			else{
+				xQueueSend(tx_descr_queue_send, &arpAnnouce, portMAX_DELAY);
+			}
 
 
 

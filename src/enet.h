@@ -64,6 +64,7 @@ extern uint8 button_eth_frame[80];
 
 extern Gmac_Ip_BufferType pDelayResp;
 extern Gmac_Ip_BufferType buttonEthFrame;
+extern Gmac_Ip_BufferType arpAnnouce;
 
 /*==================================================================================================
  *                                      GLOBAL CONSTANTS
