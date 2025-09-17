@@ -228,7 +228,7 @@ void link_check(uint8 channel){
 		//Siul2_Dio_Ip_TogglePins(LED2_PORT, 1<<LED2_PIN);
 		Task_Flag_1000mS = 1;
 		Task_Flag_Cnt = 0;
-		//printf("%d\r\n",(int)u64PitIsrCountMs);
+		printf("%d\r\n",(int)u64PitIsrCountMs);
 	}
 	u64PitIsrCountMs++;
 
