@@ -80,7 +80,7 @@ extern "C"{
  *================================================================================================*/
 #define GPT_START_SEC_CODE
 #include "Gpt_MemMap.h"
-extern void link_check(uint8 channel);
+extern void link_check(uint8 channel); 
 #define GPT_STOP_SEC_CODE
 #include "Gpt_MemMap.h"
 

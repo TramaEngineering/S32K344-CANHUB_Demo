@@ -682,13 +682,13 @@
             </dependency>
          </dependencies>
          <generated_project_files>
-            <file path="board/peripherals_gPTP_S32K3xx.c" update_enabled="true"/>
-            <file path="board/peripherals_gPTP_S32K3xx.h" update_enabled="true"/>
+            <file path="board/peripherals_gPTP_S32K3xx.c" update_enabled="false"/>
+            <file path="board/peripherals_gPTP_S32K3xx.h" update_enabled="false"/>
             <file path="generate/include/DeviceDefinition.h" update_enabled="true"/>
             <file path="generate/include/FlexCAN_Ip_Cfg.h" update_enabled="true"/>
             <file path="generate/include/FlexCAN_Ip_CfgDefines.h" update_enabled="true"/>
             <file path="generate/include/FlexCAN_Ip_Sa_PBcfg.h" update_enabled="true"/>
-            <file path="generate/include/FreeRTOSConfig.h" update_enabled="true"/>
+            <file path="generate/include/FreeRTOSConfig.h" update_enabled="false"/>
             <file path="generate/include/Gmac_Ip_Cfg.h" update_enabled="true"/>
             <file path="generate/include/Gmac_Ip_Device_Registers.h" update_enabled="true"/>
             <file path="generate/include/Gmac_Ip_Features.h" update_enabled="true"/>

@@ -282,6 +282,10 @@ int main(void)
 	IntCtrl_Ip_InstallHandler(SIUL_3_IRQn, SIUL2_EXT_IRQ_24_31_ISR, NULL_PTR);
 	IntCtrl_Ip_SetPriority(SIUL_3_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
 
+	IntCtrl_Ip_InstallHandler(PIT0_IRQn, PIT_0_ISR, NULL_PTR);
+	IntCtrl_Ip_EnableIrq(PIT0_IRQn);
+	IntCtrl_Ip_SetPriority(PIT0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
+
 	/*PIT initialization*/
 	Pit_Ip_Init(PIT_0_IP_INSTANCE_NUMBER, &PIT_0_InitConfig_PB);
 	/*PIT channel initialization*/
@@ -291,9 +295,8 @@ int main(void)
 	/*enable channel interrupt*/
 	Pit_Ip_EnableChannelInterrupt(PIT_0_IP_INSTANCE_NUMBER, 0);
 
-	IntCtrl_Ip_InstallHandler(PIT0_IRQn, PIT_0_ISR, NULL_PTR);
-	IntCtrl_Ip_EnableIrq(PIT0_IRQn);
-	IntCtrl_Ip_SetPriority(PIT0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
+	/*load the interrupt configuration*/
+	IntCtrl_Ip_Init(&IntCtrlConfig_0);
 
 	/* Initialize ethernet MAC */
 	/*set the MAC to slave mode and not to master mode*/
@@ -318,8 +321,7 @@ int main(void)
 		}
 	}
 
-	/*load the interrupt configuration*/
-	IntCtrl_Ip_Init(&IntCtrlConfig_0);
+
 #ifndef NO_FREERTOS
 	/*start link check task*/
 	start_link_check();
