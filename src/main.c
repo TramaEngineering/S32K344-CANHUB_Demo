@@ -228,7 +228,7 @@ void link_check(uint8 channel){
 		//Siul2_Dio_Ip_TogglePins(LED2_PORT, 1<<LED2_PIN);
 		Task_Flag_1000mS = 1;
 		Task_Flag_Cnt = 0;
-		printf("%d\r\n",(int)u64PitIsrCountMs);
+		//printf("%d\r\n",(int)u64PitIsrCountMs);
 	}
 	u64PitIsrCountMs++;
 
@@ -292,6 +292,10 @@ int main(void)
 	IntCtrl_Ip_InstallHandler(SIUL_3_IRQn, SIUL2_EXT_IRQ_24_31_ISR, NULL_PTR);
 	IntCtrl_Ip_SetPriority(SIUL_3_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
 
+	IntCtrl_Ip_InstallHandler(PIT0_IRQn, PIT_0_ISR, NULL_PTR);
+	IntCtrl_Ip_EnableIrq(PIT0_IRQn);
+	IntCtrl_Ip_SetPriority(PIT0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
+
 	/*PIT initialization*/
 	Pit_Ip_Init(PIT_0_IP_INSTANCE_NUMBER, &PIT_0_InitConfig_PB);
 	/*PIT channel initialization*/
@@ -300,10 +304,6 @@ int main(void)
 	Pit_Ip_StartChannel(PIT_0_IP_INSTANCE_NUMBER, 0, 40000);/*400ms*/
 	/*enable channel interrupt*/
 	Pit_Ip_EnableChannelInterrupt(PIT_0_IP_INSTANCE_NUMBER, 0);
-
-	IntCtrl_Ip_InstallHandler(PIT0_IRQn, PIT_0_ISR, NULL_PTR);
-	IntCtrl_Ip_EnableIrq(PIT0_IRQn);
-	IntCtrl_Ip_SetPriority(PIT0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
 
 	/* Initialize ethernet MAC */
 	/*set the MAC to slave mode and not to master mode*/
@@ -348,7 +348,7 @@ int main(void)
 	/* Scheduler returned this an error was encountered */
 	set_rgb_status(ERROR);
 
-	printf("Error in code!\r\n");
+	//printf("Error in code!\r\n");
 
 	for( ;; ){
 //		timer0 = Task_Flag_Cnt;
