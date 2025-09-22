@@ -64,6 +64,7 @@ extern uint8 button_eth_frame[80];
 
 extern Gmac_Ip_BufferType pDelayResp;
 extern Gmac_Ip_BufferType buttonEthFrame;
+extern Gmac_Ip_BufferType customMessage_ipv4;
 
 /*==================================================================================================
  *                                      GLOBAL CONSTANTS
@@ -92,7 +93,7 @@ void eth_activity_led( void *arg );
 
 void eth_activity_led_send( void *arg );
 
-Gmac_Ip_StatusType enet_init(QueueHandle_t* tx_descr_queue);
+Gmac_Ip_StatusType enet_init_freertos(QueueHandle_t* tx_descr_queue);
 
 void enet_ieee1722_acf_can_send(uint8 instance, Flexcan_Ip_MsgBuffType *can_frame);
 
@@ -117,6 +118,12 @@ void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp);
 void print_16(uint16_t *data);
 void print_32(uint32_t *data);
 void print_64(uint64_t *data);
+/*==================================================================================================
+ *                                       BARE METAL FUNCTIONS
+==================================================================================================*/
+Gmac_Ip_StatusType enet_init(void);
+void eth_rx_check(void);
+void enet_tx_free_buffer(void);
 
 #ifdef __cplusplus
 }

@@ -108,6 +108,7 @@ extern "C"{
 #define 	QSPI_INSTANCE_0		0
 
 #define 	MMA8452Q_IS_WELDED	0
+//#define 	NO_FREERTOS
 
 /*==================================================================================================
 *                                       FUNCTION-LIKE DEFINES(MACROS)

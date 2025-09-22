@@ -26,34 +26,14 @@
 #include "bsp.h"
 //#include "S32K311_DCM_GPR.h"
 
-SemaphoreHandle_t tx_queue_handle;
-QueueHandle_t tx_descr_queue;
-QueueHandle_t tx_descr_queue_send;
-SemaphoreHandle_t tx_send_mutex = NULL;
-SemaphoreHandle_t eth_blink;
-TaskHandle_t led_blink;
-SemaphoreHandle_t eth_blink_send;
-TaskHandle_t led_blink_send;
+//gPTP libraries
+#include "EthIf_Cbk.h"
+#include "gptp_port_platform.h"
+#include "gptp_frame.h"
 
-extern void GMAC0_Common_IRQHandler(void);
-extern void GMAC0_CH_TX_IRQHandler(void);
-extern void GMAC0_CH_RX_IRQHandler(void);
-
-//void etherswap(uint16* ethertype) {
-//	uint16 mask = 0XFF00;
-//	uint16 high = *ethertype & mask;
-//	*ethertype = *ethertype << 8;
-//    *ethertype = *ethertype | high >> 8;
-//}
-
-QueueHandle_t* eth_can_queue;
-int can_count;
-TaskHandle_t rx_task;
-TaskHandle_t tx_task;
-TaskHandle_t link_check_task;
-int phyad = 0;
-
-extern uint32_t __UTEST_UID[2];
+/*==================================================================================================
+*                                       LOCAL MACROS
+==================================================================================================*/
 
 #define TIMEOUT_MS					(200U)
 #define TJA1103_DEV_ID 				(0x001BU)
@@ -81,6 +61,7 @@ extern uint32_t __UTEST_UID[2];
 #define DEV_SUPER_CONFIG_ENA_FLAG		(1 << 13)
 #define DEV_SUPER_CONFIG_DIS_FLAG		0XFFFF & ~(1 << 13)
 #define PHY_CONFIG_EN_FLAG 				(0x4000U)
+#define MAX_TX_PENDING 					6U
 
 //TS register macro
 #define INGR_TS_0					(0X1155U)
@@ -98,9 +79,46 @@ extern uint32_t __UTEST_UID[2];
 #define EGR_TS_4					(0X1152U)
 #define EGR_TS_5					(0X1153U)
 #define EGR_CTRL					(0X1154U)
-//#define DEBUG_PRINT
 
-//#define DEBUG_PRINT
+/*==================================================================================================
+*                                       LOCAL VARIABLES
+==================================================================================================*/
+
+SemaphoreHandle_t tx_queue_handle;
+QueueHandle_t tx_descr_queue;
+QueueHandle_t tx_descr_queue_send;
+SemaphoreHandle_t tx_send_mutex = NULL;
+SemaphoreHandle_t eth_blink;
+TaskHandle_t led_blink;
+SemaphoreHandle_t eth_blink_send;
+TaskHandle_t led_blink_send;
+
+extern void GMAC0_Common_IRQHandler(void);
+extern void GMAC0_CH_TX_IRQHandler(void);
+extern void GMAC0_CH_RX_IRQHandler(void);
+
+QueueHandle_t* eth_can_queue;
+int can_count;
+TaskHandle_t rx_task;
+TaskHandle_t tx_task;
+TaskHandle_t link_check_task;
+int phyad = 0;
+
+extern uint32_t __UTEST_UID[2];
+
+/*==================================================================================================
+*                                 LOCAL STRUCTURES AND TYPES
+==================================================================================================*/
+
+/*Made this structure and queue to keep the incoming data on the eth tranceiver*/
+typedef struct {
+	uint8* Data;
+	uint8 Length;
+    uint8 ring;
+    bool inUse;
+} DescrBuffer;
+
+static DescrBuffer bufferQueue[MAX_TX_PENDING];
 
 const Flexcan_Ip_MsgBuffType CanAvtp = {
 		.cs = 0x0,
@@ -206,10 +224,46 @@ uint8 pDelayResp_frame[68] = {
 	    0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
 	};// NO RESPONSE FOR THIS DELAY REQ
 
+uint8_t customIPv4Frame[] = {
+    // --- Ethernet header ---
+		//0x66,0x55,0x44,0x33,0x22,0x11,    // Src MAC
+		//0xFC, 0xC2, 0x3D, 0x5E, 0x0F, 0x8B, //fibrecode
+		0x10,0x11,0x22,0x88,0x88,0x88,    // Dest MAC
+		0x66,0x55,0x44,0x33,0x22,0x11,
+		0x08,0x00,                        // EtherType = IPv4
+
+		// --- IPv4 header (20B) ---
+		0x45,       // Version=4, IHL=5
+		0x00,       // DSCP/ECN
+		0x00,0x24,  // Total length = 36 bytes (20+8+8)
+		0x00,0x01,  // Identification
+		0x40,0x00,  // Flags + Fragment offset
+		0x40,       // TTL = 64
+		0x11,       // Protocol = UDP (0x11)
+		0xB8,0x53,  // Header checksum (calcolato)
+		0xC0,0xA8,0x00,0x01,  // Src IP = 192.168.0.2
+		0xC0,0xA8,0x00,0x02,  // Dst IP = 192.168.0.1
+
+		// --- UDP header (8B) ---
+		0x12,0x34,  // Src port = 0x1234
+		0x56,0x78,  // Dst port = 0x5678
+		0x00,0x10,  // Length = 16 (8B UDP hdr + 8B payload)
+		0x00,0x00,  // Checksum = 0 (disabilitato)
+
+		// --- Payload (8B) ---
+		0xDE,0xAD,0xBE,0xEF,0xCA,0xFE,0xBA,0xBE
+};
+Gmac_Ip_BufferType customMessage_ipv4 = { .Data = customIPv4Frame, .Length = 60/*54*/ };
+
 Gmac_Ip_BufferType pDelayResp = { .Data = pDelayResp_frame, .Length = 68 };
 Gmac_Ip_BufferType arpAnnouce = { .Data = annouce_frame, .Length = 48 };
 
-Gmac_Ip_StatusType enet_init(QueueHandle_t* tx_descr_queue_m) {
+/*==================================================================================================
+*                                  External FUNCTIONS FreeRTOS
+==================================================================================================*/
+/*================================================================================================*/
+
+Gmac_Ip_StatusType enet_init_freertos(QueueHandle_t* tx_descr_queue_m) {
 
 	//RMII mode
 	IP_DCM_GPR->DCMRWF1 = (IP_DCM_GPR->DCMRWF1 & ~DCM_GPR_DCMRWF1_MAC_CONF_SEL_MASK) | DCM_GPR_DCMRWF1_MAC_CONF_SEL(2U);
@@ -495,6 +549,9 @@ void eth_rx_worker(void *arg) {
 				//printf("send resp delay\r\n");
 				xQueueSend(tx_descr_queue_send, &pDelayResp, portMAX_DELAY);
 			}
+			else{
+				xQueueSend(tx_descr_queue_send, &customMessage_ipv4, portMAX_DELAY);
+			}
 
 
 
@@ -736,13 +793,117 @@ void enet_ieee1722_acf_can_send(uint8 instance, Flexcan_Ip_MsgBuffType *can_fram
 
 }
 
+/*==================================================================================================
+*                               External FUNCTIONS Loop gPTP
+==================================================================================================*/
+/*================================================================================================*/
+Gmac_Ip_StatusType enet_init(void) {
+
+	//RMII mode
+	IP_DCM_GPR->DCMRWF1 = (IP_DCM_GPR->DCMRWF1 & ~DCM_GPR_DCMRWF1_MAC_CONF_SEL_MASK) | DCM_GPR_DCMRWF1_MAC_CONF_SEL(2U);
+
+	/* Initialize and enable the GMAC module */
+	Gmac_Ip_StatusType Status_Init_Gmac = GMAC_STATUS_ERROR;
+	Status_Init_Gmac = Gmac_Ip_Init(INST_GMAC_0, &Gmac_0_ConfigPB);
+
+	if(Status_Init_Gmac != GMAC_STATUS_SUCCESS)
+	{
+		return Status_Init_Gmac;
+	}
+
+	//IntCtrl_Ip_InstallHandler(EMAC_0_IRQn, GMAC0_Common_IRQHandler, NULL_PTR);
+	//IntCtrl_Ip_SetPriority(EMAC_0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
+	//IntCtrl_Ip_EnableIrq(EMAC_0_IRQn);
+	/*IntCtrl_Ip_EnableIrq(EMAC_1_IRQn);
+	IntCtrl_Ip_InstallHandler(EMAC_1_IRQn, GMAC0_CH_TX_IRQHandler, NULL_PTR);
+	IntCtrl_Ip_SetPriority(EMAC_1_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);*/
+
+
+	return Status_Init_Gmac;
+}
+
+void eth_rx_check(void){
+		volatile Gmac_Ip_StatusType Status;
+		Gmac_Ip_BufferType RxBuffer = {0};
+		Gmac_Ip_RxInfoType RxInfo  = {0};
+		boolean IsBroadcast;
+		uint16 PayloadLength;
+		Gmac_Ip_TimestampType srIngressTimeStamp;
+
+		Status = Gmac_Ip_ReadFrame(INST_GMAC_0, 0U, &RxBuffer, &RxInfo);
+
+
+		/* If no packet, Wait for the frame to be received */
+		if (Status != GMAC_STATUS_RX_QUEUE_EMPTY) {
+				//TODO implement function that make blink the pink led
+				const struct ethernet_frame* ether_frame = (struct ethernet_frame*)RxBuffer.Data;
+				Gmac_Ip_ProvideRxBuff(INST_GMAC_0, 0U, &RxBuffer);
+
+				IsBroadcast = (ether_frame->dst_macaddr[0] == 0xFF) && (ether_frame->dst_macaddr[1] == 0xFF) && (ether_frame->dst_macaddr[2] == 0xFF) && (ether_frame->dst_macaddr[3] == 0xFF) && (ether_frame->dst_macaddr[4] == 0xFF) && (ether_frame->dst_macaddr[5] == 0xFF);
+				PayloadLength = RxInfo.PktLen-((2*ETH_ALEN)+2);
+
+				if(ether_frame->ether_type == 0xf788){
+					get_ts_ingress_data(&srIngressTimeStamp);
+					printf("send resp delay\r\n");
+
+					//xQueueSend(tx_descr_queue_send, &pDelayResp, portMAX_DELAY);
+					//EthIf_RxIndication(CFG_PHY_CTRL_IDX, ether_frame->ether_type, IsBroadcast, &ether_frame->dst_macaddr, &ether_frame->data, PayloadLength, RxInfo.Timestamp);
+				}
+
+		}
+
+
+}
+
+void enet_tx_free_buffer(void){
+	Gmac_Ip_TxInfoType TxInfo  = {0};
+	Gmac_Ip_BufferType TxBuffer = {0};
+	Gmac_Ip_StatusType trasmit_status = GMAC_STATUS_SUCCESS;
+	struct ethernet_frame* ether_frame;
+	uint8 try = 52;
+
+
+	for(uint8 index = 0; index < MAX_TX_PENDING && bufferQueue[index].inUse ; index++){
+		//if(){
+			TxBuffer.Data = bufferQueue[index].Data;
+			TxBuffer.Length = bufferQueue[index].Length;
+			trasmit_status = Gmac_Ip_GetTransmitStatus(CFG_PHY_CTRL_IDX, 0U, &TxBuffer, &TxInfo);
+
+			if(trasmit_status == GMAC_STATUS_BUSY){
+					/*descriptor still busy so send back the message in the queue*/
+					printf("%d still have to be send! \r\n", index);
+			}
+			else if( trasmit_status == GMAC_STATUS_BUFF_NOT_FOUND ){
+				printf("Buffer not found!\r\n");
+			}
+			else if(trasmit_status == GMAC_STATUS_SUCCESS){
+				/*I have to call EthIf function to pass timestamp to the state machine*/
+				/*second parameter has to be the BufIdx*/
+				/*TODO: Get the timestamp TX from the HW on exit*/
+				EthIf_TxConfirmation(CFG_PHY_CTRL_IDX, index, trasmit_status, TxInfo.Timestamp);
+				bufferQueue[index].inUse = FALSE;
+				ether_frame = (struct ethernet_frame*)TxBuffer.Data;
+				//printf("Egress timestamp MAC: %lu, %lu \r\n", TxInfo.Timestamp.seconds, TxInfo.Timestamp.nanoseconds);
+				if(ether_frame->dst_macaddr[0] == 0x01 && ether_frame->dst_macaddr[1] == 0x80 && ether_frame->dst_macaddr[2] == 0xc2 && ether_frame->dst_macaddr[3] == 0x00 && ether_frame->dst_macaddr[4] == 0x00 && ether_frame->dst_macaddr[5] == 0x0e){
+					//Siul2_Dio_Ip_TogglePins(LED2_PORT, 1<<LED2_PIN);
+					Siul2_Dio_Ip_TogglePins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+					Siul2_Dio_Ip_TogglePins(LED_RED_PORT, (1 << LED_RED_PIN));
+					Siul2_Dio_Ip_TogglePins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+				}
+			}
+		//}
+
+	}
+
+}
+
 void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp){
 
 	uint16_t ingr_seq_id;
 	uint16_t reg_0, reg_1, reg_2, reg_3, reg_4, reg_5;
 
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR, &ingr_seq_id, 100);
-
+	//need to turn on hw timestamp?
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_0, &reg_0, 100);
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_1, &reg_1, 100);
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_2, &reg_2, 100);

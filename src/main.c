@@ -54,6 +54,9 @@
 //define a vector of can queues (RTOS)
 #define CAN_COUNT 6
 #define MILLISECOND_IN_NS               (1000000U)
+#define GMAC_MAX_CTRLIDX_SUPPORTED 		1U
+// NO_FRRERTOS defined in bsp.h
+
 QueueHandle_t eth_can_queues[CAN_COUNT];
 /*message queue to be filled with the message to be sent when button is pressed*/
 QueueHandle_t tx_queue_send;
@@ -156,20 +159,20 @@ void button_sw1(void)
 {
 	/* Send CAN Frame to the CAN0 device */
 	//set_rgb_status(INITIALIZE);
-	if( xQueueSendFromISR( eth_can_queues[0],
+	/*if( xQueueSendFromISR( eth_can_queues[0],
 			( void * ) &buttonCanFrame,	NULL))
 	{
-		/* Failed queue CAN frame drop packet */
-	}
+		// Failed queue CAN frame drop packet
+	}*/
 }
 
 void button_sw2_ethernet(void)
 {
 
-	if(xQueueSendFromISR(tx_queue_send, &pDelayResp, NULL)){
+	//if(xQueueSendFromISR(tx_queue_send, &pDelayResp, NULL)){
 			/*the thread has fail to send the message after 10 tick so there will be some error*/
 			/*put led blinking on a certain way*/
-		}
+		//}
 }
 
 //void button_sw2(void)
@@ -228,11 +231,51 @@ void link_check(uint8 channel){
 		//Siul2_Dio_Ip_TogglePins(LED2_PORT, 1<<LED2_PIN);
 		Task_Flag_1000mS = 1;
 		Task_Flag_Cnt = 0;
-		printf("%d\r\n",(int)u64PitIsrCountMs);
+		//printf("%d\r\n",(int)u64PitIsrCountMs);
 	}
 	u64PitIsrCountMs++;
 
 	return;
+}
+
+static void Eth_PollLinkStatus(void)
+{
+    uint8_t                      u8CtrlIdx;
+    /* Current link status. */
+    static EthTrcv_LinkStateType_g seLinkState;
+    /* Last link status for change detection. */
+    static EthTrcv_LinkStateType_g seLastLinkState[GMAC_MAX_CTRLIDX_SUPPORTED] = {ETHTRCV_LINK_ST_DOWN};
+
+    for (u8CtrlIdx = 0u; u8CtrlIdx < GMAC_MAX_CTRLIDX_SUPPORTED; u8CtrlIdx++) {
+    				//implemented in GMAC_Task
+        if (E_OK == EthTrcv_GetLinkState(u8CtrlIdx, &seLinkState))
+        {
+            /* Detect link status change. */
+            if (seLastLinkState[u8CtrlIdx] != seLinkState)
+            {
+                seLastLinkState[u8CtrlIdx] = seLinkState;
+                /* Notify via EthIf API. */
+                EthIf_TrcvLinkStateChg(u8CtrlIdx, seLinkState);
+            }
+        }
+    }
+}
+
+static void Eth_Poll(void)
+{
+    uint8            u8FifoIdx;
+    Eth_RxStatusType rRxStatus;
+
+    /*for (u8FifoIdx = 0u; u8FifoIdx < ETH_43_GMAC_MAX_RXFIFO_SUPPORTED; u8FifoIdx++)
+    {
+        Eth_43_GMAC_Receive(EthConf_EthCtrlConfig_EthCtrlConfig_0, u8FifoIdx,
+                            &rRxStatus);
+    }
+
+    Eth_43_GMAC_TxConfirmation(EthConf_EthCtrlConfig_EthCtrlConfig_0);*/
+
+    eth_rx_check();
+    enet_tx_free_buffer();
 }
 
 /**
@@ -281,20 +324,24 @@ int main(void)
 	Siul2_Icu_Ip_EnableInterrupt(0, 31); /* EIRQ31 PTD15 */
 	Siul2_Icu_Ip_EnableNotification(0, 31);
 
-	/*enable IRQ for switch 1*/
-	IntCtrl_Ip_EnableIrq(SIUL_0_IRQn);
+#ifdef NO_FREERTOS
+		IntCtrl_Ip_Init(&IntCtrlConfig_0);
+#endif
+
 	/*set handler for interrupt*/
 	IntCtrl_Ip_InstallHandler(SIUL_0_IRQn, SIUL2_EXT_IRQ_0_7_ISR, NULL_PTR);
 	/*set priority handler for the external input*/
 	IntCtrl_Ip_SetPriority(SIUL_0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
+	/*enable IRQ for switch 1*/
+	IntCtrl_Ip_EnableIrq(SIUL_0_IRQn);
 
-	IntCtrl_Ip_EnableIrq(SIUL_3_IRQn);
 	IntCtrl_Ip_InstallHandler(SIUL_3_IRQn, SIUL2_EXT_IRQ_24_31_ISR, NULL_PTR);
 	IntCtrl_Ip_SetPriority(SIUL_3_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
+	IntCtrl_Ip_EnableIrq(SIUL_3_IRQn);
 
 	IntCtrl_Ip_InstallHandler(PIT0_IRQn, PIT_0_ISR, NULL_PTR);
-	IntCtrl_Ip_EnableIrq(PIT0_IRQn);
 	IntCtrl_Ip_SetPriority(PIT0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
+	IntCtrl_Ip_EnableIrq(PIT0_IRQn);
 
 	/*PIT initialization*/
 	Pit_Ip_Init(PIT_0_IP_INSTANCE_NUMBER, &PIT_0_InitConfig_PB);
@@ -304,11 +351,18 @@ int main(void)
 	Pit_Ip_StartChannel(PIT_0_IP_INSTANCE_NUMBER, 0, 40000);/*400ms*/
 	/*enable channel interrupt*/
 	Pit_Ip_EnableChannelInterrupt(PIT_0_IP_INSTANCE_NUMBER, 0);
+	/*load the interrupt configuration*/
+
 
 	/* Initialize ethernet MAC */
 	/*set the MAC to slave mode and not to master mode*/
 	Gmac_Ip_StatusType Status_Init_Gmac = GMAC_STATUS_ERROR;
-	Status_Init_Gmac = enet_init(&tx_queue_send);
+
+#ifndef NO_FREERTOS
+	Status_Init_Gmac = enet_init_freertos(&tx_queue_send);
+#else
+	Status_Init_Gmac = enet_init();
+#endif
 
 	if(Status_Init_Gmac != GMAC_STATUS_SUCCESS)
 	{
@@ -328,9 +382,9 @@ int main(void)
 		}
 	}
 
-	/*load the interrupt configuration*/
-	IntCtrl_Ip_Init(&IntCtrlConfig_0);
+	set_rgb_status(NOMINAL);
 
+#ifndef NO_FREERTOS
 	/*start link check task*/
 	start_link_check();
 
@@ -340,76 +394,78 @@ int main(void)
 	/*create a thread that pools on a message queue and send the message when it receive one*/
 	enet_start_tx();
 
-	set_rgb_status(NOMINAL);
-
 	/* Start FreeRTOS */
 	vTaskStartScheduler();
 
 	/* Scheduler returned this an error was encountered */
 	set_rgb_status(ERROR);
+#endif
 
 	//printf("Error in code!\r\n");
 
 	for( ;; ){
-//		timer0 = Task_Flag_Cnt;
-//				if(annouce == 0){
-//					//send_eth_frame_lld(&pDelayReq);
-//					//send_eth_frame_lld(&arpAnnouce);
-//					annouce = 1;
+#ifdef NO_FREERTOS
+		timer0 = Task_Flag_Cnt;
+				if(annouce == 0){
+					//send_eth_frame_lld(&pDelayReq);
+					//send_eth_frame_lld(&arpAnnouce);
+					annouce = 1;
+				}
+				if(Task_Flag_2mS){
+					Task_Flag_2mS = 0;
+
+					Eth_PollLinkStatus();
+					Eth_Poll();
+					/* Add task call for 1ms interval */
+
+				}
+				if(Task_Flag_10mS){
+					Task_Flag_10mS = 0;
+
+					GPTP_TimerPeriodic();
+					/* Add task call for 10ms interval */
+
+				}
+				if(Task_Flag_1000mS){
+					//printf("Hello\r\n");
+				}
+
+				/* If User button1 event is detected. */
+//				if(usrBtn1Status){
+//					usrBtn1Status = 0;
+					/* Print ADC value */
+					//BaseTask_Btn1Event();
+					/* Send and receive LIN messages */
+					//lin_task_runtime();
 //				}
-//				if(Task_Flag_2mS){
-//					Task_Flag_2mS = 0;
-//
-//					//Eth_PollLinkStatus();
-//					//Eth_Poll();
-//					/* Add task call for 1ms interval */
-//
+
+				/* If User button2 event is detected. */
+//				if(usrBtn2Status){
+//					usrBtn2Status = 0;
+//					printf("User button SW3 pressed.\r\n");
+		#if (1 == MMA8452Q_IS_WELDED)
+					/* Read accelerometer value */
+					MMA8452Q_Task_Runtime();
+		#endif
+
+					/* Send and receive CAN messages */
+					//CAN_Task_Runtime();
+					//OsIf_Delay_Ms(50);
+					/* Send data to SGTL5000. */
+					//SGTL5000_Task_RunTime();
+					/* Read Ethernet Switch and Ethernet Phy status. */
+					//Ethernet_Task_Runtime();
 //				}
-//				if(Task_Flag_10mS){
-//					Task_Flag_10mS = 0;
-//
-//					//GPTP_TimerPeriodic();
-//					/* Add task call for 10ms interval */
-//
-//				}
-//				if(Task_Flag_1000mS){
-//					printf("Hello\r\n");
-//				}
-//
-//				/* If User button1 event is detected. */
-////				if(usrBtn1Status){
-////					usrBtn1Status = 0;
-//					/* Print ADC value */
-//					//BaseTask_Btn1Event();
-//					/* Send and receive LIN messages */
-//					//lin_task_runtime();
-////				}
-//
-//				/* If User button2 event is detected. */
-////				if(usrBtn2Status){
-////					usrBtn2Status = 0;
-////					printf("User button SW3 pressed.\r\n");
-//		#if (1 == MMA8452Q_IS_WELDED)
-//					/* Read accelerometer value */
-//					MMA8452Q_Task_Runtime();
-//		#endif
-//
-//					/* Send and receive CAN messages */
-//					//CAN_Task_Runtime();
-//					//OsIf_Delay_Ms(50);
-//					/* Send data to SGTL5000. */
-//					//SGTL5000_Task_RunTime();
-//					/* Read Ethernet Switch and Ethernet Phy status. */
-//					//Ethernet_Task_Runtime();
-////				}
-//
-//				//MainLoop_IdleCnt++;
-//				timer1 = Task_Flag_Cnt;
-//				//printf("start time: %lu\r\n",timer0);
-//				//printf("end time: %lu\r\n",timer1);
-//				/*8/10ms time for the for loop*/
-//				/*we have to be simple to read tx and rx every 2ms*/
+
+				//MainLoop_IdleCnt++;
+				timer1 = Task_Flag_Cnt;
+				//printf("start time: %lu\r\n",timer0);
+				//printf("end time: %lu\r\n",timer1);
+				/*8/10ms time for the for loop*/
+				/*we have to be simple to read tx and rx every 2ms*/
+#endif
 	}
+
 
 	return 0;
 }

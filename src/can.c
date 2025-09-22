@@ -20,6 +20,7 @@
 #include "FlexCAN_Ip_HwAccess.h"
 #include "FlexCAN_Ip_Wrapper.h"
 #include "fs26.h"
+#include "bsp.h"
 
 #define MSG_ID 20u
 #define RX_MB_IDX 1U
@@ -262,6 +263,7 @@ CAN* can_init(uint8 inst) {
 
 	FlexCAN_Ip_SetStartMode(can->instance);
 
+#ifndef NO_FREERTOS
 	/* Create Tasks for FlexCAN TX & RX handling */
 	vSemaphoreCreateBinary(can->led_sem);
 	if(can->config->is_enhanced_rx_fifo_needed) {
@@ -272,6 +274,7 @@ CAN* can_init(uint8 inst) {
 	xTaskCreate( eth_can_tx_worker, can->tx_task_name, configMINIMAL_STACK_SIZE, (void*)can, can_TASK_PRIORITY, &can->tx_task);
 	xTaskCreate( can_activity_led, ( const char * const )can->led_task_name, configMINIMAL_STACK_SIZE, (void*)can, can_TASK_PRIORITY-1, NULL);
 	can->eth_can_queue = xQueueCreate( ETH_CAN_QUEUE_SIZE, sizeof( Flexcan_Ip_MsgBuffType ) );
+#endif
 
 	return can;
 }

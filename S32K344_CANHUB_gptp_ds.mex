@@ -716,7 +716,7 @@
             <file path="generate/src/Gmac_Ip_Cfg.c" update_enabled="true"/>
             <file path="generate/src/Gmac_Ip_Sa_PBcfg.c" update_enabled="true"/>
             <file path="generate/src/IntCtrl_Ip_Cfg.c" update_enabled="true"/>
-            <file path="generate/src/Lpspi_Ip_Sa_PBcfg.c" update_enabled="true"/>
+            <file path="generate/src/Lpspi_Ip_Sa_PBcfg.c" update_enabled="false"/>
             <file path="generate/src/Lpuart_Uart_Ip_Sa_PBcfg.c" update_enabled="true"/>
             <file path="generate/src/OsIf_Cfg.c" update_enabled="true"/>
             <file path="generate/src/Pit_Ip_PBcfg.c" update_enabled="true"/>
