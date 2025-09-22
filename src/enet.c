@@ -49,6 +49,7 @@
 #define BT1_PMA_CONTROL_REG_ADR		(0x0834U)
 #define DEV_CONTR_REG_ADR			(0x0040U)
 #define PHY_CONTR_REG_ADR			(0x8100U)
+#define DEVICE_CONTROL				(0x40U)
 #define PHY_STATUS_REGISTER			0x8102
 
 #define PMA_STATUS_LINK_STATUS		(1 << 2)
@@ -63,7 +64,9 @@
 #define PHY_CONFIG_EN_FLAG 				(0x4000U)
 #define MAX_TX_PENDING 					6U
 
-//TS register macro
+/*TS register macro*/
+#define SUPER_CONFIG_ENABLE			(0x2000U) //enable reconfiguration regiters to enable ptp timestamping
+#define PORT_FUNC_ENABLE			(0X8048U)
 #define INGR_TS_0					(0X1155U)
 #define INGR_TS_1					(0X1156U)
 #define INGR_TS_2					(0x1157U)
@@ -802,6 +805,43 @@ Gmac_Ip_StatusType enet_init(void) {
 	//RMII mode
 	IP_DCM_GPR->DCMRWF1 = (IP_DCM_GPR->DCMRWF1 & ~DCM_GPR_DCMRWF1_MAC_CONF_SEL_MASK) | DCM_GPR_DCMRWF1_MAC_CONF_SEL(2U);
 
+	uint16_t port_func, phy_control;
+
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, PORT_FUNC_ENABLE, &port_func, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, PORT_FUNC_ENABLE, &port_func, 100);
+
+	//printf("port func: \r\n");
+	//print_16(&port_func);
+
+	while((port_func & 0x0008) != 0x0008 ){
+		printf("HW timestamp disabled!\r\n");
+		/*set PHY_control to config_enable in order to be able to write on registers*/
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEVICE_CONTROL, &phy_control, 100);//bit 13 need to be at 1
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEVICE_CONTROL, &phy_control, 100);
+		phy_control |= SUPER_CONFIG_ENABLE;
+		Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, DEVICE_CONTROL, phy_control, 100);
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEVICE_CONTROL, &phy_control, 100);
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEVICE_CONTROL, &phy_control, 100);
+
+		/*enable the PTP HW timestamping*/
+		port_func |= 0x0008;
+		Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, PORT_FUNC_ENABLE, port_func, 100);
+
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, PORT_FUNC_ENABLE, &port_func, 100);
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, PORT_FUNC_ENABLE, &port_func, 100);
+
+		if((port_func & 0x0008) == 0x0008){
+			Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEVICE_CONTROL, &phy_control, 100);//bit 13 need to be at 1
+			Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEVICE_CONTROL, &phy_control, 100);
+			phy_control &= ~SUPER_CONFIG_ENABLE;
+			Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, DEVICE_CONTROL, phy_control, 100);
+			Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEVICE_CONTROL, &phy_control, 100);
+			Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEVICE_CONTROL, &phy_control, 100);
+		}
+
+	}
+	printf("PTP enabled! \r\n");
+
 	/* Initialize and enable the GMAC module */
 	Gmac_Ip_StatusType Status_Init_Gmac = GMAC_STATUS_ERROR;
 	Status_Init_Gmac = Gmac_Ip_Init(INST_GMAC_0, &Gmac_0_ConfigPB);
@@ -903,7 +943,7 @@ void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp){
 	uint16_t reg_0, reg_1, reg_2, reg_3, reg_4, reg_5;
 
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR, &ingr_seq_id, 100);
-	//need to turn on hw timestamp?
+
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_0, &reg_0, 100);
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_1, &reg_1, 100);
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_2, &reg_2, 100);
@@ -915,9 +955,9 @@ void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp){
 	srIngressTimeStamp->seconds = 0x00000000 | (reg_5 & 0xFFF0) | ((reg_0 & 0x7000)>>10) | ((reg_3 & 0xC000)>>14);
 
 	printf("TS nanoseconds: \r\n");
-	//print_32(srIngressTimeStamp->nanoseconds);
+	print_32(&srIngressTimeStamp->nanoseconds);
 	printf("TS seconds: \r\n");
-	//print_32(srIngressTimeStamp->seconds);
+	print_32(&srIngressTimeStamp->seconds);
 
 
 
@@ -925,7 +965,7 @@ void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp){
 
 void print_16(uint16_t *data){
 	uint16_t shift = *data;
-	for(int i = sizeof(uint16_t)-1; i>=0; i--){
+	for(int i = sizeof(uint16_t)*8-1; i>=0; i--){
 		printf("%"PRIu16,((shift>>i) & 0x1));
 	}
 	printf("\r\n");
@@ -933,7 +973,7 @@ void print_16(uint16_t *data){
 
 void print_32(uint32_t *data){
 	uint32_t shift = *data;
-	for(int i = sizeof(uint32_t)-1; i>=0; i--){
+	for(int i = sizeof(uint32_t)*8-1; i>=0; i--){
 		printf("%"PRIu32,((shift>>i) & 0x1));
 	}
 	printf("\r\n");
@@ -941,7 +981,7 @@ void print_32(uint32_t *data){
 
 void print_64(uint64_t *data){
 	uint64_t shift = *data;
-	for(int i = sizeof(uint64_t)-1; i>=0; i--){
+	for(int i = sizeof(uint64_t)*8-1; i>=0; i--){
 		printf("%"PRIu64,((shift>>i) & 0x1));
 	}
 	printf("\r\n");

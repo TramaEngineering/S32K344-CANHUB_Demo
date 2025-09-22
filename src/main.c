@@ -146,7 +146,7 @@ void set_rgb_status(rgb_status status) {
 	}
 }
 
-rgb_status error_st = BLUE;
+rgb_status error_st = RED;
 
 void HardFault_Handler(void)
 {

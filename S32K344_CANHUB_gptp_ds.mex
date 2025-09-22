@@ -2240,8 +2240,8 @@
                                  <setting name="Name" value="EthCtrlConfig_0"/>
                                  <setting name="EthCtrlEnableMii" value="true"/>
                                  <setting name="EthCtrlEnableMmd" value="true"/>
-                                 <setting name="EthCtrlEnableRxInterrupt" value="true"/>
-                                 <setting name="EthCtrlEnableTxInterrupt" value="true"/>
+                                 <setting name="EthCtrlEnableRxInterrupt" value="false"/>
+                                 <setting name="EthCtrlEnableTxInterrupt" value="false"/>
                                  <setting name="EthCtrlIdx" value="0"/>
                                  <setting name="EthCtrlMacLayerType" value="ETH_MAC_LAYER_TYPE_XMII"/>
                                  <array name="EthCtrlMacLayerSubType">

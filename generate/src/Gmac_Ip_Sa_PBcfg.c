@@ -101,15 +101,6 @@ extern "C"{
 /*==================================================================================================
 *                                       GLOBAL FUNCTIONS
 ==================================================================================================*/
-#define ETH_START_SEC_CODE
-#include "Eth_MemMap.h"
-
-/*! @brief Channel callbacks external declarations */
-extern void enet_rx_interrupt(const uint8 CtrlIdx, const uint8 DMAChannel);
-extern void enet_tx_interrupt(const uint8 CtrlIdx, const uint8 DMAChannel);
-
-#define ETH_STOP_SEC_CODE
-#include "Eth_MemMap.h"
 
 /*==================================================================================================
 *                                      BUFFER DECLARATIONS
@@ -159,9 +150,9 @@ static const Gmac_Ip_RxRingConfigType GMAC_0_aRxRingConfigPB[1U] =
     /* The configuration structure for Rx Ring 0 */
     {
         /*.ringDesc = */GMAC_0_RxRing_0_DescBuffer,
-        /*.callback = */&enet_rx_interrupt,
+        /*.callback = */NULL_PTR,
         /*.buffer = */GMAC_0_RxRing_0_DataBuffer,
-        /*.interrupts = */(uint32)GMAC_CH_INTERRUPT_RI,
+        /*.interrupts = */(uint32)0U,
         /*.bufferLen = */128U,
         /*.ringSize = */16U,
         /*.priorityMask = */0U,
@@ -180,9 +171,9 @@ static const Gmac_Ip_TxRingConfigType GMAC_0_aTxRingConfigPB[1U] =
         /*.hiCredit = */0U,
         /*.loCredit = */0,
         /*.ringDesc = */GMAC_0_TxRing_0_DescBuffer,
-        /*.callback = */&enet_tx_interrupt,
+        /*.callback = */NULL_PTR,
         /*.buffer = */GMAC_0_TxRing_0_DataBuffer,
-        /*.interrupts = */(uint32)GMAC_CH_INTERRUPT_TI,
+        /*.interrupts = */(uint32)0U,
         /*.bufferLen = */128U,
         /*.ringSize = */16U,
         /*.priorityMask = */0U,
