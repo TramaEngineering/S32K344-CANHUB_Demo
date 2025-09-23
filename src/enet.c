@@ -66,7 +66,11 @@
 
 /*TS register macro*/
 #define SUPER_CONFIG_ENABLE			(0x2000U) //enable reconfiguration regiters to enable ptp timestamping
+#define ING_RING_DONE				(0x115BU) //after read ts in order to flush ring position
 #define PORT_FUNC_ENABLE			(0X8048U)
+#define PTP_CLK_PERIOD				(0x1104U) //set ptp clk period to 15ns because of 33.3MHz clock
+#define TX_PIPE_DLY_NS				(0x1149U) //set ts delay in tx
+#define RX_PIPE_DLY_NS				(0x114BU) //set ts delay in rx
 #define INGR_TS_0					(0X1155U)
 #define INGR_TS_1					(0X1156U)
 #define INGR_TS_2					(0x1157U)
@@ -805,13 +809,53 @@ Gmac_Ip_StatusType enet_init(void) {
 	//RMII mode
 	IP_DCM_GPR->DCMRWF1 = (IP_DCM_GPR->DCMRWF1 & ~DCM_GPR_DCMRWF1_MAC_CONF_SEL_MASK) | DCM_GPR_DCMRWF1_MAC_CONF_SEL(2U);
 
-	uint16_t port_func, phy_control;
+	uint16_t port_func, phy_control, ptp_clk_period, tx_pipe_dly_ns, rx_pipe_dly_ns;
 
+	//read port enable to allow registers configuration
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, PORT_FUNC_ENABLE, &port_func, 100);
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, PORT_FUNC_ENABLE, &port_func, 100);
+	//check clk period for 100base t1 connection
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, PTP_CLK_PERIOD, &ptp_clk_period, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, PTP_CLK_PERIOD, &ptp_clk_period, 100);
+	//check tx pipe delay to be added to eggress ts due to circuirty loss
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, TX_PIPE_DLY_NS, &tx_pipe_dly_ns, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, TX_PIPE_DLY_NS, &tx_pipe_dly_ns, 100);
+	//check rx pipe delay to be added to ingress ts due to circuirty loss
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, RX_PIPE_DLY_NS, &rx_pipe_dly_ns, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, RX_PIPE_DLY_NS, &rx_pipe_dly_ns, 100);
 
-	//printf("port func: \r\n");
-	//print_16(&port_func);
+	while((rx_pipe_dly_ns & 0x019D) != 0x019D){
+		rx_pipe_dly_ns |= 0x019D;
+		Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, RX_PIPE_DLY_NS, rx_pipe_dly_ns, 100);
+
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, RX_PIPE_DLY_NS, &rx_pipe_dly_ns, 100);
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, RX_PIPE_DLY_NS, &rx_pipe_dly_ns, 100);
+
+		if((rx_pipe_dly_ns & 0x019D) == 0x019D)
+			printf("TS Tx delay set to 413 ns!\r\n");
+	}
+	while((tx_pipe_dly_ns & 0x004D) != 0x004D){
+		tx_pipe_dly_ns |= 0x004D;
+		Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, TX_PIPE_DLY_NS, tx_pipe_dly_ns, 100);
+		Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, 0x114A, 0x0000, 100);
+
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, TX_PIPE_DLY_NS, &tx_pipe_dly_ns, 100);
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, TX_PIPE_DLY_NS, &tx_pipe_dly_ns, 100);
+
+		if((tx_pipe_dly_ns & 0x004D) == 0x004D)
+			printf("TS Tx delay set to 77 ns!\r\n");
+	}
+
+	while((ptp_clk_period & 0x000F) != 0x000F){
+		ptp_clk_period |= 0x000F;
+		Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, 0x1104, ptp_clk_period, 100);
+
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, 0x1104, &ptp_clk_period, 100);
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, 0x1104, &ptp_clk_period, 100);
+
+		if((ptp_clk_period & 0x000F) == 0x000F)
+			printf("Ptp period set to 15ns!\r\n");
+	}
 
 	while((port_func & 0x0008) != 0x0008 ){
 		printf("HW timestamp disabled!\r\n");
@@ -831,6 +875,7 @@ Gmac_Ip_StatusType enet_init(void) {
 		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, PORT_FUNC_ENABLE, &port_func, 100);
 
 		if((port_func & 0x0008) == 0x0008){
+			printf("PTP enabled! \r\n");
 			Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEVICE_CONTROL, &phy_control, 100);//bit 13 need to be at 1
 			Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEVICE_CONTROL, &phy_control, 100);
 			phy_control &= ~SUPER_CONFIG_ENABLE;
@@ -840,7 +885,7 @@ Gmac_Ip_StatusType enet_init(void) {
 		}
 
 	}
-	printf("PTP enabled! \r\n");
+
 
 	/* Initialize and enable the GMAC module */
 	Gmac_Ip_StatusType Status_Init_Gmac = GMAC_STATUS_ERROR;
@@ -950,6 +995,8 @@ void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp){
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_3, &reg_3, 100);
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_4, &reg_4, 100);
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_5, &reg_5, 100);
+	//to clear the ring buffer position
+	Gmac_Ip_MDIOWriteMMD(0,	PHYAD, MMD30, ING_RING_DONE, 0X0001, 100);
 
 	srIngressTimeStamp->nanoseconds = 0x00000000 | ((uint32) reg_3<<18) | (reg_2 & 0x3FFFFFFF);
 	srIngressTimeStamp->seconds = 0x00000000 | (reg_5 & 0xFFF0) | ((reg_0 & 0x7000)>>10) | ((reg_3 & 0xC000)>>14);
