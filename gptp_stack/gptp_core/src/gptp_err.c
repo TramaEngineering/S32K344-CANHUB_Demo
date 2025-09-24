@@ -19,6 +19,7 @@
 #include "gptp_err.h"
 #include "gptp_port.h"
 #include "gptp_internal.h"
+#define GPTP_USE_PRINTF
 
 #ifdef GPTP_USE_PRINTF
 /*******************************************************************************

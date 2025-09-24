@@ -27,6 +27,8 @@ extern "C"{
 #include "Siul2_Port_Ip.h"
 #include "Siul2_Dio_Ip.h"
 #include <inttypes.h>
+#include <stdbool.h>
+#include "retarget.h"
 
 
 /*==================================================================================================
@@ -52,6 +54,7 @@ extern "C"{
 
 #define eth_TASK_PRIORITY                ( tskIDLE_PRIORITY + 2 )
 #define eth_TASK_PRIORITY_1              ( tskIDLE_PRIORITY + 1 )
+#define MAX_TX_PENDING 					6U
 
 /*==================================================================================================
  *                                      LOCAL VARIABLES
@@ -62,6 +65,7 @@ extern uint8 residence_frame[48];
 extern uint8 pDelayResp_frame[68];
 extern uint8 button_eth_frame[80];
 
+extern Gmac_Ip_BufferType arpAnnouce;
 extern Gmac_Ip_BufferType pDelayResp;
 extern Gmac_Ip_BufferType buttonEthFrame;
 extern Gmac_Ip_BufferType customMessage_ipv4;
@@ -74,6 +78,15 @@ extern Gmac_Ip_BufferType customMessage_ipv4;
 /*==================================================================================================
  *                                      GLOBAL VARIABLES
 ==================================================================================================*/
+/*Made this structure and queue to keep the incoming data on the eth tranceiver*/
+typedef struct {
+	uint8* Data;
+	uint8 Length;
+    uint8 ring;
+    bool inUse;
+} DescrBuffer;
+
+extern DescrBuffer bufferQueue[MAX_TX_PENDING];
 
 
 /*==================================================================================================
@@ -114,6 +127,7 @@ void init_annouce(void);
 void send_eth_custom_frame(uint8 *message);
 
 void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp);
+void get_ts_egress_data(Gmac_Ip_TimestampType* srEgressTimeStamp);
 
 void print_16(uint16_t *data);
 void print_32(uint32_t *data);
@@ -124,6 +138,8 @@ void print_64(uint64_t *data);
 Gmac_Ip_StatusType enet_init(void);
 void eth_rx_check(void);
 void enet_tx_free_buffer(void);
+Gmac_Ip_StatusType send_eth_frame_lld(Gmac_Ip_BufferType* eth_message);
+void get_ltc_counter(Gmac_Ip_TimestampType* TimeStamp);
 
 #ifdef __cplusplus
 }

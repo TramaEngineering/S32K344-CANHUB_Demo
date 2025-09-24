@@ -143,7 +143,7 @@ void EthIf_RxIndication(uint8 CtrlIdx,
 						Gmac_Ip_TimestampType Timestamp)
 {
     /* If gPTP frame is received, pass it to the gPTP stack. */
-    if (GPTP_FR_ETH_TYPE_PTP == FrameType) 
+    if (GPTP_FR_ETH_TYPE_PTP == FrameType)
     {
         GPTP_PORT_RxIndication(CtrlIdx, FrameType, IsBroadcast, PhysAddrPtr,
                                DataPtr, LenByte, Timestamp);

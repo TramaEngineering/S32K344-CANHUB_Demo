@@ -72,6 +72,7 @@ extern "C"{
 #include "uart.h"
 #include "Pit_Ip.h"
 #include "IntCtrl_Ip.h"
+#include <string.h>
 
 /* MCU registers definitions includes */
 #ifdef S32K344

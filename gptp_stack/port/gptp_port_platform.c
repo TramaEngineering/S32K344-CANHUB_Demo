@@ -83,6 +83,7 @@ void GPTP_PORT_TxConfirmation(uint8_t u8CtrlIdx,
 
     	/*get egress timestamp*/
     	srEgressTimeStamp = Timestamp;
+    	eStatusEgressTS = E_OK;
 
         if (((Std_ReturnType)E_OK == eStatusEgressTS) &&
             (ETH_VAL == seTimeStampQuality))
@@ -101,6 +102,7 @@ void GPTP_PORT_TxConfirmation(uint8_t u8CtrlIdx,
         {
             /* No timestamp available, or error occured during the timestamp
                query. */
+        	printf("No timestamp available on Txconfirmation!\r\n");
         }
     }
 }
@@ -150,13 +152,13 @@ void GPTP_PORT_RxIndication(uint8_t u8CtrlIdx,
     //Std_ReturnType               eStatus;
     uint64_t                     u64MacAddress;
 
-    /* DONE change by passing the timestamp from the MAC*/
+    /* DONE: change by passing the timestamp from the MAC*/
     /*eStatus = Eth_43_GMAC_GetIngressTimeStamp(u8CtrlIdx, cpu8Data,
                                               &seTimeStampQuality,
                                               &srIngressTimeStamp);*/
-    get_ts_ingress_data(&srIngressTimeStamp);
+    //get_ts_ingress_data(&srIngressTimeStamp);
     //srIngressTimeStamp = Timestamp;// USED IN WB BECAUSE NOT CABABLE OF HA TIMESTAMPING
-    if ((0U == srIngressTimeStamp.seconds) && (0U == srIngressTimeStamp.nanoseconds)){
+    if ((0U == Timestamp.seconds) && (0U == Timestamp.nanoseconds)){
 		seTimeStampQuality = ETH_INVAL;
 	}
     else{
@@ -169,8 +171,8 @@ void GPTP_PORT_RxIndication(uint8_t u8CtrlIdx,
     if (ETH_VAL == seTimeStampQuality)
     {
         /* Eth_43 driver not provides secondsHi. */
-        rRxData.u32TsSec = srIngressTimeStamp.seconds;
-        rRxData.u32TsNsec = srIngressTimeStamp.nanoseconds;
+        rRxData.u32TsSec = Timestamp.seconds;
+        rRxData.u32TsNsec = Timestamp.nanoseconds;
     }
     else
     {

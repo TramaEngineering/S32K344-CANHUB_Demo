@@ -682,7 +682,7 @@
             </dependency>
          </dependencies>
          <generated_project_files>
-            <file path="board/peripherals_gPTP_S32K3xx.c" update_enabled="false"/>
+            <file path="board/peripherals_gPTP_S32K3xx.c" update_enabled="true"/>
             <file path="board/peripherals_gPTP_S32K3xx.h" update_enabled="false"/>
             <file path="generate/include/DeviceDefinition.h" update_enabled="true"/>
             <file path="generate/include/FlexCAN_Ip_Cfg.h" update_enabled="true"/>
@@ -2329,8 +2329,8 @@
                                     <array name="EthCtrlConfigEgressFifo">
                                        <struct name="0">
                                           <setting name="Name" value="EthCtrlConfigEgressFifo_0"/>
-                                          <setting name="EthCtrlConfigEgressFifoBufLenByte" value="128"/>
-                                          <setting name="EthCtrlConfigEgressFifoBufTotal" value="16"/>
+                                          <setting name="EthCtrlConfigEgressFifoBufLenByte" value="1536"/>
+                                          <setting name="EthCtrlConfigEgressFifoBufTotal" value="5"/>
                                           <setting name="EthCtrlConfigEgressFifoIdx" value="0"/>
                                           <setting name="EthCtrlConfigEgressFifoCallback" value="enet_tx_interrupt"/>
                                           <setting name="EthCtrlConfigEgressTransmitChannelWeight" value="1"/>
@@ -2366,8 +2366,8 @@
                                     <array name="EthCtrlConfigIngressFifo">
                                        <struct name="0">
                                           <setting name="Name" value="EthCtrlConfigIngressFifo_0"/>
-                                          <setting name="EthCtrlConfigIngressFifoBufLenByte" value="128"/>
-                                          <setting name="EthCtrlConfigIngressFifoBufTotal" value="16"/>
+                                          <setting name="EthCtrlConfigIngressFifoBufLenByte" value="1536"/>
+                                          <setting name="EthCtrlConfigIngressFifoBufTotal" value="5"/>
                                           <setting name="EthCtrlConfigIngressFifoIdx" value="0"/>
                                           <setting name="EthCtrlConfigIngressFifoCallback" value="enet_rx_interrupt"/>
                                           <setting name="EthCtrlRxHeaderSplitFifoSupport" value="false"/>
@@ -2681,7 +2681,7 @@
                   <instance name="gPTP_S32K3xx" uuid="6d844d73-bf37-4043-82ea-d77bc0091fb9" type="gPTP_S32K3xx" type_id="gPTP_S32K3xx" mode="general" enabled="true" comment="" custom_name_enabled="false" editing_lock="false">
                      <config_set name="gPTP_S32K3xx">
                         <setting name="Name" value="gPTP_S32K3xx"/>
-                        <struct name="GptpDefInitParams" quick_selection="Default">
+                        <struct name="GptpDefInitParams">
                            <setting name="u8EthFramePrio" value="7"/>
                            <setting name="bSdoIdCompatibilityMode" value="false"/>
                            <setting name="bSignalingEnabled" value="true"/>
@@ -2718,7 +2718,7 @@
                                  <setting name="u8SwitchPort" value="0"/>
                                  <setting name="u8Switch" value="0"/>
                                  <setting name="u64ClockId" value="0xE05124FFFE000001"/>
-                                 <setting name="bPdelayInitiatorEnabled" value="true"/>
+                                 <setting name="bPdelayInitiatorEnabled" value="false"/>
                                  <setting name="bPdelayUnicastResp" value="false"/>
                                  <setting name="s8PdelIntervalLogInit" value="0"/>
                                  <setting name="s8PdelIntervalLogOper" value="3"/>
@@ -2730,7 +2730,7 @@
                         </struct>
                         <array name="GptpDefInitParamsDomain">
                            <struct name="0">
-                              <setting name="bDomainIsGm" value="false"/>
+                              <setting name="bDomainIsGm" value="true"/>
                               <setting name="u8SlaveMachineIndex" value="0"/>
                               <setting name="bSyncedGm" value="false"/>
                               <setting name="u8RefDomForSynced" value="0"/>

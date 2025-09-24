@@ -66,26 +66,31 @@
 
 /*TS register macro*/
 #define SUPER_CONFIG_ENABLE			(0x2000U) //enable reconfiguration regiters to enable ptp timestamping
-#define ING_RING_DONE				(0x115BU) //after read ts in order to flush ring position
 #define PORT_FUNC_ENABLE			(0X8048U)
 #define PTP_CLK_PERIOD				(0x1104U) //set ptp clk period to 15ns because of 33.3MHz clock
 #define TX_PIPE_DLY_NS				(0x1149U) //set ts delay in tx
 #define RX_PIPE_DLY_NS				(0x114BU) //set ts delay in rx
+#define LTC_LOAD_CTRL				(0x1105U) //to capture the LTC
+#define LTC_RD_DATA_0				(0x110AU) //get LCT timnestamp ns 0_15
+#define LTC_RD_DATA_1				(0x110BU) //get LCT timnestamp ns 16_29
+#define LTC_RD_DATA_2				(0x110CU) //get LCT timnestamp ns 0_15
+#define LTC_RD_DATA_3				(0x110DU) //get LCT timnestamp ns 16_31
+//ingress data registers
 #define INGR_TS_0					(0X1155U)
 #define INGR_TS_1					(0X1156U)
 #define INGR_TS_2					(0x1157U)
 #define INGR_TS_3					(0X1158U)
 #define INGR_TS_4					(0X1159U)
 #define INGR_TS_5					(0X115AU)
-#define INGR_CTRL					(0X115BU)
-
+#define ING_RING_DONE				(0x115BU) //after read ts in order to flush ring position
+//egress data registers
 #define EGR_TS_0					(0X114EU)
 #define EGR_TS_1					(0X114FU)
 #define EGR_TS_2					(0x1150U)
 #define EGR_TS_3					(0X1151U)
 #define EGR_TS_4					(0X1152U)
 #define EGR_TS_5					(0X1153U)
-#define EGR_CTRL					(0X1154U)
+#define EGR_RING_DONE				(0X1154U) //after read ts in order to flush ring position
 
 /*==================================================================================================
 *                                       LOCAL VARIABLES
@@ -117,15 +122,7 @@ extern uint32_t __UTEST_UID[2];
 *                                 LOCAL STRUCTURES AND TYPES
 ==================================================================================================*/
 
-/*Made this structure and queue to keep the incoming data on the eth tranceiver*/
-typedef struct {
-	uint8* Data;
-	uint8 Length;
-    uint8 ring;
-    bool inUse;
-} DescrBuffer;
-
-static DescrBuffer bufferQueue[MAX_TX_PENDING];
+DescrBuffer bufferQueue[MAX_TX_PENDING];
 
 const Flexcan_Ip_MsgBuffType CanAvtp = {
 		.cs = 0x0,
@@ -804,6 +801,7 @@ void enet_ieee1722_acf_can_send(uint8 instance, Flexcan_Ip_MsgBuffType *can_fram
 *                               External FUNCTIONS Loop gPTP
 ==================================================================================================*/
 /*================================================================================================*/
+
 Gmac_Ip_StatusType enet_init(void) {
 
 	//RMII mode
@@ -912,7 +910,7 @@ void eth_rx_check(void){
 		Gmac_Ip_BufferType RxBuffer = {0};
 		Gmac_Ip_RxInfoType RxInfo  = {0};
 		boolean IsBroadcast;
-		uint16 PayloadLength;
+		uint16 PayloadLength, etherType;
 		Gmac_Ip_TimestampType srIngressTimeStamp;
 
 		Status = Gmac_Ip_ReadFrame(INST_GMAC_0, 0U, &RxBuffer, &RxInfo);
@@ -926,14 +924,13 @@ void eth_rx_check(void){
 
 				IsBroadcast = (ether_frame->dst_macaddr[0] == 0xFF) && (ether_frame->dst_macaddr[1] == 0xFF) && (ether_frame->dst_macaddr[2] == 0xFF) && (ether_frame->dst_macaddr[3] == 0xFF) && (ether_frame->dst_macaddr[4] == 0xFF) && (ether_frame->dst_macaddr[5] == 0xFF);
 				PayloadLength = RxInfo.PktLen-((2*ETH_ALEN)+2);
+				uint16 swap1 = (ether_frame->ether_type & 0xFF00)>>8;
+				uint16 swap2 = (ether_frame->ether_type & 0x00FF)<<8;
+				etherType = swap1 | swap2;
 
-				if(ether_frame->ether_type == 0xf788){
-					get_ts_ingress_data(&srIngressTimeStamp);
-					printf("send resp delay\r\n");
-
-					//xQueueSend(tx_descr_queue_send, &pDelayResp, portMAX_DELAY);
-					//EthIf_RxIndication(CFG_PHY_CTRL_IDX, ether_frame->ether_type, IsBroadcast, &ether_frame->dst_macaddr, &ether_frame->data, PayloadLength, RxInfo.Timestamp);
-				}
+				get_ts_ingress_data(&srIngressTimeStamp);
+				/*Manage gPTP and non message*/
+				EthIf_RxIndication(CFG_PHY_CTRL_IDX, etherType, IsBroadcast, &ether_frame->dst_macaddr, (Eth_DataType*)&ether_frame->data, PayloadLength, srIngressTimeStamp);
 
 		}
 
@@ -945,8 +942,7 @@ void enet_tx_free_buffer(void){
 	Gmac_Ip_BufferType TxBuffer = {0};
 	Gmac_Ip_StatusType trasmit_status = GMAC_STATUS_SUCCESS;
 	struct ethernet_frame* ether_frame;
-	uint8 try = 52;
-
+	Gmac_Ip_TimestampType srEgressTimeStamp;
 
 	for(uint8 index = 0; index < MAX_TX_PENDING && bufferQueue[index].inUse ; index++){
 		//if(){
@@ -964,13 +960,12 @@ void enet_tx_free_buffer(void){
 			else if(trasmit_status == GMAC_STATUS_SUCCESS){
 				/*I have to call EthIf function to pass timestamp to the state machine*/
 				/*second parameter has to be the BufIdx*/
-				/*TODO: Get the timestamp TX from the HW on exit*/
-				EthIf_TxConfirmation(CFG_PHY_CTRL_IDX, index, trasmit_status, TxInfo.Timestamp);
+				/*DONE: Get the timestamp TX from the HW on exit*/
+				get_ts_egress_data(&srEgressTimeStamp);
+				EthIf_TxConfirmation(CFG_PHY_CTRL_IDX, index, trasmit_status, srEgressTimeStamp);
 				bufferQueue[index].inUse = FALSE;
 				ether_frame = (struct ethernet_frame*)TxBuffer.Data;
-				//printf("Egress timestamp MAC: %lu, %lu \r\n", TxInfo.Timestamp.seconds, TxInfo.Timestamp.nanoseconds);
 				if(ether_frame->dst_macaddr[0] == 0x01 && ether_frame->dst_macaddr[1] == 0x80 && ether_frame->dst_macaddr[2] == 0xc2 && ether_frame->dst_macaddr[3] == 0x00 && ether_frame->dst_macaddr[4] == 0x00 && ether_frame->dst_macaddr[5] == 0x0e){
-					//Siul2_Dio_Ip_TogglePins(LED2_PORT, 1<<LED2_PIN);
 					Siul2_Dio_Ip_TogglePins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
 					Siul2_Dio_Ip_TogglePins(LED_RED_PORT, (1 << LED_RED_PIN));
 					Siul2_Dio_Ip_TogglePins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
@@ -982,6 +977,78 @@ void enet_tx_free_buffer(void){
 
 }
 
+Gmac_Ip_StatusType send_eth_frame_lld(Gmac_Ip_BufferType* eth_message){
+	#ifdef DEBUG_PRINT
+		printf("Im about to send! \r\n");
+	#endif
+	Gmac_Ip_StatusType eERROR = GMAC_STATUS_SUCCESS;
+
+	Gmac_Ip_BufferType TxBuffer = {0};
+	Gmac_Ip_TxOptionsType TxOptions = {FALSE, GMAC_CRC_AND_PAD_INSERTION, GMAC_CHECKSUM_INSERTION_DISABLE};
+
+	uint8 MacAddr[6U] = {0U};
+
+	Gmac_Ip_GetMacAddr(INST_GMAC_0, MacAddr);
+
+	/*request a buffer of at least 64 bytes*/
+	TxBuffer.Length = eth_message->Length;
+
+	eERROR = Gmac_Ip_GetTxBuff(INST_GMAC_0, 0u, &TxBuffer, NULL_PTR);
+	if(GMAC_STATUS_SUCCESS == eERROR && TxBuffer.Data != NULL && TxBuffer.Length >= eth_message->Length){
+
+	//struct ethernet_frame * eth_frame = (struct ethernet_frame*)TxBuffer.Data;
+
+	memcpy(TxBuffer.Data, eth_message->Data, eth_message->Length);
+	TxBuffer.Length = eth_message->Length;
+
+	/* Send the ETH frame */
+	/*true function that sends data to the transceiver*/
+	eERROR = Gmac_Ip_SendFrame(INST_GMAC_0, 0U, &TxBuffer, &TxOptions);
+
+	while (GMAC_STATUS_TX_QUEUE_FULL == eERROR)
+		{
+			eERROR = Gmac_Ip_SendFrame(INST_GMAC_0, 0U, &TxBuffer, &TxOptions);
+		}
+		if(GMAC_STATUS_SUCCESS == eERROR){
+			//Siul2_Dio_Ip_TogglePins(LED1_PORT, 1<<LED1_PIN);
+			/*add buffer in bufferQueue to be free after sending completion*/
+			DescrBuffer newBuffItem = { .Data = TxBuffer.Data, .Length = TxBuffer.Length, .ring = 0U, .inUse = TRUE};
+			for(uint8 index = 0; index < MAX_TX_PENDING; index++){
+				if(!bufferQueue[index].inUse){
+					bufferQueue[index] = newBuffItem;
+					break;
+				}
+			}
+		}
+	}
+	else{
+		//printf("send operation failed! NO empty buffer are available! \r\n");
+	}
+
+	return eERROR;
+
+}
+void get_ltc_counter(Gmac_Ip_TimestampType* TimeStamp){
+	uint16_t reg_0_15_ns, reg_16_29_ns, reg_0_15_s, reg_16_31_s, read_ltc;
+
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, LTC_LOAD_CTRL, &read_ltc, 100);
+	read_ltc |= 0x0004;
+	Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, LTC_LOAD_CTRL, read_ltc, 100);
+
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, LTC_RD_DATA_0, &reg_0_15_ns, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, LTC_RD_DATA_1, &reg_16_29_ns, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, LTC_RD_DATA_2, &reg_0_15_s, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, LTC_RD_DATA_3, &reg_16_31_s, 100);
+
+	TimeStamp->nanoseconds = 0x00000000 | ((uint32) reg_0_15_ns) | ((uint32)reg_16_29_ns << 16);
+	TimeStamp->seconds = 0x00000000 | ((uint32)reg_16_31_s << 16) | ((uint32)reg_0_15_s);
+
+	printf("TS nanoseconds: \r\n");
+	print_32(&TimeStamp->nanoseconds);
+	printf("TS seconds: \r\n");
+	print_32(&TimeStamp->seconds);
+}
+
 void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp){
 
 	uint16_t ingr_seq_id;
@@ -989,24 +1056,48 @@ void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp){
 
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR, &ingr_seq_id, 100);
 
-	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_0, &reg_0, 100);
-	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_1, &reg_1, 100);
-	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_2, &reg_2, 100);
-	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_3, &reg_3, 100);
-	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_4, &reg_4, 100);
-	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_5, &reg_5, 100);
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_0, &reg_0, 100);/*[7:0] domain number of ts ring buffer + [11:8] message type + [14:12]-[4:2]s*/
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_1, &reg_1, 100);/*sequence id of ring buffer*/
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_2, &reg_2, 100);/*[15:0] ns*/
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_3, &reg_3, 100);/*[13:0]-[29:16]ns + [15:14][1:0] s*/
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_4, &reg_4, 100);/*[31:16] subns*/
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_5, &reg_5, 100);/*[3:0] - [15:12] subns + [15:4] - [16:5] s*/
 	//to clear the ring buffer position
 	Gmac_Ip_MDIOWriteMMD(0,	PHYAD, MMD30, ING_RING_DONE, 0X0001, 100);
 
-	srIngressTimeStamp->nanoseconds = 0x00000000 | ((uint32) reg_3<<18) | (reg_2 & 0x3FFFFFFF);
+	srIngressTimeStamp->nanoseconds = 0x00000000 | ((uint32) (reg_3 & 0x3FFF)<<16) | ((uint32)reg_2);
 	srIngressTimeStamp->seconds = 0x00000000 | (reg_5 & 0xFFF0) | ((reg_0 & 0x7000)>>10) | ((reg_3 & 0xC000)>>14);
 
-	printf("TS nanoseconds: \r\n");
+	/*printf("TS nanoseconds: \r\n");
 	print_32(&srIngressTimeStamp->nanoseconds);
 	printf("TS seconds: \r\n");
-	print_32(&srIngressTimeStamp->seconds);
+	print_32(&srIngressTimeStamp->seconds);*/
 
+}
 
+void get_ts_egress_data(Gmac_Ip_TimestampType* srEgressTimeStamp){
+
+	uint16_t egr_seq_id;
+	uint16_t reg_0, reg_1, reg_2, reg_3, reg_4, reg_5;
+
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, DEV_CONTR_REG_ADR, &egr_seq_id, 100);
+
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, EGR_TS_0, &reg_0, 100);/*[7:0] domain number of ts ring buffer + [11:8] message type + [14:12]-[4:2]s*/
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, EGR_TS_1, &reg_1, 100);/*sequence id of ring buffer*/
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, EGR_TS_2, &reg_2, 100);/*[15:0] ns*/
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, EGR_TS_3, &reg_3, 100);/*[13:0]-[29:16]ns + [15:14][1:0] s*/
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, EGR_TS_4, &reg_4, 100);/*[31:16] subns*/
+	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, EGR_TS_5, &reg_5, 100);/*[3:0] - [15:12] subns + [15:4] - [16:5] s*/
+	//to clear the ring buffer position
+	Gmac_Ip_MDIOWriteMMD(0,	PHYAD, MMD30, EGR_RING_DONE, 0X0001, 100);
+
+	srEgressTimeStamp->nanoseconds = 0x00000000 | ((uint32) (reg_3 & 0x3FFF)<<16) | ((uint32)reg_2);
+	srEgressTimeStamp->seconds = 0x00000000 | (reg_5 & 0xFFF0) | ((reg_0 & 0x7000)>>10) | ((reg_3 & 0xC000)>>14);
+
+	/*printf("TS nanoseconds: \r\n");
+	print_32(&srEgressTimeStamp->nanoseconds);
+	printf("TS seconds: \r\n");
+	print_32(&srEgressTimeStamp->seconds);*/
 
 }
 

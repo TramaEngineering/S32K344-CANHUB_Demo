@@ -53,10 +53,10 @@ extern "C" {
 
 struct ethernet_frame
 {
-	uint8_t dst_macaddr[ETH_ALEN];
+	uint8 dst_macaddr[ETH_ALEN];
 	uint8_t src_macaddr[ETH_ALEN];
 	uint16_t ether_type;
-	uint8_t data[GMAC_0_MAX_TXBUFFLEN_SUPPORTED - 2 - 2*ETH_ALEN];
+	uint8 data[GMAC_0_MAX_TXBUFFLEN_SUPPORTED - 2 - 2*ETH_ALEN];
 } __attribute__ ((__packed__));
 
 struct meta_data_frame{

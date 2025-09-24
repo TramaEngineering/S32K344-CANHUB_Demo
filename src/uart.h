@@ -15,7 +15,7 @@ extern "C"{
 #include "Lpuart_Uart_Ip.h"
 #include "IntCtrl_Ip.h"
 
-void UART_init();
+void UART_init(void);
 
 #ifdef __cplusplus
 }

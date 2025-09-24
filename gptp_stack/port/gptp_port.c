@@ -457,45 +457,99 @@ gptp_err_type_t GPTP_PORT_MsgSend(uint8_t u8Port,
                                   const gptp_def_tx_data_t *cprTxData,
                                   uint8_t u8FrameId)
 {
-    Std_ReturnType        eStatus;
-    BufReq_ReturnType     eBufStatus;
+    //Std_ReturnType        eStatus;
+    Gmac_Ip_StatusType	  eErrorGmac;
+    //BufReq_ReturnType     eBufStatus;
     gptp_err_type_t       eError;
     static Eth_BufIdxType seBuffIdx;
-    static uint8_t        *spu8Buffer;
+    //static uint8_t        *spu8Buffer;
     static uint16_t       su16BufferLength;
     uint16_t              u16PTPFramePayloadLength;
-    uint8_t               u8PhyPort;
+    //uint8_t               u8PhyPort;
+    //Gmac_Ip_BufferType gPTP_message;
+
+    Gmac_Ip_BufferType TxBuffer = {0};
+	Gmac_Ip_TxOptionsType TxOptions = {FALSE, GMAC_CRC_AND_PAD_INSERTION, GMAC_CHECKSUM_INSERTION_DISABLE};
 
     /* Error initial value. */
-    spu8Buffer = NULL;
+    //spu8Buffer = NULL;
     eError = GPTP_ERR_OK;
 
     /* Check input arguments. */
     if ((NULL != cprTxData) && (cprTxData->u8FrameLength > GPTP_DEF_ETH_II_LEN))
     {
         /* Get real port ID from map table. */
-        u8PhyPort = srPortMap.prMapTable[u8Port].u8SwitchPort;
+        //u8PhyPort = srPortMap.prMapTable[u8Port].u8SwitchPort;
 
         /* Payload length calculation of the gPTP frame (without eth header). */
         u16PTPFramePayloadLength = ((uint16_t)cprTxData->u8FrameLength - GPTP_DEF_ETH_II_LEN);
         su16BufferLength = u16PTPFramePayloadLength;
 
         /* Get transmit buffer to store gPTP frame payload. */
-        /* DONE change*/
+        /* DONE: change*/
         /*eBufStatus = Eth_43_GMAC_ProvideTxBuffer(u8PhyPort, u8FramePrio,
                                                  &seBuffIdx, &spu8Buffer,
                                                  &su16BufferLength);*/
-        Gmac_Ip_BufferType gPTP_message = {
-        		.Data = cprTxData->pau8TxBuffPtr,
-				.Length = (uint16)cprTxData->u8FrameLength
-        };
-        OsIf_Delay_Ms(1000);
+        //gPTP_message.Data = cprTxData->pau8TxBuffPtr;
+        //gPTP_message.Length = (uint16)cprTxData->u8FrameLength;
 
+#ifndef NO_FREERTOS
         eStatus = send_eth_frame(&gPTP_message);
-        // blink led already included in the sen_eth_frame function
-//        if(eStatus == GMAC_STATUS_SUCCESS){
-//        	Siul2_Dio_Ip_TogglePins(LED3_PORT, 1<<LED3_PIN);
-//        }
+#else
+        //eStatus = send_eth_frame_lld(&gPTP_message);
+#endif
+
+		uint8 MacAddr[6U] = {0U};
+
+		Gmac_Ip_GetMacAddr(INST_GMAC_0, MacAddr);
+
+		/*request a buffer of at least 64 bytes*/
+		TxBuffer.Length = su16BufferLength;
+
+		eErrorGmac = Gmac_Ip_GetTxBuff(INST_GMAC_0, 0u, &TxBuffer, NULL_PTR);
+		if(GMAC_STATUS_SUCCESS == eErrorGmac && TxBuffer.Data != NULL && TxBuffer.Length >= su16BufferLength){
+
+		memcpy(TxBuffer.Data, cprTxData->pau8TxBuffPtr, (uint16)cprTxData->u8FrameLength);
+		TxBuffer.Length = (uint16)cprTxData->u8FrameLength;
+
+		if(true == cprTxData->bTsRequested){
+			/*capture timestamp of egress ehternet frame associated with buffIdx*/
+			/*already enabled in gmac initialization*/
+			if(NULL != cprTxData->prFrameMap){
+				/*store frame metadata before transmission.
+				 * Timestamp in metada is inserted in TxConfirmation.*/
+				cprTxData->prFrameMap->u8EgressPort = u8FrameId;
+				cprTxData->prFrameMap->u32BufferIndex = seBuffIdx;
+				cprTxData->prFrameMap->eTsEntryStatus = GPTP_DEF_TS_MAP_ENTRY_ENQUEUED;
+			}
+		}
+
+		/* Send the ETH frame */
+		/*true function that sends data to the transceiver*/
+		eErrorGmac = Gmac_Ip_SendFrame(INST_GMAC_0, 0U, &TxBuffer, &TxOptions);
+
+		while (GMAC_STATUS_TX_QUEUE_FULL == eErrorGmac)
+			{
+				eErrorGmac = Gmac_Ip_SendFrame(INST_GMAC_0, 0U, &TxBuffer, &TxOptions);
+			}
+			if(GMAC_STATUS_SUCCESS == eErrorGmac){
+				//Siul2_Dio_Ip_TogglePins(LED1_PORT, 1<<LED1_PIN);
+				/*add buffer in bufferQueue to be free after sending completion*/
+				DescrBuffer newBuffItem = { .Data = TxBuffer.Data, .Length = TxBuffer.Length, .ring = 0U, .inUse = TRUE};
+				for(uint8 index = 0; index < MAX_TX_PENDING; index++){
+					if(!bufferQueue[index].inUse){
+						bufferQueue[index] = newBuffItem;
+						break;
+					}
+				}
+			}
+			else{
+				eError = GPTP_ERR_F_FRAME_SEND;
+			}
+		}
+		else{
+			eError = GPTP_ERR_M_MSG_BUFF_PTR_NULL;
+		}
 
 
         /* The buffer is provided with desired length. */
@@ -515,7 +569,7 @@ gptp_err_type_t GPTP_PORT_MsgSend(uint8_t u8Port,
 //            {
 //                /* Instruct the Ethernet driver to capture timestamp of egress
 //                   ethernet frame associated with buffIdx. */
-//        			/*done in in the bsp by enabling timestamp in the MAC*/
+//        			/*DONE: in in the bsp by enabling timestamp in the MAC*/
 //                /*Eth_43_GMAC_EnableEgressTimeStamp(u8PhyPort, seBuffIdx);*/
 //
 //                /* Only store frame metadata if egress timestamp is required
@@ -532,7 +586,7 @@ gptp_err_type_t GPTP_PORT_MsgSend(uint8_t u8Port,
 //
 //            /* Enable transmission, destination MAC address is taken from
 //               generated PTP frame, which contains full eth header. */
-//        		/*DONE change embedded in the send_eth_frame_lld function that call GMAC functions*/
+//        		/*DONE: change embedded in the send_eth_frame_lld function that call GMAC functions*/
 //            /*eStatus = Eth_43_GMAC_Transmit(u8PhyPort, seBuffIdx,
 //                                           GPTP_FR_ETH_TYPE_PTP, true,
 //                                           u16PTPFramePayloadLength,
@@ -548,10 +602,10 @@ gptp_err_type_t GPTP_PORT_MsgSend(uint8_t u8Port,
 //            /* No Tx buffer. */
 //            eError = GPTP_ERR_M_MSG_BUFF_PTR_NULL;
 //        }
-        if(eStatus == GMAC_STATUS_TX_QUEUE_FULL){
+        if(eErrorGmac == GMAC_STATUS_TX_QUEUE_FULL){
         	eError = GPTP_ERR_F_FRAME_SEND;
         }
-        else if(eStatus == GMAC_STATUS_TX_QUEUE_FULL){
+        else if(eErrorGmac == GMAC_STATUS_TX_QUEUE_FULL){
         	eError = GPTP_ERR_M_MSG_BUFF_PTR_NULL;
         }
 
@@ -645,6 +699,8 @@ gptp_def_timestamp_t GPTP_PORT_CurrentTimeGet(gptp_def_ts_type_t eTsType)
     uint64_t                     u64FreeRunningCapture;
     Gmac_Ip_TimestampType		 TimeStamp;
 
+    eStatus = (Std_ReturnType)E_NOT_OK;
+
     switch (eTsType)
     {
         case GPTP_DEF_TS_FREERUNNING:
@@ -654,15 +710,18 @@ gptp_def_timestamp_t GPTP_PORT_CurrentTimeGet(gptp_def_ts_type_t eTsType)
             break;
 
         case GPTP_DEF_TS_CORRECTED:
-        	/*DONE change above*/
+        	/*DONE: change above*/
             /*eStatus = Eth_43_GMAC_GetCurrentTime(GPTP_PORT_ETH_CTRL_IDX,
                                                  &seTimeStampQuality,
                                                  &srEthTimestamp);*/
-			Gmac_Ip_GetSysTime(INST_GMAC_0, &TimeStamp);
+        	get_ltc_counter(&TimeStamp);
+
+			//Gmac_Ip_GetSysTime(INST_GMAC_0, &TimeStamp);
 
 			srEthTimestamp.nanoseconds = TimeStamp.nanoseconds;
 			srEthTimestamp.seconds = TimeStamp.seconds;
 			srEthTimestamp.secondsHi = TimeStamp.secondsHi;
+
 
 			seTimeStampQuality = ETH_VALID;
 
@@ -717,7 +776,7 @@ gptp_err_type_t GPTP_PORT_ObtainPortMac(uint8_t u8Port,
     {
         if (u8Port < srPortMap.u8NumOfGptpPorts)
         {
-        	/*DONE change*/
+        	/*DONE: change*/
             /*Eth_43_GMAC_GetPhysAddr(srPortMap.prMapTable[u8Port].u8SwitchPort,
                                     (uint8_t *)pu64Mac);*/
         	Gmac_Ip_GetMacAddr(INST_GMAC_0, (uint8_t *)pu64Mac);
@@ -980,14 +1039,18 @@ gptp_err_type_t GPTP_PORT_GetSwitchTimes(gptp_def_timestamp_t *prFreeRunClk,
     static Eth_TimeStampType     srTimeStamp;
     gptp_err_type_t              eError;
     Std_ReturnType               eStatus;
-
-    /* Capture HW GMAC timer timestamp. */
-    /*DONE change*/
-    /*eStatus = Eth_43_GMAC_GetCurrentTime(GPTP_PORT_ETH_CTRL_IDX,
-                                         &seTimeStampQuality, &srTimeStamp);*/
     Gmac_Ip_TimestampType TimeStamp;
 
-	Gmac_Ip_GetSysTime(INST_GMAC_0, &TimeStamp);
+    eStatus = (Std_ReturnType)E_NOT_OK;
+
+    /* Capture HW GMAC timer timestamp. */
+    /*DONE: change*/
+    /*eStatus = Eth_43_GMAC_GetCurrentTime(GPTP_PORT_ETH_CTRL_IDX,
+                                         &seTimeStampQuality, &srTimeStamp);*/
+
+	//Gmac_Ip_GetSysTime(INST_GMAC_0, &TimeStamp);
+
+    get_ltc_counter(&TimeStamp);
 
 	srTimeStamp.nanoseconds = TimeStamp.nanoseconds;
 	srTimeStamp.seconds = TimeStamp.seconds;

@@ -100,17 +100,16 @@ instance:
           - u8SwitchPort: '0'
           - u8Switch: '0'
           - u64ClockId: '0xE05124FFFE000001'
-          - bPdelayInitiatorEnabled: 'true'
+          - bPdelayInitiatorEnabled: 'false'
           - bPdelayUnicastResp: 'false'
           - s8PdelIntervalLogInit: '0'
           - s8PdelIntervalLogOper: '3'
           - u64NeighborPropDelayThreshNs: '20000'
           - u16MeasurementsTillSlowDown: '50'
           - u16PdelLostReponsesAllowedCnt: '3'
-      - quick_selection: 'Default'
     - GptpDefInitParamsDomain:
       - 0:
-        - bDomainIsGm: 'false'
+        - bDomainIsGm: 'true'
         - u8SlaveMachineIndex: '0'
         - bSyncedGm: 'false'
         - u8RefDomForSynced: '0'
@@ -210,7 +209,7 @@ static gptp_def_init_params_sync_t      sarInitParamsDomain0Syncs[GPTP_CFG_CNT_O
     /* Sync Machine index 0. */
     {
         .u8GptpPort = 0u,
-        .bMachineRole = false,
+        .bMachineRole = true,
         .s8SyncIntervalLog = (int8_t)-3,
         .pvTxCmdSyn = NULL,
         .pvTxCmdFup = NULL,
@@ -227,7 +226,7 @@ static gptp_def_init_params_domain_t    sarInitParamsDomains[GPTP_CFG_CNT_OF_DOM
     /* gPTP domain index 0. */
     {
         .u8DomainNumber = 0u,
-        .bDomainIsGm = false,
+        .bDomainIsGm = true,
         .u8NumberOfSyncMachines = GPTP_CFG_CNT_OF_SYNC,
         .bSyncedGm = false,
         .u8RefDomForSynced = 0u,
@@ -263,7 +262,7 @@ static gptp_def_init_params_pdel_t      sarInitParamsPdel[GPTP_CFG_CNT_OF_PORTS]
     /* gPTP port index 0. */
     {
         .u64ClockId = 0xE05124FFFE000001u,
-        .bPdelayInitiatorEnabled = true,
+        .bPdelayInitiatorEnabled = false,
         .bPdelayUnicastResp = false,
         .s8PdelIntervalLogInit = 0,
         .s8PdelIntervalLogOper = 3,

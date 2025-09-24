@@ -382,6 +382,9 @@ int main(void)
 		}
 	}
 
+	gptp_err_type_t err = GPTP_GptpInit(&rGptpCfgParams);
+	DevAssert(GPTP_ERR_OK == err);
+
 	set_rgb_status(NOMINAL);
 
 #ifndef NO_FREERTOS
@@ -408,7 +411,7 @@ int main(void)
 		timer0 = Task_Flag_Cnt;
 				if(annouce == 0){
 					//send_eth_frame_lld(&pDelayReq);
-					//send_eth_frame_lld(&arpAnnouce);
+					send_eth_frame_lld(&arpAnnouce);
 					annouce = 1;
 				}
 				if(Task_Flag_2mS){
