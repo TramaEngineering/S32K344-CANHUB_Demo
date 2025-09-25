@@ -933,7 +933,7 @@ void eth_rx_check(void){
 				get_ts_ingress_data(&srIngressTimeStamp);
 				get_ltc_counter(&currentTime);
 
-				printf("time elapsed %lu:\r\n", currentTime.nanoseconds-srIngressTimeStamp.nanoseconds);
+				//printf("time elapsed %lu:\r\n", currentTime.nanoseconds-srIngressTimeStamp.nanoseconds);
 				/*Manage gPTP and non message*/
 				EthIf_RxIndication(CFG_PHY_CTRL_IDX, etherType, IsBroadcast, &ether_frame->dst_macaddr, (Eth_DataType*)&ether_frame->data, PayloadLength, srIngressTimeStamp);
 
@@ -967,10 +967,11 @@ void enet_tx_free_buffer(void){
 				/*second parameter has to be the BufIdx*/
 				/*DONE: Get the timestamp TX from the HW on exit*/
 				get_ts_egress_data(&srEgressTimeStamp);
+				printf("Egress timestamp: %u s %u ns\r\n",srEgressTimeStamp.seconds, srEgressTimeStamp.nanoseconds);
 				EthIf_TxConfirmation(CFG_PHY_CTRL_IDX, index, trasmit_status, srEgressTimeStamp);
 				bufferQueue[index].inUse = FALSE;
 				ether_frame = (struct ethernet_frame*)TxBuffer.Data;
-				if(ether_frame->data[0] == 0x13){
+				if(ether_frame->data[0] == 0x1A){
 					get_ltc_counter(&currentTime);
 					printf("Time difference send: %u \r\n",(unsigned int)(currentTime.nanoseconds-srIngressTimeStamp.nanoseconds));
 					Siul2_Dio_Ip_TogglePins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));

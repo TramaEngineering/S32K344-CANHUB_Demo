@@ -553,9 +553,9 @@ void GPTP_TIMER_TimerPeriodic(gptp_def_data_t *prGptp)
                     /* Don't measure next time */
                     prPdelay->u64TurnaroundMeasStartPtpNsResp = 0u;
                 }
-                else{
-                	prPdelay->u64TurnaroundMeasStartPtpNsResp = 0u;
-                }
+//                else{
+//                	prPdelay->u64TurnaroundMeasStartPtpNsResp = 0u;
+//                }
 
             }
         }

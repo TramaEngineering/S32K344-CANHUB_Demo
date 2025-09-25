@@ -518,7 +518,7 @@ gptp_err_type_t GPTP_PORT_MsgSend(uint8_t u8Port,
 			if(NULL != cprTxData->prFrameMap){
 				/*store frame metadata before transmission.
 				 * Timestamp in metada is inserted in TxConfirmation.*/
-				cprTxData->prFrameMap->u8EgressPort = u8FrameId;
+				cprTxData->prFrameMap->u8PtpFrameId = u8FrameId;
 				cprTxData->prFrameMap->u32BufferIndex = seBuffIdx;
 				cprTxData->prFrameMap->eTsEntryStatus = GPTP_DEF_TS_MAP_ENTRY_ENQUEUED;
 			}
