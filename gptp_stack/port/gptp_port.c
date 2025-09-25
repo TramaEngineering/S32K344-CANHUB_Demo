@@ -27,6 +27,7 @@
 #include "gptp_frame.h"
 #include "gptp_pi.h"
 #include "gptp_internal.h"
+#include "gptp_cbk.h"
 //#include "Eth_43_GMAC.h"
 #include "EthTrcv.h"
 #include "Gmac_Ip.h"
@@ -715,7 +716,7 @@ gptp_def_timestamp_t GPTP_PORT_CurrentTimeGet(gptp_def_ts_type_t eTsType)
                                                  &seTimeStampQuality,
                                                  &srEthTimestamp);*/
         	//I should take the time hw from the time base of the freerunning timer
-        	get_ltc_counter(&TimeStamp);
+        	eStatus = get_current_time(&TimeStamp);
 
 			//Gmac_Ip_GetSysTime(INST_GMAC_0, &TimeStamp);
 
@@ -1051,7 +1052,7 @@ gptp_err_type_t GPTP_PORT_GetSwitchTimes(gptp_def_timestamp_t *prFreeRunClk,
 
 	//Gmac_Ip_GetSysTime(INST_GMAC_0, &TimeStamp);
 
-    get_ltc_counter(&TimeStamp);
+    get_current_time(&TimeStamp);
 
 	srTimeStamp.nanoseconds = TimeStamp.nanoseconds;
 	srTimeStamp.seconds = TimeStamp.seconds;

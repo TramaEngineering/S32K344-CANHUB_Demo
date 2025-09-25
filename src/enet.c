@@ -418,18 +418,6 @@ void tja1103_config_disable(void)
 #endif
 }
 
-bool get_device_link_status(void){
-	uint16 Tja1103_Base_Status;
-	Gmac_Ip_StatusType ePHY_Status;
-
-	ePHY_Status = Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD1, PHY_STATUS_REGISTER, &Tja1103_Base_Status, TIMEOUT_MS);//receive link status on pma status1
-	ePHY_Status = Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD1, PHY_STATUS_REGISTER, &Tja1103_Base_Status, TIMEOUT_MS);//receive link status on pma status1
-
-	DevAssert((Gmac_Ip_StatusType)GMAC_STATUS_SUCCESS == ePHY_Status);
-
-	return (0 != (Tja1103_Base_Status & PMA_STATUS_LINK_STATUS));
-}
-
 void tja1103_wait_for_link(void) {
 	uint16_t regvalue;
 	Gmac_Ip_StatusType read_result;
@@ -803,6 +791,17 @@ void enet_ieee1722_acf_can_send(uint8 instance, Flexcan_Ip_MsgBuffType *can_fram
 *                               External FUNCTIONS Loop gPTP
 ==================================================================================================*/
 /*================================================================================================*/
+bool get_device_link_status(void){
+	uint16 Tja1103_Base_Status;
+	Gmac_Ip_StatusType ePHY_Status;
+
+	ePHY_Status = Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD1, PHY_STATUS_REGISTER, &Tja1103_Base_Status, TIMEOUT_MS);//receive link status on pma status1
+	ePHY_Status = Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD1, PHY_STATUS_REGISTER, &Tja1103_Base_Status, TIMEOUT_MS);//receive link status on pma status1
+
+	DevAssert((Gmac_Ip_StatusType)GMAC_STATUS_SUCCESS == ePHY_Status);
+
+	return (0 != (Tja1103_Base_Status & PMA_STATUS_LINK_STATUS));
+}
 
 Gmac_Ip_StatusType enet_init(void) {
 
@@ -913,7 +912,7 @@ void eth_rx_check(void){
 		Gmac_Ip_RxInfoType RxInfo  = {0};
 		boolean IsBroadcast;
 		uint16 PayloadLength, etherType;
-		Gmac_Ip_TimestampType currentTime;
+		//Gmac_Ip_TimestampType currentTime;
 
 		Status = Gmac_Ip_ReadFrame(INST_GMAC_0, 0U, &RxBuffer, &RxInfo);
 
@@ -931,7 +930,7 @@ void eth_rx_check(void){
 				etherType = swap1 | swap2;
 
 				get_ts_ingress_data(&srIngressTimeStamp);
-				get_ltc_counter(&currentTime);
+				//get_ltc_counter(&currentTime);
 
 				//printf("time elapsed %lu:\r\n", currentTime.nanoseconds-srIngressTimeStamp.nanoseconds);
 				/*Manage gPTP and non message*/
@@ -967,16 +966,29 @@ void enet_tx_free_buffer(void){
 				/*second parameter has to be the BufIdx*/
 				/*DONE: Get the timestamp TX from the HW on exit*/
 				get_ts_egress_data(&srEgressTimeStamp);
-				printf("Egress timestamp: %u s %u ns\r\n",srEgressTimeStamp.seconds, srEgressTimeStamp.nanoseconds);
+				//printf("Egress timestamp: %u s %u ns\r\n",srEgressTimeStamp.seconds, srEgressTimeStamp.nanoseconds);
 				EthIf_TxConfirmation(CFG_PHY_CTRL_IDX, index, trasmit_status, srEgressTimeStamp);
 				bufferQueue[index].inUse = FALSE;
 				ether_frame = (struct ethernet_frame*)TxBuffer.Data;
-				if(ether_frame->data[0] == 0x1A){
-					get_ltc_counter(&currentTime);
-					printf("Time difference send: %u \r\n",(unsigned int)(currentTime.nanoseconds-srIngressTimeStamp.nanoseconds));
+				if(ether_frame->data[0] == 0x13 ){
+					//magenta
 					Siul2_Dio_Ip_TogglePins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
 					Siul2_Dio_Ip_TogglePins(LED_RED_PORT, (1 << LED_RED_PIN));
 					Siul2_Dio_Ip_TogglePins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+					printf("Pdelay resp!\r\n");
+				}
+				else if(ether_frame->data[0] == 0x1A){
+					//white
+					/*Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
+					Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+					Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));*/
+					printf("Pdelay resp Follow UP!\r\n");
+				}
+				else{
+					//green
+					Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
+					Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
+					Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
 				}
 			}
 		//}

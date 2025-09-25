@@ -24,6 +24,7 @@
  ******************************************************************************/
 
 #include "gptp.h"
+#include "Gmac_Ip.h"
 
 /*******************************************************************************
  * Definitions
@@ -120,6 +121,16 @@ void GPTP_ErrorNotifyCB(void);
  * @param[in]       eSyncLockState Synchronization lock state.
 */
 void GPTP_SyncNotifyCB(gptp_def_syn_lock_state_type_t eSyncLockState);
+
+/*!
+ * @brief           This functions occurs when Stack has to update current time
+ *
+ * @details         This function is a callback wich is called from
+ *                  gPTP stack directly.
+ *
+ * @param[in]       Timestamp pointer to be filled with current time stamp.
+*/
+Std_ReturnType get_current_time(Gmac_Ip_TimestampType* Timestamp);
 
 /*******************************************************************************
  * Guard End

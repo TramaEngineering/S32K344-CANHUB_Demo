@@ -24,6 +24,7 @@
 #include "gptp_cbk.h"
 #include "gptp_err.h"
 #include "retarget.h"
+#include "enet.h"
 
 /*******************************************************************************
  * Definitions
@@ -161,6 +162,23 @@ void GPTP_SyncNotifyCB(gptp_def_syn_lock_state_type_t eSyncLockState)
 {
     /* Place for custom implementation of reaction on error notification. */
     (void)eSyncLockState;
+}
+
+/*!
+ * @brief           This functions occurs when Stack has to update current time
+ *
+ * @details         This function is a callback wich is called from
+ *                  gPTP stack directly.
+ *
+ * @param[in]       Timestamp pointer to be filled with current time stamp.
+*/
+Std_ReturnType get_current_time(Gmac_Ip_TimestampType* Timestamp){
+	get_ltc_counter(Timestamp);
+	if(Timestamp->seconds == 0 && Timestamp->nanoseconds == 0){
+		return (Std_ReturnType)E_NOT_OK;
+	}
+	else
+		return (Std_ReturnType)E_OK;
 }
 
 /*******************************************************************************
