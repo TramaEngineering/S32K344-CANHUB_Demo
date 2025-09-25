@@ -143,7 +143,9 @@ void GPTP_ErrorNotifyCB(void)
 	//printf("Error during send message operation in Gptp stack !\r\n");
 	gptp_err_error_t error;
 	error = GPTP_ErrReadIndex((uint16_t)0U);
+
 	printf("Error type is: %d\r\n", error.eErrorType);
+	//printf("%s",aas8GptpErrDescription[error.eErrorType]);
 }
 
 /*!

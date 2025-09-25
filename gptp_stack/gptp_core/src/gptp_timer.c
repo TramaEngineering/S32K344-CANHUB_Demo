@@ -23,6 +23,7 @@
 #include "gptp_signaling.h"
 #include "gptp_port.h"
 #include "gptp_internal.h"
+#include "enet.h"
 
 /*******************************************************************************
  * Code
@@ -429,7 +430,7 @@ void GPTP_TIMER_TimerPeriodic(gptp_def_data_t *prGptp)
                 if (prSync->u64TimerSyncSendDue <= u64CurrentTimeNs)
                 {
                     if (true == prSync->bTimerSyncEnabled)
-                    {
+                    {	/*send sync message function*/
                         GPTP_SYNC_SyncMachine(prGptp, prDomain->u8DomainIndex, u8Machine, GPTP_DEF_CALL_INITIATE);
                     }
                     prSync->u64TimerSyncSendDue = u64CurrentTimeNs + GPTP_INTERNAL_Log2Ns(prSync->s8SyncIntervalLog);
@@ -528,6 +529,7 @@ void GPTP_TIMER_TimerPeriodic(gptp_def_data_t *prGptp)
             if (0u != prPdelay->u64TurnaroundMeasStartPtpNsInit)
             {
                 /* If turnaround time is too long, register error */
+            								/*free running timer - ingress req TS (phy HW)*/
                 if (GPTP_DEF_10_MS_IN_NS < (u64CurrentTimeNs - prPdelay->u64TurnaroundMeasStartPtpNsInit))
                 {
                     GPTP_ERR_Register(prPdelay->u8GptpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_L_TOO_LONG_TURN_INIT, GPTP_ERR_SEQ_ID_NOT_SPECIF);
@@ -545,11 +547,16 @@ void GPTP_TIMER_TimerPeriodic(gptp_def_data_t *prGptp)
                 /* If turnaround time is too long, register error */
                 if (GPTP_DEF_10_MS_IN_NS < (u64CurrentTimeNs - prPdelay->u64TurnaroundMeasStartPtpNsResp))
                 {
+                	//printf("ingress timestamp : %u s\n %u \r\n",srIngressTimeStamp.seconds, srIngressTimeStamp.nanoseconds);
                     /* Report turnaround time error */
                     GPTP_ERR_Register(prPdelay->u8GptpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_L_TOO_LONG_TURN_RESP, GPTP_ERR_SEQ_ID_NOT_SPECIF);
                     /* Don't measure next time */
                     prPdelay->u64TurnaroundMeasStartPtpNsResp = 0u;
                 }
+                else{
+                	prPdelay->u64TurnaroundMeasStartPtpNsResp = 0u;
+                }
+
             }
         }
     }

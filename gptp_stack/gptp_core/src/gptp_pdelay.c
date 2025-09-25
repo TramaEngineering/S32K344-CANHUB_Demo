@@ -553,7 +553,7 @@ void GPTP_PDELAY_PdelayMachine(const gptp_def_data_t *prGptp,
                     /* If the Pdelay responder state is waiting for timestamp and another request is received  */
                     /* RESTART state machine */
                     case GPTP_DEF_SENT_PD_RESP_WTING_4_T:
-                        /* Register error, not received timestamp */
+                        /* Register error, not received timestamp this is not an error but the notification that respose is not already sended*/
                         GPTP_ERR_Register(prPdelMachine->u8GptpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_T_TS_NOT_REGISTERED, \
                                           prPdelMachine->rPdRespMsgRx.rHeader.u16SequenceId);
                         /* If Pdelay responder is not enabled yet */

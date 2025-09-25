@@ -19,6 +19,8 @@
 
 #include "gptp_def.h"
 #include "gptp_port_version.h"
+#define GPTP_USE_PRINTF
+#define GPTP_PORT_PRINTF
 
 /*******************************************************************************
  * Definitions

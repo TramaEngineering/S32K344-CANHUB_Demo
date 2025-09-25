@@ -158,6 +158,7 @@ void GPTP_PORT_RxIndication(uint8_t u8CtrlIdx,
                                               &srIngressTimeStamp);*/
     //get_ts_ingress_data(&srIngressTimeStamp);
     //srIngressTimeStamp = Timestamp;// USED IN WB BECAUSE NOT CABABLE OF HA TIMESTAMPING
+
     if ((0U == Timestamp.seconds) && (0U == Timestamp.nanoseconds)){
 		seTimeStampQuality = ETH_INVAL;
 	}

@@ -30,6 +30,7 @@
 #include "EthIf_Cbk.h"
 #include "gptp_port_platform.h"
 #include "gptp_frame.h"
+#include <float.h>
 
 /*==================================================================================================
 *                                       LOCAL MACROS
@@ -117,6 +118,7 @@ TaskHandle_t link_check_task;
 int phyad = 0;
 
 extern uint32_t __UTEST_UID[2];
+Gmac_Ip_TimestampType srIngressTimeStamp;
 
 /*==================================================================================================
 *                                 LOCAL STRUCTURES AND TYPES
@@ -911,7 +913,7 @@ void eth_rx_check(void){
 		Gmac_Ip_RxInfoType RxInfo  = {0};
 		boolean IsBroadcast;
 		uint16 PayloadLength, etherType;
-		Gmac_Ip_TimestampType srIngressTimeStamp;
+		Gmac_Ip_TimestampType currentTime;
 
 		Status = Gmac_Ip_ReadFrame(INST_GMAC_0, 0U, &RxBuffer, &RxInfo);
 
@@ -929,6 +931,9 @@ void eth_rx_check(void){
 				etherType = swap1 | swap2;
 
 				get_ts_ingress_data(&srIngressTimeStamp);
+				get_ltc_counter(&currentTime);
+
+				printf("time elapsed %lu:\r\n", currentTime.nanoseconds-srIngressTimeStamp.nanoseconds);
 				/*Manage gPTP and non message*/
 				EthIf_RxIndication(CFG_PHY_CTRL_IDX, etherType, IsBroadcast, &ether_frame->dst_macaddr, (Eth_DataType*)&ether_frame->data, PayloadLength, srIngressTimeStamp);
 
@@ -942,7 +947,7 @@ void enet_tx_free_buffer(void){
 	Gmac_Ip_BufferType TxBuffer = {0};
 	Gmac_Ip_StatusType trasmit_status = GMAC_STATUS_SUCCESS;
 	struct ethernet_frame* ether_frame;
-	Gmac_Ip_TimestampType srEgressTimeStamp;
+	Gmac_Ip_TimestampType srEgressTimeStamp, currentTime;
 
 	for(uint8 index = 0; index < MAX_TX_PENDING && bufferQueue[index].inUse ; index++){
 		//if(){
@@ -952,7 +957,7 @@ void enet_tx_free_buffer(void){
 
 			if(trasmit_status == GMAC_STATUS_BUSY){
 					/*descriptor still busy so send back the message in the queue*/
-					printf("%d still have to be send! \r\n", index);
+					//printf("%d still have to be send! \r\n", index);
 			}
 			else if( trasmit_status == GMAC_STATUS_BUFF_NOT_FOUND ){
 				printf("Buffer not found!\r\n");
@@ -965,7 +970,9 @@ void enet_tx_free_buffer(void){
 				EthIf_TxConfirmation(CFG_PHY_CTRL_IDX, index, trasmit_status, srEgressTimeStamp);
 				bufferQueue[index].inUse = FALSE;
 				ether_frame = (struct ethernet_frame*)TxBuffer.Data;
-				if(ether_frame->dst_macaddr[0] == 0x01 && ether_frame->dst_macaddr[1] == 0x80 && ether_frame->dst_macaddr[2] == 0xc2 && ether_frame->dst_macaddr[3] == 0x00 && ether_frame->dst_macaddr[4] == 0x00 && ether_frame->dst_macaddr[5] == 0x0e){
+				if(ether_frame->data[0] == 0x13){
+					get_ltc_counter(&currentTime);
+					printf("Time difference send: %u \r\n",(unsigned int)(currentTime.nanoseconds-srIngressTimeStamp.nanoseconds));
 					Siul2_Dio_Ip_TogglePins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
 					Siul2_Dio_Ip_TogglePins(LED_RED_PORT, (1 << LED_RED_PIN));
 					Siul2_Dio_Ip_TogglePins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
@@ -1043,10 +1050,10 @@ void get_ltc_counter(Gmac_Ip_TimestampType* TimeStamp){
 	TimeStamp->nanoseconds = 0x00000000 | ((uint32) reg_0_15_ns) | ((uint32)reg_16_29_ns << 16);
 	TimeStamp->seconds = 0x00000000 | ((uint32)reg_16_31_s << 16) | ((uint32)reg_0_15_s);
 
-	printf("TS nanoseconds: \r\n");
+	/*printf("TS nanoseconds: \r\n");
 	print_32(&TimeStamp->nanoseconds);
 	printf("TS seconds: \r\n");
-	print_32(&TimeStamp->seconds);
+	print_32(&TimeStamp->seconds);*/
 }
 
 void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp){

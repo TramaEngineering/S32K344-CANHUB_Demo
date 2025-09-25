@@ -714,6 +714,7 @@ gptp_def_timestamp_t GPTP_PORT_CurrentTimeGet(gptp_def_ts_type_t eTsType)
             /*eStatus = Eth_43_GMAC_GetCurrentTime(GPTP_PORT_ETH_CTRL_IDX,
                                                  &seTimeStampQuality,
                                                  &srEthTimestamp);*/
+        	//I should take the time hw from the time base of the freerunning timer
         	get_ltc_counter(&TimeStamp);
 
 			//Gmac_Ip_GetSysTime(INST_GMAC_0, &TimeStamp);

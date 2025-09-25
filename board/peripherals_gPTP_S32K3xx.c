@@ -111,7 +111,7 @@ instance:
       - 0:
         - bDomainIsGm: 'true'
         - u8SlaveMachineIndex: '0'
-        - bSyncedGm: 'false'
+        - bSyncedGm: 'true'
         - u8RefDomForSynced: '0'
         - u8StartupTimeoutS: '10'
         - u8SyncReceiptTimeoutCnt: '3'
@@ -228,7 +228,7 @@ static gptp_def_init_params_domain_t    sarInitParamsDomains[GPTP_CFG_CNT_OF_DOM
         .u8DomainNumber = 0u,
         .bDomainIsGm = true,
         .u8NumberOfSyncMachines = GPTP_CFG_CNT_OF_SYNC,
-        .bSyncedGm = false,
+        .bSyncedGm = true,
         .u8RefDomForSynced = 0u,
         .u8StartupTimeoutS = 10u,
         .u8SyncReceiptTimeoutCnt = 3u,

@@ -2732,7 +2732,7 @@
                            <struct name="0">
                               <setting name="bDomainIsGm" value="true"/>
                               <setting name="u8SlaveMachineIndex" value="0"/>
-                              <setting name="bSyncedGm" value="false"/>
+                              <setting name="bSyncedGm" value="true"/>
                               <setting name="u8RefDomForSynced" value="0"/>
                               <setting name="u8StartupTimeoutS" value="10"/>
                               <setting name="u8SyncReceiptTimeoutCnt" value="3"/>

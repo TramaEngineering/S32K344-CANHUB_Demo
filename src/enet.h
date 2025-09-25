@@ -69,6 +69,7 @@ extern Gmac_Ip_BufferType arpAnnouce;
 extern Gmac_Ip_BufferType pDelayResp;
 extern Gmac_Ip_BufferType buttonEthFrame;
 extern Gmac_Ip_BufferType customMessage_ipv4;
+extern Gmac_Ip_TimestampType srIngressTimeStamp;
 
 /*==================================================================================================
  *                                      GLOBAL CONSTANTS
