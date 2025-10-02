@@ -431,6 +431,7 @@ int main(void)
 				}
 				if(Task_Flag_1000mS){
 					//printf("Hello\r\n");
+					send_eth_frame_lld(&customMessage_ipv4);
 				}
 
 				/* If User button1 event is detected. */

@@ -38,6 +38,7 @@
 #include "EthIf_Cbk.h"
 #include "gptp_port_platform.h"
 #include "gptp_frame.h"
+#include "retarget.h"
 
 /*==================================================================================================
 *                              SOURCE FILE VERSION INFORMATION
@@ -145,9 +146,12 @@ void EthIf_RxIndication(uint8 CtrlIdx,
     /* If gPTP frame is received, pass it to the gPTP stack. */
     if (GPTP_FR_ETH_TYPE_PTP == FrameType)
     {
-        GPTP_PORT_RxIndication(CtrlIdx, FrameType, IsBroadcast, PhysAddrPtr,
+    	GPTP_PORT_RxIndication(CtrlIdx, FrameType, IsBroadcast, PhysAddrPtr,
                                DataPtr, LenByte, Timestamp);
     }
+    /*else{
+    	printf("Frame is not gPTP! \r\n");
+    }*/
 
     /* User can process other non-gPTP frames here. */
 }

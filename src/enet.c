@@ -93,6 +93,8 @@
 #define EGR_TS_5					(0X1153U)
 #define EGR_RING_DONE				(0X1154U) //after read ts in order to flush ring position
 
+#define SWAP16(x)  (((x) >> 8) | ((x) << 8))
+
 /*==================================================================================================
 *                                       LOCAL VARIABLES
 ==================================================================================================*/
@@ -913,6 +915,7 @@ void eth_rx_check(void){
 		boolean IsBroadcast;
 		uint16 PayloadLength, etherType;
 		//Gmac_Ip_TimestampType currentTime;
+		const Eth_DataType *frame_data;
 
 		Status = Gmac_Ip_ReadFrame(INST_GMAC_0, 0U, &RxBuffer, &RxInfo);
 
@@ -925,16 +928,16 @@ void eth_rx_check(void){
 
 				IsBroadcast = (ether_frame->dst_macaddr[0] == 0xFF) && (ether_frame->dst_macaddr[1] == 0xFF) && (ether_frame->dst_macaddr[2] == 0xFF) && (ether_frame->dst_macaddr[3] == 0xFF) && (ether_frame->dst_macaddr[4] == 0xFF) && (ether_frame->dst_macaddr[5] == 0xFF);
 				PayloadLength = RxInfo.PktLen-((2*ETH_ALEN)+2);
-				uint16 swap1 = (ether_frame->ether_type & 0xFF00)>>8;
-				uint16 swap2 = (ether_frame->ether_type & 0x00FF)<<8;
-				etherType = swap1 | swap2;
+				etherType = SWAP16(ether_frame->ether_type);
 
 				get_ts_ingress_data(&srIngressTimeStamp);
+				frame_data = (const Eth_DataType*)ether_frame->data;
+
 				//get_ltc_counter(&currentTime);
 
 				//printf("time elapsed %lu:\r\n", currentTime.nanoseconds-srIngressTimeStamp.nanoseconds);
 				/*Manage gPTP and non message*/
-				EthIf_RxIndication(CFG_PHY_CTRL_IDX, etherType, IsBroadcast, &ether_frame->dst_macaddr, (Eth_DataType*)&ether_frame->data, PayloadLength, srIngressTimeStamp);
+				EthIf_RxIndication(CFG_PHY_CTRL_IDX, etherType, IsBroadcast, (const uint8*)ether_frame->dst_macaddr, frame_data, PayloadLength, srIngressTimeStamp);
 
 		}
 
@@ -949,7 +952,6 @@ void enet_tx_free_buffer(void){
 	Gmac_Ip_TimestampType srEgressTimeStamp, currentTime;
 
 	for(uint8 index = 0; index < MAX_TX_PENDING && bufferQueue[index].inUse ; index++){
-		//if(){
 			TxBuffer.Data = bufferQueue[index].Data;
 			TxBuffer.Length = bufferQueue[index].Length;
 			trasmit_status = Gmac_Ip_GetTransmitStatus(CFG_PHY_CTRL_IDX, 0U, &TxBuffer, &TxInfo);
@@ -970,28 +972,19 @@ void enet_tx_free_buffer(void){
 				EthIf_TxConfirmation(CFG_PHY_CTRL_IDX, index, trasmit_status, srEgressTimeStamp);
 				bufferQueue[index].inUse = FALSE;
 				ether_frame = (struct ethernet_frame*)TxBuffer.Data;
-				if(ether_frame->data[0] == 0x13 ){
-					//magenta
-					Siul2_Dio_Ip_TogglePins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
-					Siul2_Dio_Ip_TogglePins(LED_RED_PORT, (1 << LED_RED_PIN));
-					Siul2_Dio_Ip_TogglePins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
-					printf("Pdelay resp!\r\n");
-				}
-				else if(ether_frame->data[0] == 0x1A){
-					//white
-					/*Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
+				if(ether_frame->data[0] == 0x13 ||  ether_frame->data[0] == 0x10){//sending Pdelay resp or sync
+					//Magenta
+					Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
 					Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
-					Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));*/
-					printf("Pdelay resp Follow UP!\r\n");
+					Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
 				}
 				else{
-					//green
-					Siul2_Dio_Ip_SetPins(LED_RED_PORT, (1 << LED_RED_PIN));
+					//Yellow if not gPTP
+					Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
 					Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
 					Siul2_Dio_Ip_SetPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
 				}
 			}
-		//}
 
 	}
 

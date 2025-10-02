@@ -1052,7 +1052,8 @@ gptp_err_type_t GPTP_PORT_GetSwitchTimes(gptp_def_timestamp_t *prFreeRunClk,
 
 	//Gmac_Ip_GetSysTime(INST_GMAC_0, &TimeStamp);
 
-    get_current_time(&TimeStamp);
+    eStatus = get_current_time(&TimeStamp);
+
 
 	srTimeStamp.nanoseconds = TimeStamp.nanoseconds;
 	srTimeStamp.seconds = TimeStamp.seconds;
