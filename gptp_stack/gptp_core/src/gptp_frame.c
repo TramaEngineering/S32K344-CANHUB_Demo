@@ -341,7 +341,7 @@ static uint64_t GPTP_MD_ArrayToUint64(const uint8_t au8In[8])
  * @ requirements 120464
  */
 
-gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
+gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t* rRxData,
                                    const gptp_def_data_t *prGptp,
                                    gptp_def_msg_type_t  *prMessageTypeRcvd,
                                    uint8_t *pu8DomainRcvd,
@@ -381,7 +381,7 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
 
     /* ETH II offset */
     u8HdrOffset = GPTP_PORT_FrameRxGetOffset();
-    u16EthType = rRxData.u16EthType;
+    u16EthType = rRxData->u16EthType;
 
     /* If VLAN enabled */
     if (true == prGptp->rPerDeviceParams.bVlanEnabled)
@@ -390,15 +390,15 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
         if (GPTP_FR_ETH_TYPE_VLAN == u16EthType)
         {
             /* Store the TCI */
-            u16VlanTci = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset]);
+            u16VlanTci = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset]);
             /* Increment the offset */
             u8HdrOffset = u8HdrOffset + GPTP_DEF_ETH_VLAN_LEN;
 
             /* If not PTP ETH type, register error don't allow to process the frame */
-            u16EthType = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset]);
+            u16EthType = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset]);
             if (GPTP_FR_ETH_TYPE_PTP != u16EthType)
             {
-                GPTP_ERR_Register(rRxData.u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_NO_ETH_TYPE_PTP, 0u);
+                GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_NO_ETH_TYPE_PTP, 0u);
                 eError = GPTP_ERR_M_NO_ETH_TYPE_PTP;
             }
         }
@@ -407,7 +407,7 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
         else
         {
             /* Register error */
-            GPTP_ERR_Register(rRxData.u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_NO_ETH_TYPE_VLAN, 0u);
+            GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_NO_ETH_TYPE_VLAN, 0u);
             /* If not PTP ETH type, don't allow to process the message */
             if (GPTP_FR_ETH_TYPE_PTP != u16EthType)
             {
@@ -421,7 +421,7 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
         /* If not PTP ETH Type, register error and don't allow to process the message */
         if (GPTP_FR_ETH_TYPE_PTP != u16EthType)
         {
-            GPTP_ERR_Register(rRxData.u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_NO_ETH_TYPE_PTP, 0u);
+            GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_NO_ETH_TYPE_PTP, 0u);
             eError = GPTP_ERR_M_NO_ETH_TYPE_PTP;
         }
     }
@@ -432,9 +432,9 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
         eError = GPTP_ERR_M_MESSAGE_ID_INVALID;
 
         /* Temporary asignment of the Message ID to distinguish which message is going to be processed */
-        rTempMsgId = (gptp_def_msg_type_t)(GPTP_MD_ArrayToUint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_ID_OFFSET]) & 0x0Fu);
+        rTempMsgId = (gptp_def_msg_type_t)(GPTP_MD_ArrayToUint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_ID_OFFSET]) & 0x0Fu);
         /* Get transport specific byte (nibble) */
-        u8TransportSpecific = (GPTP_MD_ArrayToUint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_ID_OFFSET]) & 0xF0u);
+        u8TransportSpecific = (GPTP_MD_ArrayToUint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_ID_OFFSET]) & 0xF0u);
 
         *prMessageTypeRcvd = GPTP_DEF_MSG_TYPE_UNKNOWN;
         *pu8DomainRcvd = 255u;
@@ -452,7 +452,7 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                     eError = GPTP_ERR_OK;
 
                     /* Get domain number on wire */
-                    u8DomainNum = GPTP_MD_ArrayToUint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_DOMAIN_NUM]);
+                    u8DomainNum = GPTP_MD_ArrayToUint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_DOMAIN_NUM]);
                     /* Translate domain number on wire to logical domains of the gPTP stack */
                     bDomainFound = false;
                     /* Search for respective domain */
@@ -480,7 +480,7 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                             if (false == bMachineFound)
                             {
                                 prSyncMachine = &prDomain->prSyncMachines[u8Seek];
-                                if (rRxData.u8PtpPort == prSyncMachine->u8GptpPort)
+                                if (rRxData->u8PtpPort == prSyncMachine->u8GptpPort)
                                 {
                                     bMachineFound = true;
                                     u8SyncMachineId = u8Seek;
@@ -491,15 +491,15 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                         if (true == bMachineFound)
                         {
                             /* Parse the data from the Sync message and store into the RxData structure */
-                            prSyncMachine->rSyncMsgRx.rHeader.eMsgId = (gptp_def_msg_type_t)(GPTP_MD_ArrayToUint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_ID_OFFSET]) & 0x0Fu);
+                            prSyncMachine->rSyncMsgRx.rHeader.eMsgId = (gptp_def_msg_type_t)(GPTP_MD_ArrayToUint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_ID_OFFSET]) & 0x0Fu);
                             /* Used for all outgoing messages */
-                            prSyncMachine->rSyncMsgRx.rHeader.u64CorrectionSubNs = GPTP_MD_ArrayToUint64(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_CORR_OFFSET]);
-                            prSyncMachine->rSyncMsgRx.rHeader.u16SequenceId = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]);
-                            prSyncMachine->rSyncMsgRx.rHeader.u16SourcePortId = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_PORT_ID_OFFSET]) - 1u;
-                            prSyncMachine->rSyncMsgRx.rHeader.u64SourceClockId = GPTP_MD_ArrayToUint64(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_CLK_ID_OFFSET]);
-                            prSyncMachine->rSyncMsgRx.rHeader.s8MessagePeriodLog = GPTP_MD_ArrayToSint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_PER_LOG_OFFSET]);
-                            prSyncMachine->rSyncMsgRx.rSyncRxTs.u32TimeStampNs = rRxData.u32TsNsec;
-                            prSyncMachine->rSyncMsgRx.rSyncRxTs.u64TimeStampS = rRxData.u32TsSec;
+                            prSyncMachine->rSyncMsgRx.rHeader.u64CorrectionSubNs = GPTP_MD_ArrayToUint64(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_CORR_OFFSET]);
+                            prSyncMachine->rSyncMsgRx.rHeader.u16SequenceId = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]);
+                            prSyncMachine->rSyncMsgRx.rHeader.u16SourcePortId = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_PORT_ID_OFFSET]) - 1u;
+                            prSyncMachine->rSyncMsgRx.rHeader.u64SourceClockId = GPTP_MD_ArrayToUint64(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_CLK_ID_OFFSET]);
+                            prSyncMachine->rSyncMsgRx.rHeader.s8MessagePeriodLog = GPTP_MD_ArrayToSint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_PER_LOG_OFFSET]);
+                            prSyncMachine->rSyncMsgRx.rSyncRxTs.u32TimeStampNs = rRxData->u32TsNsec;
+                            prSyncMachine->rSyncMsgRx.rSyncRxTs.u64TimeStampS = rRxData->u32TsSec;
                             prSyncMachine->rSyncMsgRx.u16VlanTci = u16VlanTci;
 
                             *pu8DomainRcvd = u8DomainNum;
@@ -509,17 +509,17 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                             /* Set flag - message has been received */
                             prSyncMachine->bSyncMsgReceived = true;
 #ifdef GPTP_COUNTERS
-                            GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxSyncCount);
+                            GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxSyncCount);
                             GPTP_INTERNAL_IncrementDomainStats(prGptp, u8DomainNum, u8SyncMachineId, ieee8021AsPortStatRxSyncCount);
 #endif /* GPTP_COUNTERS */
                         }
                         else
                         {
                             GPTP_ERR_Register(u8SyncMachineId, u8DomainNum, GPTP_ERR_M_SYNC_MACHINE_UNKNOWN, \
-                                              GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                                              GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                             eError = GPTP_ERR_M_SYNC_MACHINE_UNKNOWN;
 #ifdef GPTP_COUNTERS
-                            GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                            GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                         }
                     }
@@ -527,10 +527,10 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                     else
                     {
                         GPTP_ERR_Register(u8SyncMachineId, u8DomainNum, GPTP_ERR_M_SYNC_DOMAIN_UNKNOWN, \
-                                          GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                                          GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                         eError = GPTP_ERR_M_SYNC_DOMAIN_UNKNOWN;
 #ifdef GPTP_COUNTERS
-                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                     }
                 }
@@ -539,11 +539,11 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                 {
                     /* Discard the message */
                     /* Log the error into the error log */
-                    GPTP_ERR_Register(rRxData.u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_TRANSPORT_SPECIFIC, \
-                                      GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                    GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_TRANSPORT_SPECIFIC, \
+                                      GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                     eError = GPTP_ERR_M_TRANSPORT_SPECIFIC;
 #ifdef GPTP_COUNTERS
-                    GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                    GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                 }
             break;
@@ -555,40 +555,40 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                 {
                     /* Clear default error */
                     eError = GPTP_ERR_OK;
-                    if (rRxData.u8PtpPort < prGptp->rPerDeviceParams.u8NumberOfPdelayMachines)
+                    if (rRxData->u8PtpPort < prGptp->rPerDeviceParams.u8NumberOfPdelayMachines)
                     {
-                        prPdelayMachine = &prGptp->prPdelayMachines[rRxData.u8PtpPort];
+                        prPdelayMachine = &prGptp->prPdelayMachines[rRxData->u8PtpPort];
 
                         /* Parse the data from the Propagation delay request message and store into the RxData structure */
-                        prPdelayMachine->rPdReqMsgRx.rHeader.eMsgId = (gptp_def_msg_type_t)(GPTP_MD_ArrayToUint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_ID_OFFSET]) & 0x0Fu);
-                        prPdelayMachine->rPdReqMsgRx.rHeader.u16SequenceId = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]);
-                        prPdelayMachine->rPdReqMsgRx.rHeader.u16SourcePortId = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_PORT_ID_OFFSET]) - 1u;
-                        prPdelayMachine->rPdReqMsgRx.rHeader.u64SourceClockId = GPTP_MD_ArrayToUint64(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_CLK_ID_OFFSET]);
-                        prPdelayMachine->rPdReqMsgRx.rHeader.s8MessagePeriodLog = GPTP_MD_ArrayToSint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_PER_LOG_OFFSET]);
-                        prPdelayMachine->rPdReqMsgRx.rT2Ts.u32TimeStampNs = rRxData.u32TsNsec;
-                        prPdelayMachine->rPdReqMsgRx.rT2Ts.u64TimeStampS = rRxData.u32TsSec;
+                        prPdelayMachine->rPdReqMsgRx.rHeader.eMsgId = (gptp_def_msg_type_t)(GPTP_MD_ArrayToUint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_ID_OFFSET]) & 0x0Fu);
+                        prPdelayMachine->rPdReqMsgRx.rHeader.u16SequenceId = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]);
+                        prPdelayMachine->rPdReqMsgRx.rHeader.u16SourcePortId = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_PORT_ID_OFFSET]) - 1u;
+                        prPdelayMachine->rPdReqMsgRx.rHeader.u64SourceClockId = GPTP_MD_ArrayToUint64(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_CLK_ID_OFFSET]);
+                        prPdelayMachine->rPdReqMsgRx.rHeader.s8MessagePeriodLog = GPTP_MD_ArrayToSint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_PER_LOG_OFFSET]);
+                        prPdelayMachine->rPdReqMsgRx.rT2Ts.u32TimeStampNs = rRxData->u32TsNsec;
+                        prPdelayMachine->rPdReqMsgRx.rT2Ts.u64TimeStampS = rRxData->u32TsSec;
                         prPdelayMachine->rPdReqMsgRx.u8MajorSdoId = (u8TransportSpecific >> 4u);
-                        prPdelayMachine->rPdReqMsgRx.u8SubdomainNum = GPTP_MD_ArrayToUint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_DOMAIN_NUM]);
+                        prPdelayMachine->rPdReqMsgRx.u8SubdomainNum = GPTP_MD_ArrayToUint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_DOMAIN_NUM]);
                         prPdelayMachine->rPdReqMsgRx.u16VlanTci = u16VlanTci;
 
-                        *pu8MachineRcvd = rRxData.u8PtpPort;
+                        *pu8MachineRcvd = rRxData->u8PtpPort;
                         *prMessageTypeRcvd = GPTP_DEF_MSG_TYPE_PD_REQ;
 
                         /* Set flag - message has been received */
                         prPdelayMachine->bPdelayReqReceived = true;
 
 #ifdef GPTP_COUNTERS
-                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPdelayRequest);
+                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPdelayRequest);
 #endif /* GPTP_COUNTERS */
                     }
 
                     else
                     {
-                        GPTP_ERR_Register(rRxData.u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_PDEL_MACHINE_UNKNOWN, \
-                                          GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                        GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_PDEL_MACHINE_UNKNOWN, \
+                                          GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                         eError = GPTP_ERR_M_PDEL_MACHINE_UNKNOWN;
 #ifdef GPTP_COUNTERS
-                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                     }
                 }
@@ -597,11 +597,11 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                 {
                     /* Discard the message */
                     /* Log the error into the error log */
-                    GPTP_ERR_Register(rRxData.u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_TRANSPORT_SPECIFIC, \
-                                      GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                    GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_TRANSPORT_SPECIFIC, \
+                                      GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                     eError = GPTP_ERR_M_TRANSPORT_SPECIFIC;
 #ifdef GPTP_COUNTERS
-                    GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                    GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                 }
             break;
@@ -614,58 +614,58 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                     /* Clear default error */
                     eError = GPTP_ERR_OK;
 
-                    if (rRxData.u8PtpPort < prGptp->rPerDeviceParams.u8NumberOfPdelayMachines)
+                    if (rRxData->u8PtpPort < prGptp->rPerDeviceParams.u8NumberOfPdelayMachines)
                     {
                         /* Temporary sequence Id assignment */
-                        u16TempSeqId = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]);
+                        u16TempSeqId = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]);
 
-                        prPdelayMachine = &prGptp->prPdelayMachines[rRxData.u8PtpPort];
+                        prPdelayMachine = &prGptp->prPdelayMachines[rRxData->u8PtpPort];
 
                         /* If the sequence Id is the not same as in previously received message, OK */
                         if (prPdelayMachine->rPdReqMsgRx.rHeader.u16SequenceId != u16TempSeqId)
                         {
                             /* Parse the data from the propagation delay response message and store into the RxData structure */
-                            prPdelayMachine->rPdRespMsgRx.rHeader.eMsgId = (gptp_def_msg_type_t)(GPTP_MD_ArrayToUint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_ID_OFFSET]) & 0x0Fu);
-                            prPdelayMachine->rPdRespMsgRx.rHeader.u16SequenceId = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]);
-                            prPdelayMachine->rPdRespMsgRx.rHeader.u16SourcePortId = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_PORT_ID_OFFSET]) - 1u;
-                            prPdelayMachine->rPdRespMsgRx.rHeader.u64SourceClockId = GPTP_MD_ArrayToUint64(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_CLK_ID_OFFSET]);
-                            prPdelayMachine->rPdRespMsgRx.rHeader.s8MessagePeriodLog = GPTP_MD_ArrayToSint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_PER_LOG_OFFSET]);
-                            prPdelayMachine->rPdRespMsgRx.rRequestingId.u64ClockId = GPTP_MD_ArrayToUint64(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_RQ_CLK_ID_OFFSET]);
-                            prPdelayMachine->rPdRespMsgRx.rRequestingId.u16PortId = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_RQ_PORT_ID_OFFSET]) - 1u;
-                            prPdelayMachine->rPdRespMsgRx.rT2Ts.u64TimeStampS = GPTP_MD_ArrayToUint48(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_TS_S_OFFSET]);
-                            prPdelayMachine->rPdRespMsgRx.rT2Ts.u32TimeStampNs = GPTP_MD_ArrayToUint32(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_TS_NS_OFFSET]);
-                            prPdelayMachine->rPdRespMsgRx.rT4Ts.u32TimeStampNs = rRxData.u32TsNsec;
-                            prPdelayMachine->rPdRespMsgRx.rT4Ts.u64TimeStampS = rRxData.u32TsSec;
+                            prPdelayMachine->rPdRespMsgRx.rHeader.eMsgId = (gptp_def_msg_type_t)(GPTP_MD_ArrayToUint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_ID_OFFSET]) & 0x0Fu);
+                            prPdelayMachine->rPdRespMsgRx.rHeader.u16SequenceId = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]);
+                            prPdelayMachine->rPdRespMsgRx.rHeader.u16SourcePortId = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_PORT_ID_OFFSET]) - 1u;
+                            prPdelayMachine->rPdRespMsgRx.rHeader.u64SourceClockId = GPTP_MD_ArrayToUint64(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_CLK_ID_OFFSET]);
+                            prPdelayMachine->rPdRespMsgRx.rHeader.s8MessagePeriodLog = GPTP_MD_ArrayToSint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_PER_LOG_OFFSET]);
+                            prPdelayMachine->rPdRespMsgRx.rRequestingId.u64ClockId = GPTP_MD_ArrayToUint64(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_RQ_CLK_ID_OFFSET]);
+                            prPdelayMachine->rPdRespMsgRx.rRequestingId.u16PortId = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_RQ_PORT_ID_OFFSET]) - 1u;
+                            prPdelayMachine->rPdRespMsgRx.rT2Ts.u64TimeStampS = GPTP_MD_ArrayToUint48(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_TS_S_OFFSET]);
+                            prPdelayMachine->rPdRespMsgRx.rT2Ts.u32TimeStampNs = GPTP_MD_ArrayToUint32(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_TS_NS_OFFSET]);
+                            prPdelayMachine->rPdRespMsgRx.rT4Ts.u32TimeStampNs = rRxData->u32TsNsec;
+                            prPdelayMachine->rPdRespMsgRx.rT4Ts.u64TimeStampS = rRxData->u32TsSec;
 
-                            *pu8MachineRcvd = rRxData.u8PtpPort;
+                            *pu8MachineRcvd = rRxData->u8PtpPort;
                             *prMessageTypeRcvd = GPTP_DEF_MSG_TYPE_PD_RESP;
 
                             /* Set flag - message has been received */
                             prPdelayMachine->bPdelayRespReceived = true;
 #ifdef GPTP_COUNTERS
-                            GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPdelayResponse);
+                            GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPdelayResponse);
 #endif /* GPTP_COUNTERS */
                         }
                         /* If the same sequence id has been received in previous message, error */
                         else
                         {
                             /* Log the error into the error log */
-                            GPTP_ERR_Register(rRxData.u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_PDEL_RESP_DBL_RCVD, \
-                                              GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                            GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_PDEL_RESP_DBL_RCVD, \
+                                              GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                             eError = GPTP_ERR_M_PDEL_RESP_DBL_RCVD;
 #ifdef GPTP_COUNTERS
-                            GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                            GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                         }
                     }
 
                     else
                     {
-                        GPTP_ERR_Register(rRxData.u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_PDEL_MACHINE_UNKNOWN, \
-                                          GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                        GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_PDEL_MACHINE_UNKNOWN, \
+                                          GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                         eError = GPTP_ERR_M_PDEL_MACHINE_UNKNOWN;
 #ifdef GPTP_COUNTERS
-                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                     }
                 }
@@ -674,11 +674,11 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                 {
                     /* Discard the message */
                     /* Log the error into the error log */
-                    GPTP_ERR_Register(rRxData.u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_TRANSPORT_SPECIFIC, \
-                                      GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                    GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_TRANSPORT_SPECIFIC, \
+                                      GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                     eError = GPTP_ERR_M_TRANSPORT_SPECIFIC;
 #ifdef GPTP_COUNTERS
-                    GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                    GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                 }
             break;
@@ -692,7 +692,7 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                     eError = GPTP_ERR_OK;
 
                     /* Get domain number on wire */
-                    u8DomainNum = GPTP_MD_ArrayToUint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_DOMAIN_NUM]);
+                    u8DomainNum = GPTP_MD_ArrayToUint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_DOMAIN_NUM]);
                     /* Translate domain number on wire to logical domains of the gPTP stack */
                     bDomainFound = false;
                     /* Search for respective domain */
@@ -720,7 +720,7 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                             if (false == bMachineFound)
                             {
                                 prSyncMachine = &prDomain->prSyncMachines[u8Seek];
-                                if (rRxData.u8PtpPort == prSyncMachine->u8GptpPort)
+                                if (rRxData->u8PtpPort == prSyncMachine->u8GptpPort)
                                 {
                                     bMachineFound = true;
                                     u8SyncMachineId = u8Seek;
@@ -731,28 +731,28 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                         if (true == bMachineFound)
                         {
                             /* Parse the data from the follow up message and store into the RxData structure */
-                            prSyncMachine->rFupMsgRx.rHeader.eMsgId = (gptp_def_msg_type_t)(GPTP_MD_ArrayToUint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_ID_OFFSET]) & 0x0Fu);
-                            prSyncMachine->rFupMsgRx.rHeader.u64CorrectionSubNs = GPTP_MD_ArrayToUint64(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_CORR_OFFSET]);
-                            prSyncMachine->rFupMsgRx.rHeader.u16SequenceId = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]);
-                            prSyncMachine->rFupMsgRx.rHeader.u16SourcePortId = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_PORT_ID_OFFSET]) - 1u;
-                            prSyncMachine->rFupMsgRx.rHeader.u64SourceClockId = GPTP_MD_ArrayToUint64(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_CLK_ID_OFFSET]);
-                            prSyncMachine->rFupMsgRx.rHeader.s8MessagePeriodLog = GPTP_MD_ArrayToSint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_PER_LOG_OFFSET]);
-                            prSyncMachine->rFupMsgRx.rSyncTxTs.u64TimeStampS = GPTP_MD_ArrayToUint48(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_TS_S_OFFSET]);
-                            prSyncMachine->rFupMsgRx.rSyncTxTs.u32TimeStampNs = GPTP_MD_ArrayToUint32(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_TS_NS_OFFSET]);
-                            prSyncMachine->rFupMsgRx.f64RateRatio = (float64_t)((int32_t)GPTP_MD_ArrayToUint32(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_CS_RATE_RATIO_OFFSET]));
+                            prSyncMachine->rFupMsgRx.rHeader.eMsgId = (gptp_def_msg_type_t)(GPTP_MD_ArrayToUint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_ID_OFFSET]) & 0x0Fu);
+                            prSyncMachine->rFupMsgRx.rHeader.u64CorrectionSubNs = GPTP_MD_ArrayToUint64(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_CORR_OFFSET]);
+                            prSyncMachine->rFupMsgRx.rHeader.u16SequenceId = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]);
+                            prSyncMachine->rFupMsgRx.rHeader.u16SourcePortId = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_PORT_ID_OFFSET]) - 1u;
+                            prSyncMachine->rFupMsgRx.rHeader.u64SourceClockId = GPTP_MD_ArrayToUint64(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_CLK_ID_OFFSET]);
+                            prSyncMachine->rFupMsgRx.rHeader.s8MessagePeriodLog = GPTP_MD_ArrayToSint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_PER_LOG_OFFSET]);
+                            prSyncMachine->rFupMsgRx.rSyncTxTs.u64TimeStampS = GPTP_MD_ArrayToUint48(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_TS_S_OFFSET]);
+                            prSyncMachine->rFupMsgRx.rSyncTxTs.u32TimeStampNs = GPTP_MD_ArrayToUint32(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_TS_NS_OFFSET]);
+                            prSyncMachine->rFupMsgRx.f64RateRatio = (float64_t)((int32_t)GPTP_MD_ArrayToUint32(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_CS_RATE_RATIO_OFFSET]));
 
                             /* calculate the rate ratio from cumulative scaled rate */
                             prSyncMachine->rFupMsgRx.f64RateRatio = (prSyncMachine->rFupMsgRx.f64RateRatio * GPTP_DEF_POW_2_M41) + 1.0 ;
 
                             /* Update GM Time Base Indicator */
-                            prDomain->u16GmTimeBaseIndicator = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_GM_TIME_BASE_INDIC]);
+                            prDomain->u16GmTimeBaseIndicator = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_GM_TIME_BASE_INDIC]);
 
                             /* Update Last GM Phase Change */
-                            prDomain->u32LastGmPhaseChangeH = GPTP_MD_ArrayToUint32(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_LAST_GM_PHASE_CHANGE_H]);
-                            prDomain->u64LastGmPhaseChangeL = GPTP_MD_ArrayToUint64(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_LAST_GM_PHASE_CHANGE_L]);
+                            prDomain->u32LastGmPhaseChangeH = GPTP_MD_ArrayToUint32(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_LAST_GM_PHASE_CHANGE_H]);
+                            prDomain->u64LastGmPhaseChangeL = GPTP_MD_ArrayToUint64(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_LAST_GM_PHASE_CHANGE_L]);
 
                             /* Update Scaled Last GM Frequency Change */
-                            prDomain->u32ScaledLastGmFreqChange = GPTP_MD_ArrayToUint32(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SCALED_LAST_GM_F_CHANGE]);
+                            prDomain->u32ScaledLastGmFreqChange = GPTP_MD_ArrayToUint32(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SCALED_LAST_GM_F_CHANGE]);
 
                             *pu8DomainRcvd = u8DomainNum;
                             *pu8MachineRcvd = u8SyncMachineId;
@@ -761,17 +761,17 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                             /* Set flag - message has been received */
                             prSyncMachine->bFupMsgReceived = true;
 #ifdef GPTP_COUNTERS
-                            GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxFollowUpCount);
+                            GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxFollowUpCount);
                             GPTP_INTERNAL_IncrementDomainStats(prGptp, u8DomainNum, u8SyncMachineId, ieee8021AsPortStatRxFollowUpCount);
 #endif /* GPTP_COUNTERS */
                         }
                         else
                         {
                             GPTP_ERR_Register(u8SyncMachineId, u8DomainNum, GPTP_ERR_M_SYNC_MACHINE_UNKNOWN, \
-                                              GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                                              GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                             eError = GPTP_ERR_M_SYNC_MACHINE_UNKNOWN;
 #ifdef GPTP_COUNTERS
-                            GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                            GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                         }
                     }
@@ -779,10 +779,10 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                     else
                     {
                         GPTP_ERR_Register(u8SyncMachineId, u8DomainNum, GPTP_ERR_M_SYNC_DOMAIN_UNKNOWN, \
-                                          GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                                          GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                         eError = GPTP_ERR_M_SYNC_DOMAIN_UNKNOWN;
 #ifdef GPTP_COUNTERS
-                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                     }
                 }
@@ -791,11 +791,11 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                 {
                     /* Discard the message */
                     /* Log the error into the error log */
-                    GPTP_ERR_Register(rRxData.u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_TRANSPORT_SPECIFIC, \
-                                      GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                    GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_TRANSPORT_SPECIFIC, \
+                                      GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                     eError = GPTP_ERR_M_TRANSPORT_SPECIFIC;
 #ifdef GPTP_COUNTERS
-                    GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                    GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                 }
             break;
@@ -809,37 +809,37 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                 /* If transport specific value is equal to 1 */
                 if (((uint8_t)GPTP_DEF_TRANSPORT_SPEC_1 == u8TransportSpecific) || (true == prGptp->rPerDeviceParams.bSdoIdCompatibilityMode))
                 {
-                    if (rRxData.u8PtpPort < prGptp->rPerDeviceParams.u8NumberOfPdelayMachines)
+                    if (rRxData->u8PtpPort < prGptp->rPerDeviceParams.u8NumberOfPdelayMachines)
                     {
-                        prPdelayMachine = &prGptp->prPdelayMachines[rRxData.u8PtpPort];
+                        prPdelayMachine = &prGptp->prPdelayMachines[rRxData->u8PtpPort];
 
                         /* Parse the data from the propagation delay follow up message and store into the RxData structure */
-                        prPdelayMachine->rPdRespFupMsgRx.rHeader.eMsgId = (gptp_def_msg_type_t)(GPTP_MD_ArrayToUint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_ID_OFFSET]) & (uint8_t)0x0Fu);
-                        prPdelayMachine->rPdRespFupMsgRx.rHeader.u16SequenceId = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]);
-                        prPdelayMachine->rPdRespFupMsgRx.rHeader.u16SourcePortId = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_PORT_ID_OFFSET]) - 1u;
-                        prPdelayMachine->rPdRespFupMsgRx.rHeader.u64SourceClockId = GPTP_MD_ArrayToUint64(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_CLK_ID_OFFSET]);
-                        prPdelayMachine->rPdRespFupMsgRx.rHeader.s8MessagePeriodLog = GPTP_MD_ArrayToSint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_PER_LOG_OFFSET]);
-                        prPdelayMachine->rPdRespFupMsgRx.rRequestingId.u64ClockId = GPTP_MD_ArrayToUint64(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_RQ_CLK_ID_OFFSET]);
-                        prPdelayMachine->rPdRespFupMsgRx.rRequestingId.u16PortId = GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_RQ_PORT_ID_OFFSET]) - 1u;
-                        prPdelayMachine->rPdRespFupMsgRx.rT3Ts.u64TimeStampS = GPTP_MD_ArrayToUint48(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_TS_S_OFFSET]);
-                        prPdelayMachine->rPdRespFupMsgRx.rT3Ts.u32TimeStampNs = GPTP_MD_ArrayToUint32(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_TS_NS_OFFSET]);
+                        prPdelayMachine->rPdRespFupMsgRx.rHeader.eMsgId = (gptp_def_msg_type_t)(GPTP_MD_ArrayToUint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_ID_OFFSET]) & (uint8_t)0x0Fu);
+                        prPdelayMachine->rPdRespFupMsgRx.rHeader.u16SequenceId = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]);
+                        prPdelayMachine->rPdRespFupMsgRx.rHeader.u16SourcePortId = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_PORT_ID_OFFSET]) - 1u;
+                        prPdelayMachine->rPdRespFupMsgRx.rHeader.u64SourceClockId = GPTP_MD_ArrayToUint64(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SC_CLK_ID_OFFSET]);
+                        prPdelayMachine->rPdRespFupMsgRx.rHeader.s8MessagePeriodLog = GPTP_MD_ArrayToSint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_MSG_PER_LOG_OFFSET]);
+                        prPdelayMachine->rPdRespFupMsgRx.rRequestingId.u64ClockId = GPTP_MD_ArrayToUint64(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_RQ_CLK_ID_OFFSET]);
+                        prPdelayMachine->rPdRespFupMsgRx.rRequestingId.u16PortId = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_RQ_PORT_ID_OFFSET]) - 1u;
+                        prPdelayMachine->rPdRespFupMsgRx.rT3Ts.u64TimeStampS = GPTP_MD_ArrayToUint48(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_TS_S_OFFSET]);
+                        prPdelayMachine->rPdRespFupMsgRx.rT3Ts.u32TimeStampNs = GPTP_MD_ArrayToUint32(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_TS_NS_OFFSET]);
 
-                        *pu8MachineRcvd = rRxData.u8PtpPort;
+                        *pu8MachineRcvd = rRxData->u8PtpPort;
                         *prMessageTypeRcvd = GPTP_DEF_MSG_TYPE_PD_RESP_FUP;
 
                         /* Set flag - message has been received */
                         prPdelayMachine->bPdelayRespFupReceived = true;
 #ifdef GPTP_COUNTERS
-                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPdelayResponseFollowUp);
+                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPdelayResponseFollowUp);
 #endif /* GPTP_COUNTERS */
                     }
                     else
                     {
-                        GPTP_ERR_Register(rRxData.u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_PDEL_MACHINE_UNKNOWN, \
-                                          GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                        GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_PDEL_MACHINE_UNKNOWN, \
+                                          GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                         eError = GPTP_ERR_M_PDEL_MACHINE_UNKNOWN;
 #ifdef GPTP_COUNTERS
-                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                     }
 
@@ -849,11 +849,11 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                 {
                     /* Discard the message */
                     /* Log the error into the error log */
-                    GPTP_ERR_Register(rRxData.u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_TRANSPORT_SPECIFIC, \
-                                      GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                    GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_TRANSPORT_SPECIFIC, \
+                                      GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                     eError = GPTP_ERR_M_TRANSPORT_SPECIFIC;
 #ifdef GPTP_COUNTERS
-                    GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                    GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                 }
             break;
@@ -862,7 +862,7 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
             case GPTP_DEF_MSG_TYPE_ANNOUNCE:
                 /* not applicable in the Automotive */
 #ifdef GPTP_COUNTERS
-                GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxAnnounce);
+                GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxAnnounce);
 #endif /* GPTP_COUNTERS */
             break;
 
@@ -875,10 +875,10 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                 /* If transport specific value is equal to 1 */
                 if ((uint8_t)GPTP_DEF_TRANSPORT_SPEC_1 == u8TransportSpecific)
                 {
-                    u32OrganizationSubType = GPTP_MD_ArrayToUint32(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SIG_ORG_SUBTYPE_OFFSET]) & GPTP_DEF_BIT_MASK_8L_24H;
+                    u32OrganizationSubType = GPTP_MD_ArrayToUint32(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SIG_ORG_SUBTYPE_OFFSET]) & GPTP_DEF_BIT_MASK_8L_24H;
 
                     /* Get domain number on wire */
-                    u8DomainNum = GPTP_MD_ArrayToUint8(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_DOMAIN_NUM]);
+                    u8DomainNum = GPTP_MD_ArrayToUint8(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_DOMAIN_NUM]);
 
                     /* Determine machine id from the Domain number and port */
                     bDomainFound = false;
@@ -907,7 +907,7 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                             if (false == bMachineFound)
                             {
                                 prSyncMachine = &prDomain->prSyncMachines[u8Seek];
-                                if (rRxData.u8PtpPort == prSyncMachine->u8GptpPort)
+                                if (rRxData->u8PtpPort == prSyncMachine->u8GptpPort)
                                 {
                                     bMachineFound = true;
                                     u8SyncMachineId = u8Seek;
@@ -922,7 +922,7 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                                 /* Mesage interval request TLV */
                                 case GPTP_FR_SIG_TLV_OSUB_T_MSG_INT:
                                     /* Parse the data from the signaling message and store into the structure */
-                                    prDomain->s8SyncIntervalLogRcvd = (int8_t)GPTP_MD_ArrayToUint8(&(rRxData.cpu8RxData)[u8HdrOffset + \
+                                    prDomain->s8SyncIntervalLogRcvd = (int8_t)GPTP_MD_ArrayToUint8(&(rRxData->cpu8RxData)[u8HdrOffset + \
                                                                       (uint8_t)GPTP_FR_SIG_TIME_SYNC_OFFSET]);
 
                                     *pu8DomainRcvd = u8DomainNum;
@@ -951,21 +951,21 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                         else
                         {
                             GPTP_ERR_Register(u8SyncMachineId, u8DomainNum, GPTP_ERR_M_SYNC_MACHINE_UNKNOWN, \
-                                              GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                                              GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                             eError = GPTP_ERR_M_SYNC_MACHINE_UNKNOWN;
 #ifdef GPTP_COUNTERS
-                            GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                            GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                         }
                     }
 
                     else
                     {
-                        GPTP_ERR_Register(rRxData.u8PtpPort, u8DomainNum, GPTP_ERR_M_SYNC_DOMAIN_UNKNOWN, \
-                                          GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                        GPTP_ERR_Register(rRxData->u8PtpPort, u8DomainNum, GPTP_ERR_M_SYNC_DOMAIN_UNKNOWN, \
+                                          GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                         eError = GPTP_ERR_M_SYNC_DOMAIN_UNKNOWN;
 #ifdef GPTP_COUNTERS
-                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                     }
                 }
@@ -974,11 +974,11 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
                 {
                     /* Discard the message */
                     /* Log the error into the error log */
-                    GPTP_ERR_Register(rRxData.u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_TRANSPORT_SPECIFIC, \
-                                      GPTP_MD_ArrayToUint16(&(rRxData.cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
+                    GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_TRANSPORT_SPECIFIC, \
+                                      GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset + (uint8_t)GPTP_FR_SEQ_ID_OFFSET]));
                     eError = GPTP_ERR_M_TRANSPORT_SPECIFIC;
 #ifdef GPTP_COUNTERS
-                GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
                 }
             break;
@@ -986,10 +986,10 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
             /* Unknown message ID */
             default:
                 /* Log the error into the error log */
-                GPTP_ERR_Register(rRxData.u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_MESSAGE_ID_INVALID, GPTP_ERR_SEQ_ID_NOT_SPECIF);
+                GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_MESSAGE_ID_INVALID, GPTP_ERR_SEQ_ID_NOT_SPECIF);
                 eError = GPTP_ERR_M_MESSAGE_ID_INVALID;
 #ifdef GPTP_COUNTERS
-                GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+                GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
 #endif /* GPTP_COUNTERS */
             break;
         }
@@ -998,7 +998,7 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
 #ifdef GPTP_COUNTERS
     else
     {
-        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData.u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
+        GPTP_INTERNAL_IncrementPortStats(prGptp, rRxData->u8PtpPort, ieee8021AsPortStatRxPTPPacketDiscard);
     }
 #endif /* GPTP_COUNTERS */
 

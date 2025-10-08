@@ -95,7 +95,7 @@ void GPTP_UpdateTimestampEntry(uint8_t u8Port,
  * @param[in] rRxData structure containing all the necessary gPTP data for processing.
  *
  */
-void GPTP_MsgReceive(gptp_def_rx_data_t rRxData);
+void GPTP_MsgReceive(gptp_def_rx_data_t* rRxData);
 
 /*! @} */
 

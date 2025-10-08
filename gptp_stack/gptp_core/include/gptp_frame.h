@@ -98,7 +98,7 @@
  *
  * @return Error information
  */
-gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t rRxData,
+gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t* rRxData,
                                    const gptp_def_data_t *prGptp,
                                    gptp_def_msg_type_t  *prMessageTypeRcvd,
                                    uint8_t *pu8DomainRcvd,

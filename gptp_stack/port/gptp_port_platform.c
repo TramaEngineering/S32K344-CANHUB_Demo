@@ -194,7 +194,7 @@ void GPTP_PORT_RxIndication(uint8_t u8CtrlIdx,
                         (((uint64_t)cpu8PhysAddr[4]) << 8u)  | \
                         ((uint64_t)cpu8PhysAddr[5]));
         rRxData.u64SourceMac = u64MacAddress;
-        GPTP_MsgReceive(rRxData);
+        GPTP_MsgReceive(&rRxData);
     }
 }
 

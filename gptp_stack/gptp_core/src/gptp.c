@@ -1246,7 +1246,7 @@ void GPTP_UpdateTimestampEntry(uint8_t u8Port,
  * @ requirements 152455
  * @ requirements 120457
  */
-void GPTP_MsgReceive(gptp_def_rx_data_t rRxData)
+void GPTP_MsgReceive(gptp_def_rx_data_t* rRxData)
 {
     static uint8_t                 u8RcvdForMachine;
     static uint8_t                 u8RcvdForDomain;
@@ -1349,7 +1349,7 @@ void GPTP_MsgReceive(gptp_def_rx_data_t rRxData)
                 break;
 
                 case GPTP_DEF_MSG_TYPE_PD_REQ:
-                    prPdelayMachine->u64SourceMac = rRxData.u64SourceMac;
+                    prPdelayMachine->u64SourceMac = rRxData->u64SourceMac;
                     /* fallthrough */
                 case GPTP_DEF_MSG_TYPE_PD_RESP:
                 case GPTP_DEF_MSG_TYPE_PD_RESP_FUP:

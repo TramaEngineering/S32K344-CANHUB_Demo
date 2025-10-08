@@ -682,7 +682,7 @@
             </dependency>
          </dependencies>
          <generated_project_files>
-            <file path="board/peripherals_gPTP_S32K3xx.c" update_enabled="true"/>
+            <file path="board/peripherals_gPTP_S32K3xx.c" update_enabled="false"/>
             <file path="board/peripherals_gPTP_S32K3xx.h" update_enabled="false"/>
             <file path="generate/include/DeviceDefinition.h" update_enabled="true"/>
             <file path="generate/include/FlexCAN_Ip_Cfg.h" update_enabled="true"/>
@@ -2330,7 +2330,7 @@
                                        <struct name="0">
                                           <setting name="Name" value="EthCtrlConfigEgressFifo_0"/>
                                           <setting name="EthCtrlConfigEgressFifoBufLenByte" value="1536"/>
-                                          <setting name="EthCtrlConfigEgressFifoBufTotal" value="5"/>
+                                          <setting name="EthCtrlConfigEgressFifoBufTotal" value="10"/>
                                           <setting name="EthCtrlConfigEgressFifoIdx" value="0"/>
                                           <setting name="EthCtrlConfigEgressFifoCallback" value="enet_tx_interrupt"/>
                                           <setting name="EthCtrlConfigEgressTransmitChannelWeight" value="1"/>
@@ -2367,7 +2367,7 @@
                                        <struct name="0">
                                           <setting name="Name" value="EthCtrlConfigIngressFifo_0"/>
                                           <setting name="EthCtrlConfigIngressFifoBufLenByte" value="1536"/>
-                                          <setting name="EthCtrlConfigIngressFifoBufTotal" value="5"/>
+                                          <setting name="EthCtrlConfigIngressFifoBufTotal" value="10"/>
                                           <setting name="EthCtrlConfigIngressFifoIdx" value="0"/>
                                           <setting name="EthCtrlConfigIngressFifoCallback" value="enet_rx_interrupt"/>
                                           <setting name="EthCtrlRxHeaderSplitFifoSupport" value="false"/>

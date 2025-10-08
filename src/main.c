@@ -50,6 +50,7 @@
 
 #include "EthTrcv.h"
 #include "EthIf_Cbk.h"
+#include "gptp_cbk.h"
 
 //define a vector of can queues (RTOS)
 #define CAN_COUNT 6
@@ -60,6 +61,7 @@
 QueueHandle_t eth_can_queues[CAN_COUNT];
 /*message queue to be filled with the message to be sent when button is pressed*/
 QueueHandle_t tx_queue_send;
+Gmac_Ip_TimestampType timestamp;
 
 const char* buttonMsg = "CANHUBK3";
 
@@ -148,12 +150,34 @@ void set_rgb_status(rgb_status status) {
 
 rgb_status error_st = RED;
 
+/*******************************************************************************
+ * Prototypes
+ ******************************************************************************/
+
+static void EEPROM_Init(void);
+static void EEPROM_Enqueue_Write(const uint8_t cu8Port,
+                                 const uint8_t cu8Offset,
+                                 const uint32_t cu32Length,
+                                 const uint8_t *cpu8Data);
+static void EEPROM_Write_Poll(void);
+static uint8_t EEPROM_Read(const uint8_t cu8Port,
+                           const uint8_t cu8Offset,
+                           const uint32_t cu32Length,
+                           uint8_t *pu8Data);
+static void EEPROM_Poll(void);
+static void Eth_Poll(void);
+static void Eth_PollLinkStatus(void);
+
 void HardFault_Handler(void)
 {
 	/* Hard fault occured */
 	set_rgb_status(error_st);
 	while(TRUE){};
 }
+
+/*******************************************************************************
+ * Local functions
+ ******************************************************************************/
 
 void button_sw1(void)
 {
@@ -217,6 +241,7 @@ void link_check(uint8 channel){
 
 	/* Increment 1ms = 1000000 ns. */
 	GPTP_PORT_IncFreeRunningTimer(MILLISECOND_IN_NS);
+	//get_current_time(&timestamp);
 
 	Task_Flag_1mS = 1;
 	if((Task_Flag_Cnt % 10) == 0)
@@ -236,6 +261,255 @@ void link_check(uint8 channel){
 	u64PitIsrCountMs++;
 
 	return;
+}
+
+///*******************************************************************************
+// * EEPROM FUNCTIONS
+// ******************************************************************************/
+//
+///*!
+// * @brief           This function initializes all components necessary for
+// *                  simulated EEPROM in data flash.
+// *
+// * @details         This function prepares cache data entries, enables MemmAcc
+// *                  and Fee.
+//*/
+static void EEPROM_Init(void)
+{
+//    uint32_t u32PortCacheEntry;
+//    uint32_t u32PortDataEntry;
+//
+//    /* Prepare cache default values. */
+//    for (u32PortCacheEntry = 0u; u32PortCacheEntry < (PORT_COUNT * PORT_DATA_ENTRY_COUNT); u32PortCacheEntry++)
+//    {
+//        sarPerPortData[u32PortCacheEntry].eState = WRITE_COMPLETE;
+//        sarPerPortData[u32PortCacheEntry].u8Offset = PORT_DATA_ENTRY_SIZE * u32PortCacheEntry;
+//
+//        for (u32PortDataEntry = 0u; u32PortDataEntry < PORT_DATA_ENTRY_SIZE; u32PortDataEntry++)
+//        {
+//            sarPerPortData[u32PortCacheEntry].au8Data[u32PortDataEntry] = 0u;
+//        }
+//    }
+//
+//    /* Init MemAcc. */
+//    MemAcc_Init(NULL_PTR);
+//
+//    /* Init Fee. */
+//    Fee_Init(NULL_PTR);
+//
+//    /* Perform init Fee driver. */
+//    do
+//    {
+//        EEPROM_Poll();
+//    } while (MEMIF_IDLE != seMemStatus);
+}
+//
+///*!
+// * @brief           This function queues up data to be written to EEPROM.
+// *
+// * @param[in]       cu8Port Port ID.
+// * @param[in]       cu8Offset EEPROM address offset.
+// * @param[in]       cu32Length Data length.
+// * @param[in]       cpu8Data Data to be enqueued.
+//*/
+static void EEPROM_Enqueue_Write(const uint8_t cu8Port,
+                                 const uint8_t cu8Offset,
+                                 const uint32_t cu32Length,
+                                 const uint8_t *cpu8Data)
+{
+//    const uint32_t cu32Idx = (PORT_DATA_ENTRY_COUNT * cu8Port) + cu8Offset;
+//    uint32_t       u32Entry;
+//
+//    if ((cu32Length <= PORT_DATA_ENTRY_SIZE) &&
+//        (cu32Idx < (PORT_COUNT * PORT_DATA_ENTRY_COUNT)))
+//    {
+//        for (u32Entry = 0u; u32Entry < cu32Length; u32Entry++)
+//        {
+//            sarPerPortData[cu32Idx].au8Data[u32Entry] = cpu8Data[u32Entry];
+//        }
+//        sarPerPortData[cu32Idx].eState = WRITE_PENDING;
+//    }
+}
+//
+///*!
+// * @brief           Executes actual write to EEPROM.
+// *
+// * @details         This function goes through the cache entry and executes
+// *                  write above the first entry which has a WRITE_PENING state.
+//*/
+static void EEPROM_Write_Poll(void)
+{
+//    boolean  bIsWriteInProgress = false;
+//    uint32_t u32PortCacheEntry;
+//    uint16_t u16BlockNumber;
+//
+//    EEPROM_Poll();
+//    if (MEMIF_IDLE == seMemStatus)
+//    {
+//        /* Clear status of previous write. */
+//        for (u32PortCacheEntry = 0u; u32PortCacheEntry < (PORT_COUNT * PORT_DATA_ENTRY_COUNT); u32PortCacheEntry++)
+//        {
+//            if (WRITE_IN_PROGRESS == sarPerPortData[u32PortCacheEntry].eState)
+//            {
+//                sarPerPortData[u32PortCacheEntry].eState = WRITE_COMPLETE;
+//            }
+//        }
+//        /* Write data from cache entry. */
+//        for (u32PortCacheEntry = 0u; u32PortCacheEntry < (PORT_COUNT * PORT_DATA_ENTRY_COUNT); u32PortCacheEntry++)
+//        {
+//            if ((WRITE_PENDING == sarPerPortData[u32PortCacheEntry].eState) &&
+//                !bIsWriteInProgress)
+//            {
+//                bIsWriteInProgress = true;
+//                /* In case of necessity handle error. */
+//                u16BlockNumber = sarPerPortData[u32PortCacheEntry].u8Offset == PDELAY_IDX_OFFSET ? FeeConf_FeeBlockConfiguration_FeeBlockConfiguration_0 : FeeConf_FeeBlockConfiguration_FeeBlockConfiguration_1;
+//                Fee_Write(u16BlockNumber, sarPerPortData[u32PortCacheEntry].au8Data);
+//                sarPerPortData[u32PortCacheEntry].eState = WRITE_IN_PROGRESS;
+//            }
+//        }
+//    }
+}
+//
+///*!
+// * @brief           This function reads data from EEPROM.
+// *
+// * @param[in]       cu8Port Port ID.
+// * @param[in]       cu8Offset EEPROM address offset.
+// * @param[in]       cu32Length Data length.
+// * @param[out]      pu8Data Data to be read.
+// *
+// * @return          0 on success.
+//*/
+static uint8_t EEPROM_Read(const uint8_t cu8Port,
+                           const uint8_t cu8Offset,
+                           const uint32_t cu32Length,
+                           uint8_t *pu8Data)
+{
+    uint8_t        u8Ret = 0u;
+//    const uint32_t cu32Idx = (PORT_DATA_ENTRY_COUNT * cu8Port) + cu8Offset;
+//    uint32_t       u32Entry;
+//    uint16_t       u16BlockNumber;
+//
+//    if (cu32Idx >= (PORT_COUNT * PORT_DATA_ENTRY_COUNT))
+//    {
+//        u8Ret = 1u;
+//    }
+//    else
+//    {
+//        /* If data is about to be written or is being written at the moment,
+//           get the value from cache. */
+//        if ((WRITE_IN_PROGRESS == sarPerPortData[cu32Idx].eState) ||
+//            (WRITE_PENDING == sarPerPortData[cu32Idx].eState))
+//        {
+//            for (u32Entry = 0u; u32Entry < cu32Length; u32Entry++)
+//            {
+//                pu8Data[u32Entry] = sarPerPortData[cu32Idx].au8Data[u32Entry];
+//            }
+//        }
+//        else
+//        {
+//            u16BlockNumber = sarPerPortData[cu32Idx].u8Offset == PDELAY_IDX_OFFSET ? FeeConf_FeeBlockConfiguration_FeeBlockConfiguration_0 : FeeConf_FeeBlockConfiguration_FeeBlockConfiguration_1;
+//
+//            /* Read data block. */
+//            Fee_Read(u16BlockNumber, 0u, pu8Data, cu32Length);
+//
+//            /* Perform read data form Block 0. */
+//            do
+//            {
+//                EEPROM_Poll();
+//            } while (MEMIF_IDLE != seMemStatus);
+//        }
+//    }
+
+    return u8Ret;
+}
+//
+///*!
+// * @brief           Executes actual EEPROM command.
+// *
+// * @details         This function call Fls/Fee main functions to execute
+// *                  necessary actions.
+//*/
+static void EEPROM_Poll(void)
+{
+//    Fee_MainFunction();
+//    MemAcc_MainFunction();
+//    seMemStatus = Fee_GetStatus();
+}
+
+//
+///*!
+// * @brief           This function configures PPS output.
+// *
+// * @details         This function configures PPS output parameters.
+// *
+// * @param[in]       u8PPSCtrl Configuration of PPSCTRL field of MAC_PPS_CONTROL
+// *                  register:
+// *                      0 - 1Hz, short 20ns pulse
+// *                      1 - 1Hz, 50% duty cycle
+// *                      2 - 2Hz, 50% duty cycle
+// *                      3 - 4Hz, 50% duty cycle
+// *                      4 - 8Hz, 50% duty cycle
+// *                      .....
+// *                      15 - 32.768 kHz, 50% duty cycle
+//*/
+//static void Eth_Configure_1PPS_Output(uint8_t u8PPSCtrl)
+//{
+//    /* Clear the current PPSCTRL setting. */
+//    Gmac_apxBases[0]->MAC_PPS_CONTROL &= ~GMAC_MAC_PPS_CONTROL_PPSCTRL_PPSCMD_MASK;
+//     /* Set 1PPS output to 1Hz and 50% duty cycle. */
+//    Gmac_apxBases[0]->MAC_PPS_CONTROL |= GMAC_MAC_PPS_CONTROL_PPSCTRL_PPSCMD(u8PPSCtrl);
+//}
+//
+///*!
+// * @brief           Callback function for EEPROM write.
+//*/
+uint8_t EEPROM_Write_CB(uint8_t u8PdelayMachine,
+                        gptp_def_nvm_data_t eNvmDataType,
+                        float64_t f64Value,
+                        gptp_def_mem_write_stat *peWriteStat)
+{
+//    uint8_t u8Offset = eNvmDataType == GPTP_DEF_NVM_PDELAY ? PDELAY_IDX_OFFSET : RRATIO_IDX_OFFSET;
+//    uint8_t au8Data[PORT_DATA_ENTRY_SIZE];
+//    uint8_t u8Idx;
+//
+//    if (GPTP_DEF_MEM_WRITE_INIT == *peWriteStat)
+//    {
+//        for (u8Idx = 0u; u8Idx < PORT_DATA_ENTRY_SIZE; u8Idx++)
+//        {
+//           au8Data[u8Idx] = ((uint8_t*)&f64Value)[u8Idx];
+//        }
+//
+//        EEPROM_Enqueue_Write(u8PdelayMachine, u8Offset, PORT_DATA_ENTRY_SIZE,
+//                             au8Data);
+//
+//        *peWriteStat = GPTP_DEF_MEM_WRITE_FINISH;
+//    }
+//
+    return 0u;
+}
+//
+///*!
+// * @brief           Callback function for EEPROM read.
+//*/
+uint8_t EEPROM_Read_CB(uint8_t u8PdelayMachine,
+                       gptp_def_nvm_data_t eNvmDataType,
+                       float64_t *f64Value)
+{
+//    uint8_t u8Status;
+//    uint8_t u8Offset = eNvmDataType == GPTP_DEF_NVM_PDELAY ? PDELAY_IDX_OFFSET : RRATIO_IDX_OFFSET;
+//    uint8_t au8Data[PORT_DATA_ENTRY_SIZE];
+//    uint8_t u8Idx;
+//
+//    u8Status = EEPROM_Read(u8PdelayMachine, u8Offset, PORT_DATA_ENTRY_SIZE,
+//                           au8Data);
+//
+//    for (u8Idx = 0u; u8Idx < PORT_DATA_ENTRY_SIZE; u8Idx++)
+//    {
+//       ((uint8_t*)f64Value)[u8Idx] = au8Data[u8Idx];
+//    }
+//
+//   return u8Status;
 }
 
 static void Eth_PollLinkStatus(void)
@@ -417,6 +691,7 @@ int main(void)
 				if(Task_Flag_2mS){
 					Task_Flag_2mS = 0;
 
+					//printf("current sys time 1ms %u s %u ns\r\n", timestamp.seconds, timestamp.nanoseconds);
 					Eth_PollLinkStatus();
 					Eth_Poll();
 					/* Add task call for 1ms interval */
@@ -431,7 +706,8 @@ int main(void)
 				}
 				if(Task_Flag_1000mS){
 					//printf("Hello\r\n");
-					send_eth_frame_lld(&customMessage_ipv4);
+					Task_Flag_1000mS = 0;
+					//send_eth_frame_lld(&customMessage_ipv4);
 				}
 
 				/* If User button1 event is detected. */

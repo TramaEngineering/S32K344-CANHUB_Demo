@@ -63,7 +63,6 @@
 #define DEV_SUPER_CONFIG_ENA_FLAG		(1 << 13)
 #define DEV_SUPER_CONFIG_DIS_FLAG		0XFFFF & ~(1 << 13)
 #define PHY_CONFIG_EN_FLAG 				(0x4000U)
-#define MAX_TX_PENDING 					6U
 
 /*TS register macro*/
 #define SUPER_CONFIG_ENABLE			(0x2000U) //enable reconfiguration regiters to enable ptp timestamping
@@ -847,8 +846,9 @@ Gmac_Ip_StatusType enet_init(void) {
 			printf("TS Tx delay set to 77 ns!\r\n");
 	}
 
-	while((ptp_clk_period & 0x000F) != 0x000F){
-		ptp_clk_period |= 0x000F;
+	while((ptp_clk_period & 0x0008) != 0x0008){
+		/*8ns*/
+		ptp_clk_period |= 0x0008;
 		Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, 0x1104, ptp_clk_period, 100);
 
 		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, 0x1104, &ptp_clk_period, 100);
@@ -911,6 +911,7 @@ Gmac_Ip_StatusType enet_init(void) {
 void eth_rx_check(void){
 		volatile Gmac_Ip_StatusType Status;
 		Gmac_Ip_BufferType RxBuffer = {0};
+		Gmac_Ip_BufferType RxBuffer_cpy = {0};
 		Gmac_Ip_RxInfoType RxInfo  = {0};
 		boolean IsBroadcast;
 		uint16 PayloadLength, etherType;
@@ -923,15 +924,17 @@ void eth_rx_check(void){
 		/* If no packet, Wait for the frame to be received */
 		if (Status != GMAC_STATUS_RX_QUEUE_EMPTY) {
 				//TODO implement function that make blink the pink led
-				const struct ethernet_frame* ether_frame = (struct ethernet_frame*)RxBuffer.Data;
 				Gmac_Ip_ProvideRxBuff(INST_GMAC_0, 0U, &RxBuffer);
 
+				memcpy(RxBuffer_cpy.Data, RxBuffer.Data, RxBuffer.Length);
+				struct ethernet_frame* ether_frame = (struct ethernet_frame*)RxBuffer_cpy.Data;
 				IsBroadcast = (ether_frame->dst_macaddr[0] == 0xFF) && (ether_frame->dst_macaddr[1] == 0xFF) && (ether_frame->dst_macaddr[2] == 0xFF) && (ether_frame->dst_macaddr[3] == 0xFF) && (ether_frame->dst_macaddr[4] == 0xFF) && (ether_frame->dst_macaddr[5] == 0xFF);
 				PayloadLength = RxInfo.PktLen-((2*ETH_ALEN)+2);
 				etherType = SWAP16(ether_frame->ether_type);
 
 				get_ts_ingress_data(&srIngressTimeStamp);
 				frame_data = (const Eth_DataType*)ether_frame->data;
+
 
 				//get_ltc_counter(&currentTime);
 
@@ -966,17 +969,17 @@ void enet_tx_free_buffer(void){
 			else if(trasmit_status == GMAC_STATUS_SUCCESS){
 				/*I have to call EthIf function to pass timestamp to the state machine*/
 				/*second parameter has to be the BufIdx*/
-				/*DONE: Get the timestamp TX from the HW on exit*/
+				/*DONE: Get the timestamp TX from the HW on exit to be passed to EthIf_TxConfirmation*/
 				get_ts_egress_data(&srEgressTimeStamp);
-				//printf("Egress timestamp: %u s %u ns\r\n",srEgressTimeStamp.seconds, srEgressTimeStamp.nanoseconds);
 				EthIf_TxConfirmation(CFG_PHY_CTRL_IDX, index, trasmit_status, srEgressTimeStamp);
 				bufferQueue[index].inUse = FALSE;
 				ether_frame = (struct ethernet_frame*)TxBuffer.Data;
-				if(ether_frame->data[0] == 0x13 ||  ether_frame->data[0] == 0x10){//sending Pdelay resp or sync
+				if(ether_frame->data[0] == 0x13 || ether_frame->data[0] == 0x1A){//sending Pdelay resp or sync
 					//Magenta
 					Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
 					Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
 					Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
+					//printf("Egress timestamp %d: %u s %u ns\r\n",ether_frame->data[0], srEgressTimeStamp.seconds, srEgressTimeStamp.nanoseconds);
 				}
 				else{
 					//Yellow if not gPTP

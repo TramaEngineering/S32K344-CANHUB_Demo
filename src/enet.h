@@ -54,7 +54,7 @@ extern "C"{
 
 #define eth_TASK_PRIORITY                ( tskIDLE_PRIORITY + 2 )
 #define eth_TASK_PRIORITY_1              ( tskIDLE_PRIORITY + 1 )
-#define MAX_TX_PENDING 					6U
+#define MAX_TX_PENDING 					10U
 
 /*==================================================================================================
  *                                      LOCAL VARIABLES
