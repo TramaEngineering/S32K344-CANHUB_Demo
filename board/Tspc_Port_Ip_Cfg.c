@@ -126,7 +126,7 @@ PortContainer_0_BOARD_InitPeripherals:
   - {pin_num: '138', peripheral: SIUL2, signal: 'gpio, 126', pin_signal: PTD30, direction: OUTPUT, InitValue: state_1}
   - {pin_num: '139', peripheral: SIUL2, signal: 'gpio, 127', pin_signal: PTD31, direction: OUTPUT}
   - {pin_num: '15', peripheral: SIUL2, signal: 'eirq, 5', pin_signal: PTA25}
-  - {pin_num: '35', peripheral: SIUL2, signal: 'eirq, 31', pin_signal: PTD15}
+  - {pin_num: '35', peripheral: SIUL2, signal: 'eirq, 31', pin_signal: PTD15, identifier: ''}
   - {pin_num: '46', peripheral: EMAC, signal: emac_mii_rmii_mdc, pin_signal: PTE8}
   - {pin_num: '34', peripheral: EMAC, signal: emac_mii_rmii_mdio, pin_signal: PTD16, direction: INPUT/OUTPUT}
   - {pin_num: '62', peripheral: EMAC, signal: 'emac_mii_rmii_rxd, 0', pin_signal: PTC0}
@@ -156,6 +156,7 @@ PortContainer_0_BOARD_InitPeripherals:
   - {pin_num: '171', peripheral: LPUART2, signal: lpuart2_tx, pin_signal: PTA9, direction: OUTPUT}
   - {pin_num: '119', peripheral: SIUL2, signal: 'gpio, 100', pin_signal: PTD4, direction: OUTPUT}
   - {pin_num: '31', peripheral: LPSPI3, signal: lpspi3_pcs0, pin_signal: PTD17, direction: OUTPUT}
+  - {pin_num: '39', peripheral: SIUL2, signal: 'gpio, 31', pin_signal: PTA31, direction: OUTPUT}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */

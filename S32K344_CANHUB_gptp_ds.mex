@@ -53,7 +53,8 @@
                <pin_label pin_num="138" pin_signal="PTD30" label="CAN5_EN" identifier="CAN5_EN"/>
                <pin_label pin_num="139" pin_signal="PTD31" label="LED_CAN5" identifier="LED_CAN5"/>
                <pin_label pin_num="15" pin_signal="PTA25" label="USER_SW2"/>
-               <pin_label pin_num="35" pin_signal="PTD15" label="USER_SW1"/>
+               <pin_label pin_num="35" pin_signal="PTD15" label="USER_SW1" identifier="TP_31"/>
+               <pin_label pin_num="39" pin_signal="PTA31" label="TP31" identifier="TP31"/>
             </pin_labels>
             <external_user_signals>
                <routingDetailsColumns/>
@@ -189,7 +190,11 @@
                      </pin_features>
                   </pin>
                   <pin peripheral="SIUL2" signal="eirq, 5" pin_num="15" pin_signal="PTA25"/>
-                  <pin peripheral="SIUL2" signal="eirq, 31" pin_num="35" pin_signal="PTD15"/>
+                  <pin peripheral="SIUL2" signal="eirq, 31" pin_num="35" pin_signal="PTD15">
+                     <pin_features>
+                        <pin_feature name="identifier" value=""/>
+                     </pin_features>
+                  </pin>
                   <pin peripheral="EMAC" signal="emac_mii_rmii_mdc" pin_num="46" pin_signal="PTE8"/>
                   <pin peripheral="EMAC" signal="emac_mii_rmii_mdio" pin_num="34" pin_signal="PTD16">
                      <pin_features>
@@ -243,6 +248,11 @@
                      </pin_features>
                   </pin>
                   <pin peripheral="LPSPI3" signal="lpspi3_pcs0" pin_num="31" pin_signal="PTD17">
+                     <pin_features>
+                        <pin_feature name="direction" value="OUTPUT"/>
+                     </pin_features>
+                  </pin>
+                  <pin peripheral="SIUL2" signal="gpio, 31" pin_num="39" pin_signal="PTA31">
                      <pin_features>
                         <pin_feature name="direction" value="OUTPUT"/>
                      </pin_features>

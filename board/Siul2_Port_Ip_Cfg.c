@@ -126,7 +126,7 @@ PortContainer_0_BOARD_InitPeripherals:
   - {pin_num: '138', peripheral: SIUL2, signal: 'gpio, 126', pin_signal: PTD30, direction: OUTPUT, InitValue: state_1}
   - {pin_num: '139', peripheral: SIUL2, signal: 'gpio, 127', pin_signal: PTD31, direction: OUTPUT}
   - {pin_num: '15', peripheral: SIUL2, signal: 'eirq, 5', pin_signal: PTA25}
-  - {pin_num: '35', peripheral: SIUL2, signal: 'eirq, 31', pin_signal: PTD15}
+  - {pin_num: '35', peripheral: SIUL2, signal: 'eirq, 31', pin_signal: PTD15, identifier: ''}
   - {pin_num: '46', peripheral: EMAC, signal: emac_mii_rmii_mdc, pin_signal: PTE8}
   - {pin_num: '34', peripheral: EMAC, signal: emac_mii_rmii_mdio, pin_signal: PTD16, direction: INPUT/OUTPUT}
   - {pin_num: '62', peripheral: EMAC, signal: 'emac_mii_rmii_rxd, 0', pin_signal: PTC0}
@@ -156,6 +156,7 @@ PortContainer_0_BOARD_InitPeripherals:
   - {pin_num: '171', peripheral: LPUART2, signal: lpuart2_tx, pin_signal: PTA9, direction: OUTPUT}
   - {pin_num: '119', peripheral: SIUL2, signal: 'gpio, 100', pin_signal: PTD4, direction: OUTPUT}
   - {pin_num: '31', peripheral: LPSPI3, signal: lpspi3_pcs0, pin_signal: PTD17, direction: OUTPUT}
+  - {pin_num: '39', peripheral: SIUL2, signal: 'gpio, 31', pin_signal: PTA31, direction: OUTPUT}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -1240,6 +1241,20 @@ const Siul2_Port_Ip_PinSettingsConfig g_pin_mux_InitConfigArr_PortContainer_0_BO
         .outputBuffer                = PORT_OUTPUT_BUFFER_ENABLED,
         .adcInterleaves              = { MUX_MODE_NOT_AVAILABLE, MUX_MODE_NOT_AVAILABLE },
         .initValue                   = 2u
+    },
+    {
+        .base                        = IP_SIUL2,
+        .pinPortIdx                  = 31u,
+        .mux                         = PORT_MUX_AS_GPIO,
+        .safeMode                    = PORT_SAFE_MODE_DISABLED,
+        .inputFilter                 = PORT_INPUT_FILTER_NOT_AVAILABLE,
+        .pullConfig                  = PORT_INTERNAL_PULL_NOT_ENABLED,
+        .pullKeep                    = PORT_PULL_KEEP_DISABLED,
+        .invert                      = PORT_INVERT_DISABLED,
+        .inputBuffer                 = PORT_INPUT_BUFFER_DISABLED,
+        .outputBuffer                = PORT_OUTPUT_BUFFER_ENABLED,
+        .adcInterleaves              = { MUX_MODE_NOT_AVAILABLE, MUX_MODE_NOT_AVAILABLE },
+        .initValue                   = 0u
     },
 };
 

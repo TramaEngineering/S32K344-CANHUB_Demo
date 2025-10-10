@@ -834,6 +834,16 @@ Gmac_Ip_StatusType enet_init(void) {
 		if((rx_pipe_dly_ns & 0x019D) == 0x019D)
 			printf("TS Tx delay set to 413 ns!\r\n");
 	}
+	/*while(rx_pipe_dly_ns != 0x0000){
+			rx_pipe_dly_ns &= 0x0000;
+			Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, RX_PIPE_DLY_NS, rx_pipe_dly_ns, 100);
+
+			Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, RX_PIPE_DLY_NS, &rx_pipe_dly_ns, 100);
+			Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, RX_PIPE_DLY_NS, &rx_pipe_dly_ns, 100);
+
+			if((rx_pipe_dly_ns & 0x0000) == 0x0000)
+				printf("TS Tx delay set to 0 ns!\r\n");
+		}*/
 	while((tx_pipe_dly_ns & 0x004D) != 0x004D){
 		tx_pipe_dly_ns |= 0x004D;
 		Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, TX_PIPE_DLY_NS, tx_pipe_dly_ns, 100);
@@ -846,9 +856,9 @@ Gmac_Ip_StatusType enet_init(void) {
 			printf("TS Tx delay set to 77 ns!\r\n");
 	}
 
-	while((ptp_clk_period & 0x0008) != 0x0008){
+	while((ptp_clk_period & 0x000F) != 0x000F){
 		/*8ns*/
-		ptp_clk_period |= 0x0008;
+		ptp_clk_period |= 0x000F;
 		Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, 0x1104, ptp_clk_period, 100);
 
 		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, 0x1104, &ptp_clk_period, 100);
@@ -934,6 +944,9 @@ void eth_rx_check(void){
 
 				get_ts_ingress_data(&srIngressTimeStamp);
 				frame_data = (const Eth_DataType*)ether_frame->data;
+				if(ether_frame->data[0] == 0x12){
+					printf("T2: %u s \r\n", srIngressTimeStamp.seconds);
+				}
 
 
 				//get_ltc_counter(&currentTime);
@@ -974,14 +987,14 @@ void enet_tx_free_buffer(void){
 				EthIf_TxConfirmation(CFG_PHY_CTRL_IDX, index, trasmit_status, srEgressTimeStamp);
 				bufferQueue[index].inUse = FALSE;
 				ether_frame = (struct ethernet_frame*)TxBuffer.Data;
-				if(ether_frame->data[0] == 0x13 || ether_frame->data[0] == 0x1A){//sending Pdelay resp or sync
+				if(ether_frame->data[0] == 0x13){//sending Pdelay resp or sync
 					//Magenta
 					Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
 					Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
 					Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
-					//printf("Egress timestamp %d: %u s %u ns\r\n",ether_frame->data[0], srEgressTimeStamp.seconds, srEgressTimeStamp.nanoseconds);
+					printf("T3: %u s\r\n", srEgressTimeStamp.seconds);
 				}
-				else{
+				else if(ether_frame->data[0] == 0x1A){
 					//Yellow if not gPTP
 					Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
 					Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));

@@ -62,6 +62,7 @@ QueueHandle_t eth_can_queues[CAN_COUNT];
 /*message queue to be filled with the message to be sent when button is pressed*/
 QueueHandle_t tx_queue_send;
 Gmac_Ip_TimestampType timestamp;
+Gmac_Ip_TimestampType old_timestamp;
 
 const char* buttonMsg = "CANHUBK3";
 
@@ -232,7 +233,9 @@ int fs26SpiTransferFunction(uint8_t *TxBuffer, uint8_t *RxBuffer, uint16_t Lengt
 }
 void link_check(uint8 channel){
 	(void) channel;
-
+	Siul2_Dio_Ip_TogglePins(TP31_PORT, 1<<TP31_PIN);
+	//old_timestamp = timestamp;
+	//get_current_time(&timestamp);
 	/* toggle LED1 */
 	Task_Flag_Cnt++;
 
@@ -241,7 +244,6 @@ void link_check(uint8 channel){
 
 	/* Increment 1ms = 1000000 ns. */
 	GPTP_PORT_IncFreeRunningTimer(MILLISECOND_IN_NS);
-	//get_current_time(&timestamp);
 
 	Task_Flag_1mS = 1;
 	if((Task_Flag_Cnt % 10) == 0)
@@ -690,16 +692,14 @@ int main(void)
 				}
 				if(Task_Flag_2mS){
 					Task_Flag_2mS = 0;
-
-					//printf("current sys time 1ms %u s %u ns\r\n", timestamp.seconds, timestamp.nanoseconds);
-					Eth_PollLinkStatus();
+					//Eth_PollLinkStatus();
 					Eth_Poll();
 					/* Add task call for 1ms interval */
 
 				}
 				if(Task_Flag_10mS){
 					Task_Flag_10mS = 0;
-
+					//printf("difference 1ms %u s %u ns\r\n", timestamp.seconds/*-old_timestamp.seconds*/, timestamp.nanoseconds/*-old_timestamp.nanoseconds*/);
 					GPTP_TimerPeriodic();
 					/* Add task call for 10ms interval */
 

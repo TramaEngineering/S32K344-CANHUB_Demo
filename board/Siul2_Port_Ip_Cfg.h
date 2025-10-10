@@ -98,7 +98,7 @@ extern "C"{
 /*! @brief Definitions for PortContainer_0_BOARD_InitPeripherals Functional Group */
 
 /*! @brief User number of configured pins */
-#define NUM_OF_CONFIGURED_PINS_PortContainer_0_BOARD_InitPeripherals 51
+#define NUM_OF_CONFIGURED_PINS_PortContainer_0_BOARD_InitPeripherals 52
 
 #define PORT_START_SEC_CONFIG_DATA_UNSPECIFIED
 #include "Port_MemMap.h"
@@ -152,6 +152,8 @@ extern const Siul2_Port_Ip_PinSettingsConfig g_pin_mux_InitConfigArr_PortContain
 #define LED_CAN5_PORT           PTD_H_HALF
 #define CAN2_EN_PIN             4u
 #define CAN2_EN_PORT            PTD_L_HALF
+#define TP31_PIN                15u
+#define TP31_PORT               PTA_H_HALF
 
 /*==================================================================================================
                                            ENUMS
