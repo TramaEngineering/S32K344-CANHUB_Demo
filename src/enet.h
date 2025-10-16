@@ -69,8 +69,6 @@ extern Gmac_Ip_BufferType arpAnnouce;
 extern Gmac_Ip_BufferType pDelayResp;
 extern Gmac_Ip_BufferType buttonEthFrame;
 extern Gmac_Ip_BufferType customMessage_ipv4;
-extern Gmac_Ip_TimestampType srIngressTimeStamp;
-
 /*==================================================================================================
  *                                      GLOBAL CONSTANTS
 ==================================================================================================*/
@@ -127,8 +125,8 @@ void init_annouce(void);
 
 void send_eth_custom_frame(uint8 *message);
 
-void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp);
-void get_ts_egress_data(Gmac_Ip_TimestampType* srEgressTimeStamp);
+void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp, uint16 seq_id);
+void get_ts_egress_data(Gmac_Ip_TimestampType* srEgressTimeStamp, uint16 seq_id);
 
 void print_16(uint16_t *data);
 void print_32(uint32_t *data);

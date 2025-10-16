@@ -534,7 +534,6 @@ gptp_err_type_t GPTP_PORT_MsgSend(uint8_t u8Port,
 				eErrorGmac = Gmac_Ip_SendFrame(INST_GMAC_0, 0U, &TxBuffer, &TxOptions);
 			}
 			if(GMAC_STATUS_SUCCESS == eErrorGmac){
-				//Siul2_Dio_Ip_TogglePins(LED1_PORT, 1<<LED1_PIN);
 				/*add buffer in bufferQueue to be free after sending completion*/
 				DescrBuffer newBuffItem = { .Data = TxBuffer.Data, .Length = TxBuffer.Length, .ring = 0U, .inUse = TRUE};
 				for(uint8 index = 0; index < MAX_TX_PENDING; index++){
@@ -552,57 +551,6 @@ gptp_err_type_t GPTP_PORT_MsgSend(uint8_t u8Port,
 			eError = GPTP_ERR_M_MSG_BUFF_PTR_NULL;
 		}
 
-
-        /* The buffer is provided with desired length. */
-//        if ((BUFREQ_OK == eBufStatus) &&
-//            (NULL != spu8Buffer) &&
-//            (su16BufferLength >= u16PTPFramePayloadLength))
-//        {
-//            /* Copy only payload of the gPTP generated frame to buffer provided
-//               by Eth_43 driver. */
-//            for (uint16_t i = 0u; i < u16PTPFramePayloadLength; i++)
-//            {
-//                spu8Buffer[i] = cprTxData->pau8TxBuffPtr[GPTP_DEF_ETH_II_LEN + i];
-//            }
-//
-//            /* If timestmp for this frame is requested by the gPTP stack. */
-//            if (true == cprTxData->bTsRequested)
-//            {
-//                /* Instruct the Ethernet driver to capture timestamp of egress
-//                   ethernet frame associated with buffIdx. */
-//        			/*DONE: in in the bsp by enabling timestamp in the MAC*/
-//                /*Eth_43_GMAC_EnableEgressTimeStamp(u8PhyPort, seBuffIdx);*/
-//
-//                /* Only store frame metadata if egress timestamp is required
-//                   by stack. */
-//                if (NULL != cprTxData->prFrameMap)
-//                {
-//                    /* Store frame metadata before transmission.
-//                       Timestamp in metadata is inserted in TxConfirmation. */
-//                    cprTxData->prFrameMap->u8PtpFrameId = u8FrameId;
-//                    cprTxData->prFrameMap->u32BufferIndex = seBuffIdx;
-//                    cprTxData->prFrameMap->eTsEntryStatus = GPTP_DEF_TS_MAP_ENTRY_ENQUEUED;
-//                }
-//            }
-//
-//            /* Enable transmission, destination MAC address is taken from
-//               generated PTP frame, which contains full eth header. */
-//        		/*DONE: change embedded in the send_eth_frame_lld function that call GMAC functions*/
-//            /*eStatus = Eth_43_GMAC_Transmit(u8PhyPort, seBuffIdx,
-//                                           GPTP_FR_ETH_TYPE_PTP, true,
-//                                           u16PTPFramePayloadLength,
-//                                           &cprTxData->pau8TxBuffPtr[0]);*/
-//            if ((Std_ReturnType)E_OK != eStatus)
-//            {
-//                /* Transmission falied. */
-//                eError = GPTP_ERR_F_FRAME_SEND;
-//            }
-//        }
-//        else
-//        {
-//            /* No Tx buffer. */
-//            eError = GPTP_ERR_M_MSG_BUFF_PTR_NULL;
-//        }
         if(eErrorGmac == GMAC_STATUS_TX_QUEUE_FULL){
         	eError = GPTP_ERR_F_FRAME_SEND;
         }
@@ -717,8 +665,6 @@ gptp_def_timestamp_t GPTP_PORT_CurrentTimeGet(gptp_def_ts_type_t eTsType)
                                                  &srEthTimestamp);*/
         	//I should take the time hw from the time base of the freerunning timer
         	eStatus = get_current_time(&TimeStamp);
-
-			//Gmac_Ip_GetSysTime(INST_GMAC_0, &TimeStamp);
 
 			srEthTimestamp.nanoseconds = TimeStamp.nanoseconds;
 			srEthTimestamp.seconds = TimeStamp.seconds;
@@ -1049,8 +995,6 @@ gptp_err_type_t GPTP_PORT_GetSwitchTimes(gptp_def_timestamp_t *prFreeRunClk,
     /*DONE: change*/
     /*eStatus = Eth_43_GMAC_GetCurrentTime(GPTP_PORT_ETH_CTRL_IDX,
                                          &seTimeStampQuality, &srTimeStamp);*/
-
-	//Gmac_Ip_GetSysTime(INST_GMAC_0, &TimeStamp);
 
     eStatus = get_current_time(&TimeStamp);
 
