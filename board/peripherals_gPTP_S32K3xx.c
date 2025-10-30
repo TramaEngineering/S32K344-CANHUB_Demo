@@ -47,7 +47,7 @@ component:
 /* clang-format on */
 
 /*******************************************************************************
- * Included files 
+ * Included file
  ******************************************************************************/
 #include "peripherals_gPTP_S32K3xx.h"
 
@@ -75,11 +75,11 @@ instance:
       - f64RratioMaxDev: '0.01'
       - f64PdelayNvmWriteThr: '40'
       - f64RratioNvmWriteThr: '0.0000001'
-      - bVlanEnabled: 'false'
+      - bVlanEnabled: 'true'
       - u16VlanTci:
         - u16VlanTci_PCP: '7'
-        - u16VlanTci_DEI: 'true'
-        - u16VlanTci_VID: '4095'
+        - u16VlanTci_DEI: 'false'
+        - u16VlanTci_VID: '0'
       - PIControllerConfig:
         - u32IntegralWindupLimit: '100000'
         - f64DampingRatio: '1.0'
@@ -118,8 +118,8 @@ instance:
         - u32SyncOutlierThrNs: '10000'
         - u8OutlierIgnoreCnt: '2'
         - u16VlanTci:
-          - u16VlanTci_PCP: '1'
-          - u16VlanTci_DEI: 'true'
+          - u16VlanTci_PCP: '7'
+          - u16VlanTci_DEI: 'false'
           - u16VlanTci_VID: '0'
         - GptpDefInitParamsSync:
           - 0:
@@ -240,7 +240,7 @@ static gptp_def_init_params_domain_t    sarInitParamsDomains[GPTP_CFG_CNT_OF_DOM
 #ifdef GPTP_COUNTERS
         .prCntrsDom = sarDom0Cntrs,
 #endif /* GPTP_COUNTERS */
-        .u16VlanTci = (uint16_t)((1u << 13u) | (1u << 12u) | (0u))
+        .u16VlanTci = (uint16_t)((7u << 13u) | (0u << 12u) | (0u))
     },
 };
 
@@ -300,8 +300,8 @@ gptp_def_init_params_t                  rGptpCfgParams =
     .paPort = sarPort,
     .paDomain = sarDomain,
     .paPdelay = sarPdelay,
-    .bVlanEnabled = false,
-    .u16VlanTci = (uint16_t)((7u << 13u) | (1u << 12u) | (4095u)),
+    .bVlanEnabled = true,
+    .u16VlanTci = (uint16_t)((7u << 13u) | (0u << 12u) | (0u)),
     .rPIControllerConfig.u32IntegralWindupLimit = 100000u,
     .rPIControllerConfig.f64DampingRatio = 1.0,
     .rPIControllerConfig.f64NatFreqRatio = 12.0,

@@ -395,7 +395,7 @@ gptp_err_type_t GPTP_FRAME_ParseRx(gptp_def_rx_data_t* rRxData,
             u8HdrOffset = u8HdrOffset + GPTP_DEF_ETH_VLAN_LEN;
 
             /* If not PTP ETH type, register error don't allow to process the frame */
-            u16EthType = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset]);
+            u16EthType = GPTP_MD_ArrayToUint16(&(rRxData->cpu8RxData)[u8HdrOffset-2]);
             if (GPTP_FR_ETH_TYPE_PTP != u16EthType)
             {
                 GPTP_ERR_Register(rRxData->u8PtpPort, GPTP_ERR_DOMAIN_NOT_SPECIF, GPTP_ERR_M_NO_ETH_TYPE_PTP, 0u);

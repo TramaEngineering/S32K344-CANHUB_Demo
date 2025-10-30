@@ -40,7 +40,7 @@
 #define TJA1103_DEV_ID 				(0x001BU)
 #define RGMII_SUPPORTED 			(0U)
 #define CFG_PHY_CTRL_IDX        	(0U)
-#define VLAN_ACTIVE					(0U)
+#define VLAN_ACTIVE					(1U)
 
 /* MMDs */
 #define PHYAD                       18
@@ -980,12 +980,12 @@ void eth_rx_check(void){
 					//etherType = 0x88f7;
 					frame_data = ether_frame->data;
 					get_ltc_counter(&srIngressTimeStamp);
-					if(ether_frame->data[4] == 0x12){/*Pdelay req*/
-						seq_id = ether_frame->data[34]<<8 | ether_frame->data[35];
+					if(ether_frame->data[VLAN_ACTIVE*4] == 0x12){/*Pdelay req*/
+						seq_id = ether_frame->data[30+VLAN_ACTIVE*4]<<8 | ether_frame->data[31+VLAN_ACTIVE*4];
 						get_ts_ingress_data(&srIngressTimeStamp, seq_id);
 					}
+					EthIf_RxIndication(CFG_PHY_CTRL_IDX, etherType, IsBroadcast, (const uint8*)ether_frame->dst_macaddr, frame_data, PayloadLength, srIngressTimeStamp);
 				}
-				EthIf_RxIndication(CFG_PHY_CTRL_IDX, etherType, IsBroadcast, (const uint8*)ether_frame->dst_macaddr, frame_data, PayloadLength, srIngressTimeStamp);
 		}
 }
 
@@ -1115,6 +1115,7 @@ void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp, uint16 seq_i
 
 	uint16_t ingr_seq_id;
 	uint16_t reg_0, reg_1, reg_2, reg_3, reg_4, reg_5, reg_interrupt;
+	uint8_t time = 0;
 
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_1, &reg_1, 100);/*sequence id of ring buffer*/
 	/*check if TS has been overwritten*/
@@ -1124,15 +1125,16 @@ void get_ts_ingress_data(Gmac_Ip_TimestampType* srIngressTimeStamp, uint16 seq_i
 		//Gmac_Ip_MDIOWriteMMD(0,	PHYAD, MMD30, ING_RING_DONE, 0X0001, 100);
 	}
 	//to clear the ring buffer position
-	/*while(reg_1 != seq_id && reg_1 - seq_id < 4){
-		//clear the buffer until message is the correct one
-		Gmac_Ip_MDIOWriteMMD(0,	PHYAD, MMD30, ING_RING_DONE, 0X0001, 100);
-		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_1, &reg_1, 100);//sequence id of ring buffer
-		printf("clearing RX \r\n");
+	while(reg_1 != seq_id && time < 4){
+				//clear the buffer until message is the correct one
+				Gmac_Ip_MDIOWriteMMD(0,	PHYAD, MMD30, ING_RING_DONE, 0X0001, 100);
+				Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_1, &reg_1, 100);//sequence id of ring buffer
+				printf("clearing RX\r\n");
+				time++;
 	}
-	if(reg_1 - seq_id >= 4){
+	if(reg_1 != seq_id){
 		printf("Timestamping loss! \r\n");
-	}*/
+	}
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_0, &reg_0, 100);/*[7:0] domain number of ts ring buffer + [11:8] message type + [14:12]-[4:2]s*/
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_2, &reg_2, 100);/*[15:0] ns*/
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_3, &reg_3, 100);/*[13:0]-[29:16]ns + [15:14][1:0] s*/
@@ -1169,8 +1171,8 @@ void get_ts_egress_data(Gmac_Ip_TimestampType* srEgressTimeStamp, uint16 seq_id)
 		//to clear the ring buffer position
 		while(reg_1 != seq_id && time < 4){
 			//clear the buffer until message is the correct one
-			Gmac_Ip_MDIOWriteMMD(0,	PHYAD, MMD30, ING_RING_DONE, 0X0001, 100);
-			Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_1, &reg_1, 100);//sequence id of ring buffer
+			Gmac_Ip_MDIOWriteMMD(0,	PHYAD, MMD30, EGR_RING_DONE, 0X0001, 100);
+			Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, EGR_TS_1, &reg_1, 100);//sequence id of ring buffer
 			printf("clearing TX\r\n");
 			time++;
 		}
