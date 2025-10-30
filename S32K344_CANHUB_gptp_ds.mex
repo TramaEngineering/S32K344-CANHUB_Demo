@@ -2703,8 +2703,8 @@
                            <setting name="bVlanEnabled" value="false"/>
                            <struct name="u16VlanTci">
                               <setting name="u16VlanTci_PCP" value="7"/>
-                              <setting name="u16VlanTci_DEI" value="true"/>
-                              <setting name="u16VlanTci_VID" value="4095"/>
+                              <setting name="u16VlanTci_DEI" value="false"/>
+                              <setting name="u16VlanTci_VID" value="0"/>
                            </struct>
                            <struct name="PIControllerConfig">
                               <setting name="u32IntegralWindupLimit" value="100000"/>
@@ -2749,8 +2749,8 @@
                               <setting name="u32SyncOutlierThrNs" value="10000"/>
                               <setting name="u8OutlierIgnoreCnt" value="2"/>
                               <struct name="u16VlanTci">
-                                 <setting name="u16VlanTci_PCP" value="1"/>
-                                 <setting name="u16VlanTci_DEI" value="true"/>
+                                 <setting name="u16VlanTci_PCP" value="7"/>
+                                 <setting name="u16VlanTci_DEI" value="false"/>
                                  <setting name="u16VlanTci_VID" value="0"/>
                               </struct>
                               <array name="GptpDefInitParamsSync">

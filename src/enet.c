@@ -40,6 +40,7 @@
 #define TJA1103_DEV_ID 				(0x001BU)
 #define RGMII_SUPPORTED 			(0U)
 #define CFG_PHY_CTRL_IDX        	(0U)
+#define VLAN_ACTIVE					(0U)
 
 /* MMDs */
 #define PHYAD                       18
@@ -68,6 +69,7 @@
 #define SUPER_CONFIG_ENABLE			(0x2000U) //enable reconfiguration regiters to enable ptp timestamping
 #define PORT_FUNC_ENABLE			(0X8048U)
 #define PTP_CLK_PERIOD				(0x1104U) //set ptp clk period to 15ns because of 33.3MHz clock
+#define PKT_FILT_CTRL				(0x1140U) //set filter to get timestamp
 #define TX_PIPE_DLY_NS				(0x1149U) //set ts delay in tx
 #define RX_PIPE_DLY_NS				(0x114BU) //set ts delay in rx
 #define LTC_LOAD_CTRL				(0x1105U) //to capture the LTC
@@ -813,7 +815,7 @@ Gmac_Ip_StatusType enet_init(void) {
 
 	//RMII mode
 	IP_DCM_GPR->DCMRWF1 = (IP_DCM_GPR->DCMRWF1 & ~DCM_GPR_DCMRWF1_MAC_CONF_SEL_MASK) | DCM_GPR_DCMRWF1_MAC_CONF_SEL(2U);
-	uint16_t port_func, phy_control, ptp_clk_period, tx_pipe_dly_ns, rx_pipe_dly_ns, irq_en, reg_1, embed_ingress_ts, error_counter;
+	uint16_t port_func, phy_control, ptp_clk_period, tx_pipe_dly_ns, rx_pipe_dly_ns, irq_en, reg_1, embed_ingress_ts, error_counter, ctrl_filter;
 
 	/* Initialize and enable the GMAC module */
 	Gmac_Ip_StatusType Status_Init_Gmac = GMAC_STATUS_ERROR;
@@ -886,6 +888,22 @@ Gmac_Ip_StatusType enet_init(void) {
 //	//}
 //	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, RX_TS_INSRT_CTRL, &embed_ingress_ts, 100);
 	/*Read EVENT_MSG_FILT*/
+
+	if(VLAN_ACTIVE){
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, PKT_FILT_CTRL, &ctrl_filter, 100);
+		if((ctrl_filter & 0x4000) != 0x4000){ //check if vlan filter is active
+			ctrl_filter |= 0x4000;
+			Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, PKT_FILT_CTRL, ctrl_filter, 100);
+		}
+	}
+	else{
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, 0x1148, &ctrl_filter, 100);
+				if((ctrl_filter & 0x4000) == 0x4000){ //check if vlan filter is active
+					ctrl_filter = 0x0000;
+					Gmac_Ip_MDIOWriteMMD(0, PHYAD, MMD30, PKT_FILT_CTRL, ctrl_filter, 100);
+				}
+	}
+
 	Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, 0x1148, &embed_ingress_ts, 100);
 
 
@@ -958,11 +976,12 @@ void eth_rx_check(void){
 				IsBroadcast = (ether_frame->dst_macaddr[0] == 0xFF) && (ether_frame->dst_macaddr[1] == 0xFF) && (ether_frame->dst_macaddr[2] == 0xFF) && (ether_frame->dst_macaddr[3] == 0xFF) && (ether_frame->dst_macaddr[4] == 0xFF) && (ether_frame->dst_macaddr[5] == 0xFF);
 				PayloadLength = RxInfo.PktLen-((2*ETH_ALEN)+2);
 				etherType = SWAP16(ether_frame->ether_type);
-				if(etherType == 0x88f7){
-					frame_data = (const Eth_DataType*)ether_frame->data;
+				if((etherType == 0x8100 && ether_frame->data[2] == 0x88 && ether_frame->data[3] == 0xf7) || etherType == 0x88f7){
+					//etherType = 0x88f7;
+					frame_data = ether_frame->data;
 					get_ltc_counter(&srIngressTimeStamp);
-					if(ether_frame->data[0] == 0x12){
-						seq_id = ether_frame->data[30]<<8 | ether_frame->data[31];
+					if(ether_frame->data[4] == 0x12){/*Pdelay req*/
+						seq_id = ether_frame->data[34]<<8 | ether_frame->data[35];
 						get_ts_ingress_data(&srIngressTimeStamp, seq_id);
 					}
 				}
@@ -977,6 +996,7 @@ void enet_tx_free_buffer(void){
 	uint16 etherType, seq_id;
 	struct ethernet_frame* ether_frame;
 	Gmac_Ip_TimestampType srEgressTimeStamp, currentTime;
+	uint8 offset_vlan = 0;
 
 	for(uint8 index = 0; index < MAX_TX_PENDING && bufferQueue[index].inUse ; index++){
 			TxBuffer.Data = bufferQueue[index].Data;
@@ -996,17 +1016,22 @@ void enet_tx_free_buffer(void){
 
 				ether_frame = (struct ethernet_frame*)TxBuffer.Data;
 				etherType = SWAP16(ether_frame->ether_type);
-				if(etherType == 0x88f7){//If gPTP frame
-					if(ether_frame->data[0] == 0x13 || ether_frame->data[0] == 0x10){//sending Pdelay resp or sync
+				if(etherType == 0x8100){//If gPTP frame
+					offset_vlan = 4;
+				}
+				else{
+					offset_vlan = 0;
+				}
+				if(*(&ether_frame->ether_type+(offset_vlan/2)) == 0xf788){//If gPTP frame
+					seq_id = ether_frame->data[30+offset_vlan]<<8 | ether_frame->data[31+offset_vlan];
+					if(ether_frame->data[offset_vlan] == 0x13 || ether_frame->data[offset_vlan] == 0x10 || ether_frame->data[offset_vlan] == 0x12){//sending Pdelay resp or sync
 						//Magenta
-						seq_id = ether_frame->data[30]<<8 | ether_frame->data[31];
-						get_ts_egress_data(&srEgressTimeStamp, seq_id);
 						Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
 						Siul2_Dio_Ip_SetPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
 						Siul2_Dio_Ip_ClearPins(LED_BLUE_PORT, (1 << LED_BLUE_PIN));
-						//printf("T3: %u s\r\n", srEgressTimeStamp.seconds);
+						get_ts_egress_data(&srEgressTimeStamp, seq_id);
 					}
-					else if(ether_frame->data[0] == 0x1A){
+					else if(ether_frame->data[offset_vlan] == 0x1A){
 						/*Respdelay follow up*/
 						Siul2_Dio_Ip_ClearPins(LED_RED_PORT, (1 << LED_RED_PIN));
 						Siul2_Dio_Ip_ClearPins(LED_GREEN_PORT, (1 << LED_GREEN_PIN));
@@ -1132,24 +1157,26 @@ void get_ts_egress_data(Gmac_Ip_TimestampType* srEgressTimeStamp, uint16 seq_id)
 
 	uint16_t egr_seq_id;
 		uint16_t reg_0, reg_1, reg_2, reg_3, reg_4, reg_5, reg_interrupt;
+		uint8_t time = 0;
 
 		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, EGR_TS_1, &reg_1, 100);/*sequence id of ring buffer*/
 		/*check if TS has been overwritten*/
 		Gmac_Ip_MDIOReadMMD(0,	PHYAD, MMD30, PTP_IRQ_SOURCE, &reg_interrupt, 100);
-		if(MASK_ING_LOST(reg_interrupt) == 1){
+		if(MASK_EGR_LOST(reg_interrupt) == 1){
 			printf("Egr TS overwritten! \r\n");
 			//Gmac_Ip_MDIOWriteMMD(0,	PHYAD, MMD30, ING_RING_DONE, 0X0001, 100);
 		}
 		//to clear the ring buffer position
-		/*while(reg_1 != seq_id && reg_1 - seq_id < 4){
+		while(reg_1 != seq_id && time < 4){
 			//clear the buffer until message is the correct one
 			Gmac_Ip_MDIOWriteMMD(0,	PHYAD, MMD30, ING_RING_DONE, 0X0001, 100);
 			Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, INGR_TS_1, &reg_1, 100);//sequence id of ring buffer
 			printf("clearing TX\r\n");
+			time++;
 		}
-		if(reg_1 - seq_id >= 4){
+		if(reg_1 != seq_id){
 			printf("Timestamping loss! \r\n");
-		}*/
+		}
 		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, EGR_TS_0, &reg_0, 100);/*[7:0] domain number of ts ring buffer + [11:8] message type + [14:12]-[4:2]s*/
 		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, EGR_TS_2, &reg_2, 100);/*[15:0] ns*/
 		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, EGR_TS_3, &reg_3, 100);/*[13:0]-[29:16]ns + [15:14][1:0] s*/
@@ -1165,6 +1192,8 @@ void get_ts_egress_data(Gmac_Ip_TimestampType* srEgressTimeStamp, uint16 seq_id)
 		else{
 				printf("not valid TX TS!\r\n");
 			}
+		Gmac_Ip_MDIOReadMMD(0, PHYAD, MMD30, 0x1148U, &reg_0, 100);/*read timestmap filter*/
+		//print_16(&reg_0);
 		//printf("seq_id in :%u \r\n", reg_1);
 
 }
