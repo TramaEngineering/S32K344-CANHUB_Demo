@@ -692,7 +692,7 @@
             </dependency>
          </dependencies>
          <generated_project_files>
-            <file path="board/peripherals_gPTP_S32K3xx.c" update_enabled="false"/>
+            <file path="board/peripherals_gPTP_S32K3xx.c" update_enabled="true"/>
             <file path="board/peripherals_gPTP_S32K3xx.h" update_enabled="false"/>
             <file path="generate/include/DeviceDefinition.h" update_enabled="true"/>
             <file path="generate/include/FlexCAN_Ip_Cfg.h" update_enabled="true"/>
@@ -2704,7 +2704,7 @@
                            <struct name="u16VlanTci">
                               <setting name="u16VlanTci_PCP" value="7"/>
                               <setting name="u16VlanTci_DEI" value="false"/>
-                              <setting name="u16VlanTci_VID" value="0"/>
+                              <setting name="u16VlanTci_VID" value="1"/>
                            </struct>
                            <struct name="PIControllerConfig">
                               <setting name="u32IntegralWindupLimit" value="100000"/>
@@ -2751,7 +2751,7 @@
                               <struct name="u16VlanTci">
                                  <setting name="u16VlanTci_PCP" value="7"/>
                                  <setting name="u16VlanTci_DEI" value="false"/>
-                                 <setting name="u16VlanTci_VID" value="0"/>
+                                 <setting name="u16VlanTci_VID" value="1"/>
                               </struct>
                               <array name="GptpDefInitParamsSync">
                                  <struct name="0">
