@@ -133,6 +133,9 @@ extern "C"{
 /*==================================================================================================
 *                                 GLOBAL VARIABLE DECLARATIONS
 ==================================================================================================*/
+extern uint32_t Task_Flag_50uS;
+extern uint32_t Task_Flag_100uS;
+extern uint32_t Task_Flag_200uS;
 extern uint32_t Task_Flag_1mS;
 extern uint32_t Task_Flag_2mS;
 extern uint32_t Task_Flag_10mS;

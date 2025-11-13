@@ -244,22 +244,51 @@ void link_check(uint8 channel){
 	static volatile uint64_t u64PitIsrCountMs = 0;
 
 	/* Increment 1ms = 1000000 ns. */
-	GPTP_PORT_IncFreeRunningTimer(MILLISECOND_IN_NS);
+	//GPTP_PORT_IncFreeRunningTimer(MILLISECOND_IN_NS);
 
-	Task_Flag_1mS = 1;
-	if((Task_Flag_Cnt % 10) == 0)
-		Task_Flag_10mS = 1;
-	if((Task_Flag_Cnt % 2) == 0)
-			Task_Flag_2mS = 1;
-	if((Task_Flag_Cnt % 100) == 0)
-		Task_Flag_100mS = 1;
-	if((Task_Flag_Cnt % 200) == 0)
-			Task_Flag_200mS = 1;
-	if((Task_Flag_Cnt % 1000) == 0){
-		Task_Flag_1000mS = 1;
-		Task_Flag_Cnt = 0;
-	}
-	u64PitIsrCountMs++;
+	//	Task_Flag_1mS = 1;
+	//	if((Task_Flag_Cnt % 10) == 0)
+	//		Task_Flag_10mS = 1;
+	//	if((Task_Flag_Cnt % 2) == 0)
+	//			Task_Flag_2mS = 1;
+	//	if((Task_Flag_Cnt % 100) == 0)
+	//		Task_Flag_100mS = 1;
+	//	if((Task_Flag_Cnt % 200) == 0)
+	//			Task_Flag_200mS = 1;
+	//	if((Task_Flag_Cnt % 1000) == 0){
+	//		//Siul2_Dio_Ip_TogglePins(LED2_PORT, 1<<LED2_PIN);
+	//		Task_Flag_1000mS = 1;
+	//		Task_Flag_Cnt = 0;
+	//	}
+	//	u64PitIsrCountMs++;
+
+		Task_Flag_50uS = 1;
+		if((Task_Flag_Cnt % 2) == 0)
+			Task_Flag_100uS = 1;
+		if((Task_Flag_Cnt % 4) == 0)
+				Task_Flag_200uS = 1;
+		if((Task_Flag_Cnt % 20) == 0){
+			Task_Flag_1mS = 1;
+			u64PitIsrCountMs++;
+
+			//ENET_PPS_CLK_GEN(); /* to generate 500Hz clock output */
+
+			/* Increment 1ms = 1000000 ns. */
+			GPTP_PORT_IncFreeRunningTimer(MILLISECOND_IN_NS);
+		}
+		if((Task_Flag_Cnt % 200) == 0)
+			Task_Flag_10mS = 1;
+		if((Task_Flag_Cnt % 40) == 0)
+				Task_Flag_2mS = 1;
+		if((Task_Flag_Cnt % 2000) == 0)
+			Task_Flag_100mS = 1;
+		if((Task_Flag_Cnt % 4000) == 0)
+				Task_Flag_200mS = 1;
+		if((Task_Flag_Cnt % 20000) == 0){
+			//Siul2_Dio_Ip_TogglePins(LED2_PORT, 1<<LED2_PIN);
+			Task_Flag_1000mS = 1;
+			Task_Flag_Cnt = 0;
+		}
 
 	return;
 }
@@ -631,8 +660,10 @@ int main(void)
 	Pit_Ip_Init(PIT_0_IP_INSTANCE_NUMBER, &PIT_0_InitConfig_PB);
 	/*PIT channel initialization*/
 	Pit_Ip_InitChannel(PIT_0_IP_INSTANCE_NUMBER, &PIT_0_ChannelConfig_PB[0U]);
-	/*Start pit 0 channel 0*/
-	Pit_Ip_StartChannel(PIT_0_IP_INSTANCE_NUMBER, 0, 40000);/*400ms*/
+	//	/* Start PIT0 channel0, PIT0 clocks from AIPS_SLOW_CLK 40MHz, so here the timeout 40000 means 1mS */
+	//	Pit_Ip_StartChannel(PIT_0_IP_INSTANCE_NUMBER, 0, 40000);
+	/* Start PIT0 channel0, PIT0 clocks from AIPS_SLOW_CLK 40MHz, so here the timeout 2000 means 50uS */
+	Pit_Ip_StartChannel(PIT_0_IP_INSTANCE_NUMBER, 0, 2000);
 	/*enable channel interrupt*/
 	Pit_Ip_EnableChannelInterrupt(PIT_0_IP_INSTANCE_NUMBER, 0);
 	/*load the interrupt configuration*/
@@ -698,10 +729,14 @@ int main(void)
 					send_eth_frame_lld(&arpAnnouce);
 					annouce = 1;
 				}
+				if(Task_Flag_200uS){
+					Task_Flag_200uS = 0;
+					Eth_Poll();
+				}
 				if(Task_Flag_2mS){
 					Task_Flag_2mS = 0;
 					Eth_PollLinkStatus();
-					Eth_Poll();
+					//Eth_Poll();
 					//if(timestamp.seconds < old_timestamp.seconds)
 						//printf("old 2ms TS: %u s %u ns, new TS: %u s %u ns\r\n", old_timestamp.seconds,old_timestamp.seconds, timestamp.nanoseconds,timestamp.nanoseconds);
 					/* Add task call for 1ms interval */

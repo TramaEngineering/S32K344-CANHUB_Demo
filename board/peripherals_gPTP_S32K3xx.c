@@ -67,7 +67,7 @@ instance:
   - gPTP_S32K3xx:
     - Name: 'gPTP_S32K3xx'
     - GptpDefInitParams:
-      - u8EthFramePrio: '7'
+      - u8EthFramePrio: '0'
       - bSdoIdCompatibilityMode: 'false'
       - bSignalingEnabled: 'true'
       - f64PdelAvgWeight: '0.9'
@@ -75,7 +75,7 @@ instance:
       - f64RratioMaxDev: '0.01'
       - f64PdelayNvmWriteThr: '40'
       - f64RratioNvmWriteThr: '0.0000001'
-      - bVlanEnabled: 'true'
+      - bVlanEnabled: 'false'
       - u16VlanTci:
         - u16VlanTci_PCP: '7'
         - u16VlanTci_DEI: 'false'
@@ -283,7 +283,7 @@ static gptp_def_init_params_pdel_t      sarInitParamsPdel[GPTP_CFG_CNT_OF_PORTS]
 /* Main configuration structure. */
 gptp_def_init_params_t                  rGptpCfgParams =
 {
-    .u8EthFramePrio = 7,
+    .u8EthFramePrio = 0,
     .pcrPortMapTable = sarPortMapTable,
     .u8GptpPortsCount = (uint8_t)GPTP_CFG_CNT_OF_PORTS,
     .pcrPdelayMachinesParam = sarInitParamsPdel,
@@ -300,7 +300,7 @@ gptp_def_init_params_t                  rGptpCfgParams =
     .paPort = sarPort,
     .paDomain = sarDomain,
     .paPdelay = sarPdelay,
-    .bVlanEnabled = true,
+    .bVlanEnabled = false,
     .u16VlanTci = (uint16_t)((7u << 13u) | (0u << 12u) | (1u)),
     .rPIControllerConfig.u32IntegralWindupLimit = 100000u,
     .rPIControllerConfig.f64DampingRatio = 1.0,

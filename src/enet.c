@@ -40,7 +40,7 @@
 #define TJA1103_DEV_ID 				(0x001BU)
 #define RGMII_SUPPORTED 			(0U)
 #define CFG_PHY_CTRL_IDX        	(0U)
-#define VLAN_ACTIVE					(1U)
+#define VLAN_ACTIVE					(0U)
 
 /* MMDs */
 #define PHYAD                       18
