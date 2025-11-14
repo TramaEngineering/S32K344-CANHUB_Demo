@@ -462,7 +462,7 @@ gptp_err_type_t GPTP_PORT_MsgSend(uint8_t u8Port,
     Gmac_Ip_StatusType	  eErrorGmac;
     //BufReq_ReturnType     eBufStatus;
     gptp_err_type_t       eError;
-    static Eth_BufIdxType seBuffIdx;
+    static uint8 seBuffIdx;
     //static uint8_t        *spu8Buffer;
     static uint16_t       su16BufferLength;
     uint16_t              u16PTPFramePayloadLength;
@@ -513,18 +513,6 @@ gptp_err_type_t GPTP_PORT_MsgSend(uint8_t u8Port,
 		memcpy(TxBuffer.Data, cprTxData->pau8TxBuffPtr, (uint16)cprTxData->u8FrameLength);
 		TxBuffer.Length = (uint16)cprTxData->u8FrameLength;
 
-		if(true == cprTxData->bTsRequested){
-			/*capture timestamp of egress ehternet frame associated with buffIdx*/
-			/*already enabled in gmac initialization*/
-			if(NULL != cprTxData->prFrameMap){
-				/*store frame metadata before transmission.
-				 * Timestamp in metada is inserted in TxConfirmation.*/
-				cprTxData->prFrameMap->u8PtpFrameId = u8FrameId;
-				cprTxData->prFrameMap->u32BufferIndex = seBuffIdx;
-				cprTxData->prFrameMap->eTsEntryStatus = GPTP_DEF_TS_MAP_ENTRY_ENQUEUED;
-			}
-		}
-
 		/* Send the ETH frame */
 		/*true function that sends data to the transceiver*/
 		eErrorGmac = Gmac_Ip_SendFrame(INST_GMAC_0, 0U, &TxBuffer, &TxOptions);
@@ -536,10 +524,22 @@ gptp_err_type_t GPTP_PORT_MsgSend(uint8_t u8Port,
 			if(GMAC_STATUS_SUCCESS == eErrorGmac){
 				/*add buffer in bufferQueue to be free after sending completion*/
 				DescrBuffer newBuffItem = { .Data = TxBuffer.Data, .Length = TxBuffer.Length, .ring = 0U, .inUse = TRUE};
-				for(uint8 index = 0; index < MAX_TX_PENDING; index++){
-					if(!bufferQueue[index].inUse){
-						bufferQueue[index] = newBuffItem;
+				for(seBuffIdx = 0; seBuffIdx < MAX_TX_PENDING; seBuffIdx++){
+					if(!bufferQueue[seBuffIdx].inUse){
+						bufferQueue[seBuffIdx] = newBuffItem;
 						break;
+					}
+				}
+
+				if(true == cprTxData->bTsRequested){
+					/*capture timestamp of egress ehternet frame associated with buffIdx*/
+					/*already enabled in gmac initialization*/
+					if(NULL != cprTxData->prFrameMap){
+						/*store frame metadata before transmission.
+						 * Timestamp in metada is inserted in TxConfirmation.*/
+						cprTxData->prFrameMap->u8PtpFrameId = u8FrameId;
+						cprTxData->prFrameMap->u32BufferIndex = seBuffIdx;
+						cprTxData->prFrameMap->eTsEntryStatus = GPTP_DEF_TS_MAP_ENTRY_ENQUEUED;
 					}
 				}
 			}

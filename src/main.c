@@ -600,6 +600,7 @@ int main(void)
 	uint8 timer0, timer1, annouce = 0;
 	Gmac_Ip_TimestampType srEgressTimeStamp;
 	uint16 seq_id;
+	static uint16 message_index = 0;
 	/* Initialize Clock */
 	OsIf_Init(NULL_PTR);
 
@@ -736,6 +737,10 @@ int main(void)
 				if(Task_Flag_2mS){
 					Task_Flag_2mS = 0;
 					Eth_PollLinkStatus();
+					for(int i=0; i<128; i+=2)
+						udpFrame128[14+20+8+i] = (uint8_t)(message_index & 0xFFFF);
+					message_index++;
+					send_eth_frame_lld(&customMessage_UDP_128);
 					//Eth_Poll();
 					//if(timestamp.seconds < old_timestamp.seconds)
 						//printf("old 2ms TS: %u s %u ns, new TS: %u s %u ns\r\n", old_timestamp.seconds,old_timestamp.seconds, timestamp.nanoseconds,timestamp.nanoseconds);
