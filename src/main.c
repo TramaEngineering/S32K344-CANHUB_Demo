@@ -64,6 +64,8 @@ QueueHandle_t tx_queue_send;
 Gmac_Ip_TimestampType timestamp;
 Gmac_Ip_TimestampType old_timestamp;
 uint8 polling;
+uint8 send_dummy = 0;
+uint8 send_200 = 0;
 
 const char* buttonMsg = "CANHUBK3";
 
@@ -183,22 +185,23 @@ void HardFault_Handler(void)
 
 void button_sw1(void)
 {
-	/* Send CAN Frame to the CAN0 device */
-	//set_rgb_status(INITIALIZE);
-	/*if( xQueueSendFromISR( eth_can_queues[0],
-			( void * ) &buttonCanFrame,	NULL))
-	{
-		// Failed queue CAN frame drop packet
-	}*/
+	send_dummy = ! send_dummy;
+	if(send_dummy)
+		printf("Send dummy active\r\n!");
+	else
+		printf("Send dummy not active\r\n!");
 }
 
 void button_sw2_ethernet(void)
 {
+	if(send_dummy){
+		send_200 = ! send_200;
+		if(send_200)
+			printf("Send 200us\r\n!");
+		else
+			printf("Send send 1ms\r\n!");
+	}
 
-	//if(xQueueSendFromISR(tx_queue_send, &pDelayResp, NULL)){
-			/*the thread has fail to send the message after 10 tick so there will be some error*/
-			/*put led blinking on a certain way*/
-		//}
 }
 
 //void button_sw2(void)
@@ -600,7 +603,7 @@ int main(void)
 	uint8 timer0, timer1, annouce = 0;
 	Gmac_Ip_TimestampType srEgressTimeStamp;
 	uint16 seq_id;
-	static uint16 message_index = 0;
+	static uint32 message_index = 0;
 	/* Initialize Clock */
 	OsIf_Init(NULL_PTR);
 
@@ -732,20 +735,31 @@ int main(void)
 				}
 				if(Task_Flag_200uS){
 					Task_Flag_200uS = 0;
+					if(send_dummy && send_200){
+						for(int i=0; i<128; i+=4)
+							udpFrame128[18+20+8+i] = (uint8_t)(message_index & 0xFFFFFFFF);
+						message_index++;
+						send_eth_frame_lld(&customMessage_UDP_128);
+					}
 					Eth_Poll();
 				}
 				if(Task_Flag_2mS){
 					Task_Flag_2mS = 0;
 					Eth_PollLinkStatus();
-					for(int i=0; i<128; i+=2)
-						udpFrame128[14+20+8+i] = (uint8_t)(message_index & 0xFFFF);
-					message_index++;
-					send_eth_frame_lld(&customMessage_UDP_128);
 					//Eth_Poll();
 					//if(timestamp.seconds < old_timestamp.seconds)
 						//printf("old 2ms TS: %u s %u ns, new TS: %u s %u ns\r\n", old_timestamp.seconds,old_timestamp.seconds, timestamp.nanoseconds,timestamp.nanoseconds);
 					/* Add task call for 1ms interval */
 
+				}
+				if(Task_Flag_1mS){
+					Task_Flag_1mS = 0;
+					if(send_dummy && !send_200){
+						for(int i=0; i<128; i+=4)
+							udpFrame128[18+20+8+i] = (uint8_t)(message_index & 0xFFFFFFFF);
+						message_index++;
+						send_eth_frame_lld(&customMessage_UDP_128);
+					}
 				}
 				if(Task_Flag_10mS){
 					Task_Flag_10mS = 0;

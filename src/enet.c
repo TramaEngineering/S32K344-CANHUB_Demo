@@ -40,7 +40,7 @@
 #define TJA1103_DEV_ID 				(0x001BU)
 #define RGMII_SUPPORTED 			(0U)
 #define CFG_PHY_CTRL_IDX        	(0U)
-#define VLAN_ACTIVE					(0U)
+#define VLAN_ACTIVE					(1U)
 
 /* MMDs */
 #define PHYAD                       18
@@ -273,7 +273,9 @@ uint8_t udpFrame128[14 + 20 + 8 + 128] = {
     // Ethernet header (14B)
     0x10,0x11,0x22,0x88,0x88,0x88,  // Dest MAC
     0x66,0x55,0x44,0x33,0x22,0x11,  // Src MAC
-    0x08,0x00,                      // EtherType = IPv4
+	0x81,0x00,                        // EtherType = VLAN
+	0x40,0x02,						//priotity-DEI-ID
+	0x08,0x00,						//Ethertype = IPv4
 
     // IPv4 header (20B)
     0x45, 0x00, 0x00, 0x9C,  // Total length = 20+8+128 = 156 = 0x009C
@@ -283,13 +285,13 @@ uint8_t udpFrame128[14 + 20 + 8 + 128] = {
 
     // UDP header (8B)
     0x12,0x34,0x34,0x12,  // Src/Dst port
-    0x00,0x90,0x00,0x00,  // Length = 8 + 128 = 136 = 0x0088
+    0x00,0x88,0x00,0x00,  // Length = 8 + 128 = 136 = 0x0088
                            // Checksum 0
 
     // Payload 128B
     // esempio con pattern incrementale
 };
-Gmac_Ip_BufferType customMessage_UDP_128 = { .Data = udpFrame128, .Length = 14 + 20 + 8 + 128 };
+Gmac_Ip_BufferType customMessage_UDP_128 = { .Data = udpFrame128, .Length = 18 + 20 + 8 + 128 };
 
 Gmac_Ip_BufferType customMessage_ipv4 = { .Data = customIPv4Frame, .Length = 60/*54*/ };
 
