@@ -269,7 +269,51 @@ uint8_t customIPv4Frame[] = {
 };
 
 // --- Frame UDP con 128B payload ---
-uint8_t udpFrame128[14 + 20 + 8 + 128] = {
+uint8_t udpFrame128[18 + 20 + 8 + 128] = {
+    // Ethernet header (14B)
+    0x10,0x11,0x22,0x88,0x88,0x88,  // Dest MAC
+    0x66,0x55,0x44,0x33,0x22,0x11,  // Src MAC
+	0x81,0x00,                        // EtherType = VLAN
+	0x40,0x02,						//priotity-DEI-ID
+	0x08,0x00,						//Ethertype = IPv4
+
+    // IPv4 header (20B)
+    0x45, 0x00, 0x00, 0x9C,  // Total length = 20+8+128 = 156 = 0x009C
+    0x00,0x01, 0x40,0x00, 0x40,0x11, 0xB8,0x53,
+    0xC0,0xA8,0x00,0x01,  // Src IP
+    0xC0,0xA8,0x00,0x02,  // Dst IP
+
+    // UDP header (8B)
+    0x12,0x34,0x34,0x12,  // Src/Dst port
+    0x00,0x88,0x00,0x00,  // Length = 8 + 128 = 136 = 0x0088
+                           // Checksum 0
+
+    // Payload 128B
+    // esempio con pattern incrementale
+};
+uint8_t udpFrame512[18 + 20 + 8 + 512] = {
+    // Ethernet header (14B)
+    0x10,0x11,0x22,0x88,0x88,0x88,  // Dest MAC
+    0x66,0x55,0x44,0x33,0x22,0x11,  // Src MAC
+	0x81,0x00,                        // EtherType = VLAN
+	0x40,0x02,						//priotity-DEI-ID
+	0x08,0x00,						//Ethertype = IPv4
+
+    // IPv4 header (20B)
+    0x45, 0x00, 0x00, 0x9C,  // Total length = 20+8+128 = 156 = 0x009C
+    0x00,0x01, 0x40,0x00, 0x40,0x11, 0xB8,0x53,
+    0xC0,0xA8,0x00,0x01,  // Src IP
+    0xC0,0xA8,0x00,0x02,  // Dst IP
+
+    // UDP header (8B)
+    0x12,0x34,0x34,0x12,  // Src/Dst port
+    0x00,0x88,0x00,0x00,  // Length = 8 + 128 = 136 = 0x0088
+                           // Checksum 0
+
+    // Payload 128B
+    // esempio con pattern incrementale
+};
+uint8_t udpFrame1400[18 + 20 + 8 + 1400] = {
     // Ethernet header (14B)
     0x10,0x11,0x22,0x88,0x88,0x88,  // Dest MAC
     0x66,0x55,0x44,0x33,0x22,0x11,  // Src MAC
@@ -292,6 +336,8 @@ uint8_t udpFrame128[14 + 20 + 8 + 128] = {
     // esempio con pattern incrementale
 };
 Gmac_Ip_BufferType customMessage_UDP_128 = { .Data = udpFrame128, .Length = 18 + 20 + 8 + 128 };
+Gmac_Ip_BufferType customMessage_UDP_512 = { .Data = udpFrame128, .Length = 18 + 20 + 8 + 512 };
+Gmac_Ip_BufferType customMessage_UDP_1400 = { .Data = udpFrame128, .Length = 18 + 20 + 8 + 1400 };
 
 Gmac_Ip_BufferType customMessage_ipv4 = { .Data = customIPv4Frame, .Length = 60/*54*/ };
 
@@ -1092,7 +1138,7 @@ Gmac_Ip_StatusType send_eth_frame_lld(Gmac_Ip_BufferType* eth_message){
 	if(GMAC_STATUS_SUCCESS == eERROR && TxBuffer.Data != NULL && TxBuffer.Length >= eth_message->Length){
 
 	memcpy(TxBuffer.Data, eth_message->Data, eth_message->Length);
-	TxBuffer.Length = eth_message->Length;
+	//TxBuffer.Length = eth_message->Length;
 
 	/* Send the ETH frame */
 	/*true function that sends data to the transceiver*/

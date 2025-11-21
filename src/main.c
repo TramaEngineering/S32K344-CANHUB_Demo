@@ -64,8 +64,9 @@ QueueHandle_t tx_queue_send;
 Gmac_Ip_TimestampType timestamp;
 Gmac_Ip_TimestampType old_timestamp;
 uint8 polling;
-uint8 send_dummy = 0;
-uint8 send_200 = 0;
+uint16 send_dummy = 0;
+uint16 send_fr = 1;
+Gmac_Ip_BufferType * customMessage_UDP;
 
 const char* buttonMsg = "CANHUBK3";
 
@@ -185,22 +186,96 @@ void HardFault_Handler(void)
 
 void button_sw1(void)
 {
-	send_dummy = ! send_dummy;
-	if(send_dummy)
-		printf("Send dummy active\r\n!");
-	else
-		printf("Send dummy not active\r\n!");
+	switch(send_dummy){
+		case 0:
+			send_dummy = 128;
+			customMessage_UDP = &customMessage_UDP_128;
+			printf("Send dummy 128 B\r\n!");
+		break;
+		case 128:
+			send_dummy = 512;
+			customMessage_UDP = &customMessage_UDP_512;
+			printf("Send dummy 512 B\r\n!");
+		break;
+		case 512:
+			send_dummy = 1400;
+			customMessage_UDP = &customMessage_UDP_1400;
+			printf("Send dummy 1400 B\r\n!");
+		break;
+		case 1400:
+			send_dummy = 0;
+			printf("Send dummy not active\r\n!");
+		break;
+		default:
+			send_dummy = 0;
+			printf("Send dummy not active\r\n!");
+		break;
+	}
+	if(send_dummy != 0){
+		switch(send_fr){
+				case 1:
+					printf("Send dummy 1 ms\r\n!");
+				break;
+				case 200:
+					printf("Send dummy 200 us\r\n!");
+				break;
+				case 100:
+					printf("Send dummy 100 us B\r\n!");
+				break;
+				case 50:
+					printf("Send dummy 50 us\r\n!");
+				break;
+				default:
+					printf("Send dummy not active\r\n!");
+				break;
+			}
+	}
 }
 
 void button_sw2_ethernet(void)
 {
-	if(send_dummy){
-		send_200 = ! send_200;
-		if(send_200)
-			printf("Send 200us\r\n!");
-		else
-			printf("Send send 1ms\r\n!");
+	if(send_dummy != 0){
+		switch(send_dummy){
+			case 0:
+				printf("Send dummy not active\r\n!");
+			break;
+			case 128:
+				printf("Send dummy 128 B\r\n!");
+			break;
+			case 512:
+				printf("Send dummy 512 B\r\n!");
+			break;
+			case 1400:
+				printf("Send dummy 1400 B\r\n!");
+			break;
+			default:
+				printf("Send dummy not active\r\n!");
+			break;
+		}
+		switch(send_fr){
+			case 1:
+				send_fr = 200;
+				printf("Send dummy 200 ms\r\n!");
+			break;
+			case 200:
+				send_fr = 100;
+				printf("Send dummy 100 us\r\n!");
+			break;
+			case 100:
+				send_fr = 50;
+				printf("Send dummy 50 us B\r\n!");
+			break;
+			case 50:
+				send_fr = 1;
+				printf("Send dummy 1 ms\r\n!");
+			break;
+			default:
+				send_fr = 1;
+				printf("Send dummy 1 ms\r\n!");
+			break;
+		}
 	}
+
 
 }
 
@@ -728,52 +803,71 @@ int main(void)
 	for( ;; ){
 #ifdef NO_FREERTOS
 		timer0 = Task_Flag_Cnt;
-				if(annouce == 0){
-					//send_eth_frame_lld(&pDelayReq);
-					send_eth_frame_lld(&arpAnnouce);
-					annouce = 1;
-				}
-				if(Task_Flag_200uS){
-					Task_Flag_200uS = 0;
-					if(send_dummy && send_200){
-						for(int i=0; i<128; i+=4)
-							udpFrame128[18+20+8+i] = (uint8_t)(message_index & 0xFFFFFFFF);
-						message_index++;
-						send_eth_frame_lld(&customMessage_UDP_128);
-					}
-					Eth_Poll();
-				}
-				if(Task_Flag_2mS){
-					Task_Flag_2mS = 0;
-					Eth_PollLinkStatus();
-					//Eth_Poll();
-					//if(timestamp.seconds < old_timestamp.seconds)
-						//printf("old 2ms TS: %u s %u ns, new TS: %u s %u ns\r\n", old_timestamp.seconds,old_timestamp.seconds, timestamp.nanoseconds,timestamp.nanoseconds);
-					/* Add task call for 1ms interval */
+		if(annouce == 0){
+			//send_eth_frame_lld(&pDelayReq);
+			send_eth_frame_lld(&arpAnnouce);
+			annouce = 1;
+		}
+		if(Task_Flag_50uS){
+			Task_Flag_50uS = 0;
+			if((send_dummy != 0) && send_fr == 50){
+				for(int i=0; i<send_dummy; i+=4)
+					udpFrame128[18+20+8+i] = (uint8_t)(message_index & 0xFFFFFFFF);
+				message_index++;
+				send_eth_frame_lld(customMessage_UDP);
+			}
+		}
+		if(Task_Flag_100uS){
+			//Eth_Poll();
+			Task_Flag_100uS = 0;
+			if((send_dummy != 0) && send_fr == 100){
+				for(int i=0; i<send_dummy; i+=4)
+					udpFrame128[18+20+8+i] = (uint8_t)(message_index & 0xFFFFFFFF);
+				message_index++;
+				send_eth_frame_lld(customMessage_UDP);
+			}
+		}
+		if(Task_Flag_200uS){
+			Task_Flag_200uS = 0;
+			if((send_dummy != 0) && send_fr == 200){
+				for(int i=0; i<send_dummy; i+=4)
+					udpFrame128[18+20+8+i] = (uint8_t)(message_index & 0xFFFFFFFF);
+				message_index++;
+				send_eth_frame_lld(customMessage_UDP);
+			}
+			Eth_Poll();
+		}
+		if(Task_Flag_2mS){
+			Task_Flag_2mS = 0;
+			Eth_PollLinkStatus();
+			//Eth_Poll();
+			//if(timestamp.seconds < old_timestamp.seconds)
+				//printf("old 2ms TS: %u s %u ns, new TS: %u s %u ns\r\n", old_timestamp.seconds,old_timestamp.seconds, timestamp.nanoseconds,timestamp.nanoseconds);
+			/* Add task call for 1ms interval */
 
-				}
-				if(Task_Flag_1mS){
-					Task_Flag_1mS = 0;
-					if(send_dummy && !send_200){
-						for(int i=0; i<128; i+=4)
-							udpFrame128[18+20+8+i] = (uint8_t)(message_index & 0xFFFFFFFF);
-						message_index++;
-						send_eth_frame_lld(&customMessage_UDP_128);
-					}
-				}
-				if(Task_Flag_10mS){
-					Task_Flag_10mS = 0;
-					//get_ts_ingress_data(&srEgressTimeStamp, seq_id);
-					//printf("difference 1ms %u s %u ns\r\n", timestamp.seconds/*-old_timestamp.seconds*/, timestamp.nanoseconds/*-old_timestamp.nanoseconds*/);
-					GPTP_TimerPeriodic();
-				}
-				if(Task_Flag_1000mS){
-					Task_Flag_1000mS = 0;
-					//send_eth_frame_lld(&customMessage_ipv4);
-				}
+		}
+		if(Task_Flag_1mS){
+			Task_Flag_1mS = 0;
+			if((send_dummy != 0) && send_fr == 1){
+				for(int i=0; i<send_dummy; i+=4)
+					udpFrame128[18+20+8+i] = (uint8_t)(message_index & 0xFFFFFFFF);
+				message_index++;
+				send_eth_frame_lld(customMessage_UDP);
+			}
+		}
+		if(Task_Flag_10mS){
+			Task_Flag_10mS = 0;
+			//get_ts_ingress_data(&srEgressTimeStamp, seq_id);
+			//printf("difference 1ms %u s %u ns\r\n", timestamp.seconds/*-old_timestamp.seconds*/, timestamp.nanoseconds/*-old_timestamp.nanoseconds*/);
+			GPTP_TimerPeriodic();
+		}
+		if(Task_Flag_1000mS){
+			Task_Flag_1000mS = 0;
+			//send_eth_frame_lld(&customMessage_ipv4);
+		}
 
 
-				timer1 = Task_Flag_Cnt;
+		timer1 = Task_Flag_Cnt;
 
 #endif
 	}
