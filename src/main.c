@@ -67,6 +67,7 @@ uint8 polling;
 uint16 send_dummy = 0;
 uint16 send_fr = 1;
 Gmac_Ip_BufferType * customMessage_UDP;
+uint8_t * udpFrame;
 
 const char* buttonMsg = "CANHUBK3";
 
@@ -190,16 +191,19 @@ void button_sw1(void)
 		case 0:
 			send_dummy = 128;
 			customMessage_UDP = &customMessage_UDP_128;
+			udpFrame = udpFrame128;
 			printf("Send dummy 128 B\r\n!");
 		break;
 		case 128:
 			send_dummy = 512;
 			customMessage_UDP = &customMessage_UDP_512;
+			udpFrame = udpFrame512;
 			printf("Send dummy 512 B\r\n!");
 		break;
 		case 512:
 			send_dummy = 1400;
 			customMessage_UDP = &customMessage_UDP_1400;
+			udpFrame = udpFrame1400;
 			printf("Send dummy 1400 B\r\n!");
 		break;
 		case 1400:
@@ -803,6 +807,8 @@ int main(void)
 	for( ;; ){
 #ifdef NO_FREERTOS
 		timer0 = Task_Flag_Cnt;
+
+
 		if(annouce == 0){
 			//send_eth_frame_lld(&pDelayReq);
 			send_eth_frame_lld(&arpAnnouce);
@@ -811,18 +817,27 @@ int main(void)
 		if(Task_Flag_50uS){
 			Task_Flag_50uS = 0;
 			if((send_dummy != 0) && send_fr == 50){
-				for(int i=0; i<send_dummy; i+=4)
-					udpFrame128[18+20+8+i] = (uint8_t)(message_index & 0xFFFFFFFF);
+				for(uint16 i=0; i<send_dummy; i+=4){
+					udpFrame[18+20+8+i + 0] = (uint8_t)(message_index & 0xFF);
+					udpFrame[18+20+8+i + 1] = (uint8_t)((message_index >> 8) & 0xFF);
+					udpFrame[18+20+8+i + 2] = (uint8_t)((message_index >> 16) & 0xFF);
+					udpFrame[18+20+8+i + 3] = (uint8_t)((message_index >> 24) & 0xFF);
+				}
 				message_index++;
 				send_eth_frame_lld(customMessage_UDP);
 			}
+			Eth_Poll();
 		}
 		if(Task_Flag_100uS){
-			//Eth_Poll();
+			Eth_Poll();
 			Task_Flag_100uS = 0;
 			if((send_dummy != 0) && send_fr == 100){
-				for(int i=0; i<send_dummy; i+=4)
-					udpFrame128[18+20+8+i] = (uint8_t)(message_index & 0xFFFFFFFF);
+				for(uint16 i=0; i<send_dummy; i+=4){
+					udpFrame[18+20+8+i + 0] = (uint8_t)(message_index & 0xFF);
+					udpFrame[18+20+8+i + 1] = (uint8_t)((message_index >> 8) & 0xFF);
+					udpFrame[18+20+8+i + 2] = (uint8_t)((message_index >> 16) & 0xFF);
+					udpFrame[18+20+8+i + 3] = (uint8_t)((message_index >> 24) & 0xFF);
+				}
 				message_index++;
 				send_eth_frame_lld(customMessage_UDP);
 			}
@@ -830,12 +845,15 @@ int main(void)
 		if(Task_Flag_200uS){
 			Task_Flag_200uS = 0;
 			if((send_dummy != 0) && send_fr == 200){
-				for(int i=0; i<send_dummy; i+=4)
-					udpFrame128[18+20+8+i] = (uint8_t)(message_index & 0xFFFFFFFF);
+				for(uint16 i=0; i<send_dummy; i+=4){
+					udpFrame[18+20+8+i + 0] = (uint8_t)(message_index & 0xFF);
+					udpFrame[18+20+8+i + 1] = (uint8_t)((message_index >> 8) & 0xFF);
+					udpFrame[18+20+8+i + 2] = (uint8_t)((message_index >> 16) & 0xFF);
+					udpFrame[18+20+8+i + 3] = (uint8_t)((message_index >> 24) & 0xFF);
+				}
 				message_index++;
 				send_eth_frame_lld(customMessage_UDP);
 			}
-			Eth_Poll();
 		}
 		if(Task_Flag_2mS){
 			Task_Flag_2mS = 0;
@@ -849,8 +867,12 @@ int main(void)
 		if(Task_Flag_1mS){
 			Task_Flag_1mS = 0;
 			if((send_dummy != 0) && send_fr == 1){
-				for(int i=0; i<send_dummy; i+=4)
-					udpFrame128[18+20+8+i] = (uint8_t)(message_index & 0xFFFFFFFF);
+				for(uint16 i=0; i<send_dummy; i+=4){
+					udpFrame[18+20+8+i + 0] = (uint8_t)(message_index);
+					udpFrame[18+20+8+i + 1] = (uint8_t)((message_index >> 8) & 0xFF);
+					udpFrame[18+20+8+i + 2] = (uint8_t)((message_index >> 16) & 0xFF);
+					udpFrame[18+20+8+i + 3] = (uint8_t)((message_index >> 24) & 0xFF);
+				}
 				message_index++;
 				send_eth_frame_lld(customMessage_UDP);
 			}

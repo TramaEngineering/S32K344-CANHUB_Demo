@@ -109,18 +109,18 @@ extern "C"{
 
 /* Maximum number of configured buffers for a Tx Ring */
 #ifndef GMAC_0_MAX_TXBUFF_SUPPORTED
-    #define GMAC_0_MAX_TXBUFF_SUPPORTED    (10U)
-#elif (GMAC_0_MAX_TXBUFF_SUPPORTED < 10)
+    #define GMAC_0_MAX_TXBUFF_SUPPORTED    (20U)
+#elif (GMAC_0_MAX_TXBUFF_SUPPORTED < 20)
     #undef GMAC_0_MAX_TXBUFF_SUPPORTED
-    #define GMAC_0_MAX_TXBUFF_SUPPORTED    (10U) 
+    #define GMAC_0_MAX_TXBUFF_SUPPORTED    (20U) 
 #endif
 
 /* Maximum number of configured buffers for an Rx Ring */
 #ifndef GMAC_0_MAX_RXBUFF_SUPPORTED
-    #define GMAC_0_MAX_RXBUFF_SUPPORTED    (10U)
-#elif (GMAC_0_MAX_RXBUFF_SUPPORTED < 10)
+    #define GMAC_0_MAX_RXBUFF_SUPPORTED    (15U)
+#elif (GMAC_0_MAX_RXBUFF_SUPPORTED < 15)
     #undef GMAC_0_MAX_RXBUFF_SUPPORTED
-    #define GMAC_0_MAX_RXBUFF_SUPPORTED    (10U) 
+    #define GMAC_0_MAX_RXBUFF_SUPPORTED    (15U) 
 #endif
 
 /* Maximum length of a single buffer across all Tx Rings */
@@ -133,10 +133,10 @@ extern "C"{
 
 /* Maximum length of a single buffer across all Rx Rings */
 #ifndef GMAC_0_MAX_RXBUFFLEN_SUPPORTED
-    #define GMAC_0_MAX_RXBUFFLEN_SUPPORTED    (1536U)
-#elif (GMAC_0_MAX_RXBUFFLEN_SUPPORTED < 1536)
+    #define GMAC_0_MAX_RXBUFFLEN_SUPPORTED    (256U)
+#elif (GMAC_0_MAX_RXBUFFLEN_SUPPORTED < 256)
     #undef GMAC_0_MAX_RXBUFFLEN_SUPPORTED
-    #define GMAC_0_MAX_RXBUFFLEN_SUPPORTED    (1536U) 
+    #define GMAC_0_MAX_RXBUFFLEN_SUPPORTED    (256U) 
 #endif
 
 /*==================================================================================================
