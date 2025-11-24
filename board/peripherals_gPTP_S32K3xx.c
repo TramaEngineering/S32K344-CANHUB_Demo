@@ -75,7 +75,7 @@ instance:
       - f64RratioMaxDev: '0.01'
       - f64PdelayNvmWriteThr: '40'
       - f64RratioNvmWriteThr: '0.0000001'
-      - bVlanEnabled: 'true'
+      - bVlanEnabled: 'false'
       - u16VlanTci:
         - u16VlanTci_PCP: '7'
         - u16VlanTci_DEI: 'false'
@@ -300,7 +300,7 @@ gptp_def_init_params_t                  rGptpCfgParams =
     .paPort = sarPort,
     .paDomain = sarDomain,
     .paPdelay = sarPdelay,
-    .bVlanEnabled = true,
+    .bVlanEnabled = false,
     .u16VlanTci = (uint16_t)((7u << 13u) | (0u << 12u) | (1u)),
     .rPIControllerConfig.u32IntegralWindupLimit = 100000u,
     .rPIControllerConfig.f64DampingRatio = 1.0,

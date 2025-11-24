@@ -2700,7 +2700,7 @@
                            <setting name="f64RratioMaxDev" value="0.01"/>
                            <setting name="f64PdelayNvmWriteThr" value="40"/>
                            <setting name="f64RratioNvmWriteThr" value="0.0000001"/>
-                           <setting name="bVlanEnabled" value="true"/>
+                           <setting name="bVlanEnabled" value="false"/>
                            <struct name="u16VlanTci">
                               <setting name="u16VlanTci_PCP" value="7"/>
                               <setting name="u16VlanTci_DEI" value="false"/>

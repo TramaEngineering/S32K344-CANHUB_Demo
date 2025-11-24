@@ -40,7 +40,7 @@
 #define TJA1103_DEV_ID 				(0x001BU)
 #define RGMII_SUPPORTED 			(0U)
 #define CFG_PHY_CTRL_IDX        	(0U)
-#define VLAN_ACTIVE					(1U)
+#define VLAN_ACTIVE					(0U)
 
 /* MMDs */
 #define PHYAD                       18
@@ -268,13 +268,14 @@ uint8_t customIPv4Frame[] = {
 		0xDE,0xAD,0xBE,0xEF,0xCA,0xFE,0xBA,0xBE
 };
 
+/* VLAN
 // --- Frame UDP con 128B payload ---
 uint8_t udpFrame128[18 + 20 + 8 + 128] = {
     // Ethernet header (14B)
     0x10,0x11,0x22,0x88,0x88,0x88,  // Dest MAC
     0x66,0x55,0x44,0x33,0x22,0x11,  // Src MAC
 	0x81,0x00,                        // EtherType = VLAN
-	0x40,0x02,						//priotity-DEI-ID
+	0x40,0x01,						//priotity-DEI-ID
 	0x08,0x00,						//Ethertype = IPv4
 
     // IPv4 header (20B)
@@ -296,7 +297,7 @@ uint8_t udpFrame512[18 + 20 + 8 + 512] = {
     0x10,0x11,0x22,0x88,0x88,0x88,  // Dest MAC
     0x66,0x55,0x44,0x33,0x22,0x11,  // Src MAC
 	0x81,0x00,                        // EtherType = VLAN
-	0x40,0x02,						//priotity-DEI-ID
+	0x40,0x01,						//priotity-DEI-ID
 	0x08,0x00,						//Ethertype = IPv4
 
     // IPv4 header (20B)
@@ -318,7 +319,7 @@ uint8_t udpFrame1400[18 + 20 + 8 + 1400] = {
     0x10,0x11,0x22,0x88,0x88,0x88,  // Dest MAC
     0x66,0x55,0x44,0x33,0x22,0x11,  // Src MAC
 	0x81,0x00,                        // EtherType = VLAN
-	0x40,0x02,						//priotity-DEI-ID
+	0x40,0x01,						//priotity-DEI-ID
 	0x08,0x00,						//Ethertype = IPv4
 
     // IPv4 header (20B)
@@ -335,9 +336,81 @@ uint8_t udpFrame1400[18 + 20 + 8 + 1400] = {
     // Payload 128B
     // esempio con pattern incrementale
 };
+
 Gmac_Ip_BufferType customMessage_UDP_128 = { .Data = udpFrame128, .Length = 18 + 20 + 8 + 128 };
 Gmac_Ip_BufferType customMessage_UDP_512 = { .Data = udpFrame512, .Length = 18 + 20 + 8 + 512 };
-Gmac_Ip_BufferType customMessage_UDP_1400 = { .Data = udpFrame1400, .Length = 18 + 20 + 8 + 1400 };
+Gmac_Ip_BufferType customMessage_UDP_1400 = { .Data = udpFrame1400, .Length = 18 + 20 + 8 + 1400 };*/
+
+uint8_t udpFrame128[14 + 20 + 8 + 128] = {
+    // Ethernet header (16B)
+    0x10,0x11,0x22,0x88,0x88,0x88,  // Dest MAC
+    0x66,0x55,0x44,0x33,0x22,0x11,  // Src MAC
+	0x08,0x00,                        // EtherType = VLAN
+	/*0x40,0x01,						//priotity-DEI-ID
+	0x08,0x00,						//Ethertype = IPv4*/
+
+    // IPv4 header (20B)
+    0x45, 0x00, 0x00, 0x9C,  // Total length = 20+8+128 = 152 = 0x009c
+    0x00,0x01, 0x40,0x00, 0x40,0x11, 0xB8,0x53,
+    0xC0,0xA8,0x00,0x01,  // Src IP
+    0xC0,0xA8,0x00,0x02,  // Dst IP
+
+    // UDP header (8B)
+    0x12,0x34,0x34,0x12,  // Src/Dst port
+    0x00,0x88,0x00,0x00,  // Length = 8 + 128 = 136 = 0x0088
+                           // Checksum 0
+
+    // Payload 128B
+    // esempio con pattern incrementale
+};
+uint8_t udpFrame512[14 + 20 + 8 + 512] = {
+    // Ethernet header (16B)
+    0x10,0x11,0x22,0x88,0x88,0x88,  // Dest MAC
+    0x66,0x55,0x44,0x33,0x22,0x11,  // Src MAC
+	0x08,0x00,                        // EtherType = VLAN
+	/*0x40,0x01,						//priotity-DEI-ID
+	0x08,0x00,						//Ethertype = IPv4*/
+
+    // IPv4 header (20B)
+    0x45, 0x00, 0x02, 0x1C,  // Total length = 20+8+512 = 540 = 0x021C
+    0x00,0x01, 0x40,0x00, 0x40,0x11, 0xB8,0x53,
+    0xC0,0xA8,0x00,0x01,  // Src IP
+    0xC0,0xA8,0x00,0x02,  // Dst IP
+
+    // UDP header (8B)
+    0x12,0x34,0x34,0x12,  // Src/Dst port
+    0x02,0x08,0x00,0x00,  // Length = 8 + 512 = 520 = 0x0208
+                           // Checksum 0
+
+    // Payload 128B
+    // esempio con pattern incrementale
+};
+uint8_t udpFrame1400[14 + 20 + 8 + 1400] = {
+    // Ethernet header (16B)
+    0x10,0x11,0x22,0x88,0x88,0x88,  // Dest MAC
+    0x66,0x55,0x44,0x33,0x22,0x11,  // Src MAC
+	0x08,0x00,                        // EtherType = VLAN
+	/*0x40,0x01,						//priotity-DEI-ID
+	0x08,0x00,						//Ethertype = IPv4*/
+
+    // IPv4 header (20B)
+    0x45, 0x00, 0x05, 0x94,  // Total length = 20+8+1400 = 1428 = 0x0590
+    0x00,0x01, 0x40,0x00, 0x40,0x11, 0xB8,0x53,
+    0xC0,0xA8,0x00,0x01,  // Src IP
+    0xC0,0xA8,0x00,0x02,  // Dst IP
+
+    // UDP header (8B)
+    0x12,0x34,0x34,0x12,  // Src/Dst port
+    0x05,0x80,0x00,0x00,  // Length = 8 + 1400 = 1408 = 0x0580
+                           // Checksum 0
+
+    // Payload 128B
+    // esempio con pattern incrementale
+};
+
+Gmac_Ip_BufferType customMessage_UDP_128 = { .Data = udpFrame128, .Length = 14 + 20 + 8 + 128 };
+Gmac_Ip_BufferType customMessage_UDP_512 = { .Data = udpFrame512, .Length = 14 + 20 + 8 + 512 };
+Gmac_Ip_BufferType customMessage_UDP_1400 = { .Data = udpFrame1400, .Length = 14 + 20 + 8 + 1400 };
 
 Gmac_Ip_BufferType customMessage_ipv4 = { .Data = customIPv4Frame, .Length = 60/*54*/ };
 

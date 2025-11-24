@@ -64,9 +64,12 @@ extern uint8 residence_frame[48];
 
 extern uint8 pDelayResp_frame[68];
 extern uint8 button_eth_frame[80];
-extern uint8_t udpFrame128[18 + 20 + 8 + 128];
+/*extern uint8_t udpFrame128[18 + 20 + 8 + 128];
 extern uint8_t udpFrame512[18 + 20 + 8 + 512];
-extern uint8_t udpFrame1400[18 + 20 + 8 + 1400];
+extern uint8_t udpFrame1400[18 + 20 + 8 + 1400];*/
+extern uint8_t udpFrame128[14 + 20 + 8 + 128];
+extern uint8_t udpFrame512[14 + 20 + 8 + 512];
+extern uint8_t udpFrame1400[14 + 20 + 8 + 1400];
 
 extern Gmac_Ip_BufferType arpAnnouce;
 extern Gmac_Ip_BufferType pDelayResp;

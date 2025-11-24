@@ -187,6 +187,20 @@ void HardFault_Handler(void)
 
 void button_sw1(void)
 {
+	/*if(send_dummy == 0){
+		send_dummy = 512;
+		customMessage_UDP = &customMessage_UDP_512;
+		udpFrame = udpFrame512;
+		printf("Send dummy 512 B\r\n!");
+		send_fr = 50;
+		printf("Send dummy 50 us B\r\n!");
+	}
+	else{
+		send_dummy = 0;
+		printf("Send dummy off!!\r\n!");
+	}*/
+
+
 	switch(send_dummy){
 		case 0:
 			send_dummy = 128;
@@ -209,6 +223,8 @@ void button_sw1(void)
 		case 1400:
 			send_dummy = 0;
 			printf("Send dummy not active\r\n!");
+			/*send_dummy = 128;
+			printf("Send dummy 128 B\r\n!");*/
 		break;
 		default:
 			send_dummy = 0;
@@ -316,7 +332,7 @@ int fs26SpiTransferFunction(uint8_t *TxBuffer, uint8_t *RxBuffer, uint16_t Lengt
 }
 void link_check(uint8 channel){
 	(void) channel;
-	Siul2_Dio_Ip_TogglePins(TP31_PORT, 1<<TP31_PIN);
+	//Siul2_Dio_Ip_TogglePins(TP31_PORT, 1<<TP31_PIN);
 	//old_timestamp = timestamp;
 	//get_current_time(&timestamp);
 	/* toggle LED1 */
@@ -371,6 +387,16 @@ void link_check(uint8 channel){
 			Task_Flag_1000mS = 1;
 			Task_Flag_Cnt = 0;
 		}
+		/*if((Task_Flag_Cnt % (5*2400000)) == 0){
+				button_sw2_ethernet();
+			Task_Flag_Cnt = 0;
+		}
+		if((Task_Flag_Cnt % (2400000)) == 0){
+			if(((send_dummy==1400) && (send_fr == 100)) || ((send_dummy==1400) && (send_fr == 50)))
+				Task_Flag_Cnt += 2400000-1;
+			else
+				button_sw1();
+		}*/
 
 	return;
 }
@@ -825,6 +851,7 @@ int main(void)
 				}
 				message_index++;
 				send_eth_frame_lld(customMessage_UDP);
+				Siul2_Dio_Ip_TogglePins(TP31_PORT, 1<<TP31_PIN);
 			}
 			Eth_Poll();
 		}
